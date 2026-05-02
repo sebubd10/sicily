@@ -1,0 +1,100 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: basiccommerce
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: basiccommerce
+      MYSQL_USER: basiccommerce
+      MYSQL_PASSWORD: basiccommerce
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: Y
+      SA_PASSWORD: "BasicCommerce@2024"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+
+  auth-api:
+    build:
+      context: ..
+      dockerfile: src/services/BasicCommerce.Auth.Api/Dockerfile
+    ports:
+      - "5001:8080"
+    environment:
+      - Database__Provider=PostgreSql
+      - Database__ConnectionString=Host=postgres;Database=basiccommerce;Username=postgres;Password=postgres
+      - Jwt__SecretKey=CHANGE_ME_PRODUCTION_SECRET_KEY_MINIMUM_32_CHARS
+      - Jwt__Issuer=BasicCommerce
+      - Jwt__Audience=BasicCommerce.Clients
+    depends_on:
+      - postgres
+
+  pos-api:
+    build:
+      context: ..
+      dockerfile: src/services/BasicCommerce.Pos.Api/Dockerfile
+    ports:
+      - "5002:8080"
+    environment:
+      - Database__Provider=PostgreSql
+      - Database__ConnectionString=Host=postgres;Database=basiccommerce;Username=postgres;Password=postgres
+      - Jwt__SecretKey=CHANGE_ME_PRODUCTION_SECRET_KEY_MINIMUM_32_CHARS
+      - Jwt__Issuer=BasicCommerce
+      - Jwt__Audience=BasicCommerce.Clients
+    depends_on:
+      - postgres
+
+  backoffice-api:
+    build:
+      context: ..
+      dockerfile: src/services/BasicCommerce.Backoffice.Api/Dockerfile
+    ports:
+      - "5003:8080"
+    environment:
+      - Database__Provider=PostgreSql
+      - Database__ConnectionString=Host=postgres;Database=basiccommerce;Username=postgres;Password=postgres
+      - Jwt__SecretKey=CHANGE_ME_PRODUCTION_SECRET_KEY_MINIMUM_32_CHARS
+      - Jwt__Issuer=BasicCommerce
+      - Jwt__Audience=BasicCommerce.Clients
+    depends_on:
+      - postgres
+
+  ecommerce-api:
+    build:
+      context: ..
+      dockerfile: src/services/BasicCommerce.Ecommerce.Api/Dockerfile
+    ports:
+      - "5004:8080"
+    environment:
+      - Database__Provider=PostgreSql
+      - Database__ConnectionString=Host=postgres;Database=basiccommerce;Username=postgres;Password=postgres
+      - Jwt__SecretKey=CHANGE_ME_PRODUCTION_SECRET_KEY_MINIMUM_32_CHARS
+      - Jwt__Issuer=BasicCommerce
+      - Jwt__Audience=BasicCommerce.Clients
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
+  mysql_data:
+  sqlserver_data:
