@@ -22,6 +22,7 @@ public class BasicCommerceDbContext : DbContext
     public DbSet<StockLevel> StockLevels => Set<StockLevel>();
     public DbSet<CreditAccount> CreditAccounts => Set<CreditAccount>();
     public DbSet<CreditTransaction> CreditTransactions => Set<CreditTransaction>();
+    public DbSet<StockMovement> StockMovements => Set<StockMovement>();
     public DbSet<UserRefreshToken> UserRefreshTokens => Set<UserRefreshToken>();
 
     protected override void OnModelCreating(ModelBuilder builder)

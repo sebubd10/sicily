@@ -13,6 +13,7 @@ public interface IUnitOfWork : IDisposable
     ICategoryRepository Categories { get; }
     ICustomerRepository Customers { get; }
     ICreditAccountRepository CreditAccounts { get; }
+    IStockMovementRepository StockMovements { get; }
 
     Task<int> SaveChangesAsync(CancellationToken ct = default);
     Task BeginTransactionAsync(CancellationToken ct = default);

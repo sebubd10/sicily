@@ -20,6 +20,7 @@ public class UnitOfWork : IUnitOfWork
     public ICategoryRepository Categories { get; }
     public ICustomerRepository Customers { get; }
     public ICreditAccountRepository CreditAccounts { get; }
+    public IStockMovementRepository StockMovements { get; }
 
     public UnitOfWork(BasicCommerceDbContext db)
     {
@@ -35,6 +36,7 @@ public class UnitOfWork : IUnitOfWork
         Categories = new CategoryRepository(db);
         Customers = new CustomerRepository(db);
         CreditAccounts = new CreditAccountRepository(db);
+        StockMovements = new StockMovementRepository(db);
     }
 
     public async Task<int> SaveChangesAsync(CancellationToken ct = default) =>
