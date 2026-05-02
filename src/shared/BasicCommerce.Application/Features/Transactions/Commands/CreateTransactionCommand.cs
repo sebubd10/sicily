@@ -49,7 +49,7 @@ public class CreateTransactionCommandHandler
         new(
             Id: t.Id,
             TransactionNumber: t.TransactionNumber,
-            Status: t.Status.ToString(),
+            Status: t.TransactionStatus.ToString(),
             Type: t.Type.ToString(),
             CustomerId: t.CustomerId,
             CustomerName: customerName,
@@ -59,7 +59,7 @@ public class CreateTransactionCommandHandler
                 l.TaxRate, l.TaxAmount, l.DiscountAmount, l.LineTotal,
                 l.IsVoided, l.IsPriceOverridden)),
             Payments: t.Payments.Select(p => new PaymentResponse(
-                p.Id, p.Method.ToString(), p.Amount, p.Status.ToString(), p.GatewayReference)),
+                p.Id, p.Method.ToString(), p.Amount, p.PaymentStatus.ToString(), p.GatewayReference)),
             SubTotal: t.SubTotal,
             TaxTotal: t.TaxTotal,
             DiscountTotal: t.DiscountTotal,

@@ -1,3 +1,5 @@
+using BasicCommerce.Domain.Enums;
+
 namespace BasicCommerce.Domain.Entities;
 
 public abstract class BaseEntity
@@ -7,7 +9,7 @@ public abstract class BaseEntity
     public DateTime? UpdatedAt { get; protected set; }
     public Guid? CreatedBy { get; protected set; }
     public Guid? UpdatedBy { get; protected set; }
-    public bool IsDeleted { get; protected set; }
+    public EntityStatus Status { get; protected set; } = EntityStatus.Active;
 
     public void SetUpdated(Guid updatedBy)
     {
@@ -17,7 +19,7 @@ public abstract class BaseEntity
 
     public void SoftDelete(Guid deletedBy)
     {
-        IsDeleted = true;
+        Status = EntityStatus.Deleted;
         SetUpdated(deletedBy);
     }
 }

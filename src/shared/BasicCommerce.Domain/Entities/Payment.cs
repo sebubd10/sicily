@@ -7,7 +7,7 @@ public class Payment : TenantEntity
     public Guid TransactionId { get; private set; }
     public PaymentMethod Method { get; private set; }
     public decimal Amount { get; private set; }
-    public PaymentStatus Status { get; private set; } = PaymentStatus.Pending;
+    public PaymentStatus PaymentStatus { get; private set; } = PaymentStatus.Pending;
     public string? GatewayReference { get; private set; }
     public string? GatewayResponse { get; private set; }
     public string? MobileNumber { get; private set; }
@@ -31,14 +31,14 @@ public class Payment : TenantEntity
 
     public void Approve(string? gatewayRef = null)
     {
-        Status = PaymentStatus.Approved;
+        PaymentStatus = PaymentStatus.Approved;
         GatewayReference = gatewayRef ?? GatewayReference;
         ProcessedAt = DateTime.UtcNow;
     }
 
     public void Decline(string reason)
     {
-        Status = PaymentStatus.Declined;
+        PaymentStatus = PaymentStatus.Declined;
         DeclineReason = reason;
         ProcessedAt = DateTime.UtcNow;
     }

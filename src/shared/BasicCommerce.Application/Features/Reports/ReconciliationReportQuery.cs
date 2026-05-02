@@ -35,11 +35,11 @@ public class ReconciliationReportQueryHandler
         var transactions = await _uow.Transactions.GetForReconciliationAsync(
             tenantId, request.TerminalId, request.Date, ct);
 
-        var completed = transactions.Where(t => t.Status == TransactionStatus.Completed).ToList();
+        var completed = transactions.Where(t => t.TransactionStatus == TransactionStatus.Completed).ToList();
 
         var approvedPayments = completed
             .SelectMany(t => t.Payments)
-            .Where(p => p.Status == PaymentStatus.Approved)
+            .Where(p => p.PaymentStatus == PaymentStatus.Approved)
             .ToList();
 
         var cashSales = approvedPayments

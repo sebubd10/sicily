@@ -23,8 +23,9 @@ public class Product : TenantEntity
     public bool IsEbtEligible { get; private set; }
     public bool TrackInventory { get; private set; } = true;
     public int ReorderLevel { get; private set; }
-    public bool IsActive { get; private set; } = true;
     public string? ImageUrl { get; private set; }
+
+    public bool IsActive => Status == EntityStatus.Active;
 
     public Category? Category { get; private set; }
 
@@ -100,6 +101,15 @@ public class Product : TenantEntity
 
     public void SetPlu(string plu) => Plu = plu;
 
-    public void Deactivate() => IsActive = false;
-    public void Activate() => IsActive = true;
+    public void Deactivate()
+    {
+        Status = EntityStatus.Inactive;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void Activate()
+    {
+        Status = EntityStatus.Active;
+        UpdatedAt = DateTime.UtcNow;
+    }
 }

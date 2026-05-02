@@ -1,3 +1,5 @@
+using BasicCommerce.Domain.Enums;
+
 namespace BasicCommerce.Domain.Entities;
 
 /// <summary>
@@ -9,7 +11,8 @@ public class VatRate : TenantEntity
     public string Code { get; private set; } = default!;
     public decimal Rate { get; private set; }
     public bool IsDefault { get; private set; }
-    public bool IsActive { get; private set; } = true;
+
+    public bool IsActive => Status == EntityStatus.Active;
 
     private VatRate() { }
 
@@ -37,5 +40,9 @@ public class VatRate : TenantEntity
         UpdatedAt = DateTime.UtcNow;
     }
 
-    public void Deactivate() => IsActive = false;
+    public void Deactivate()
+    {
+        Status = EntityStatus.Inactive;
+        UpdatedAt = DateTime.UtcNow;
+    }
 }

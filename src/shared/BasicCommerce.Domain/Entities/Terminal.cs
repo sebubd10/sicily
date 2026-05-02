@@ -8,11 +8,12 @@ public class Terminal : TenantEntity
     public string Name { get; private set; } = default!;
     public string Code { get; private set; } = default!;
     public TerminalType Type { get; private set; }
-    public TerminalStatus Status { get; private set; } = TerminalStatus.Offline;
+    public TerminalStatus TerminalStatus { get; private set; } = TerminalStatus.Offline;
     public Guid? CurrentCashierId { get; private set; }
     public decimal OpeningFloat { get; private set; }
     public DateTime? LastActivityAt { get; private set; }
-    public bool IsActive { get; private set; } = true;
+
+    public bool IsActive => Status == EntityStatus.Active;
 
     private Terminal() { }
 
@@ -36,7 +37,7 @@ public class Terminal : TenantEntity
     {
         CurrentCashierId = cashierId;
         OpeningFloat = openingFloat;
-        Status = TerminalStatus.Online;
+        TerminalStatus = TerminalStatus.Online;
         LastActivityAt = DateTime.UtcNow;
     }
 
@@ -44,9 +45,14 @@ public class Terminal : TenantEntity
     {
         CurrentCashierId = null;
         OpeningFloat = 0;
-        Status = TerminalStatus.Offline;
+        TerminalStatus = TerminalStatus.Offline;
     }
 
     public void RecordActivity() => LastActivityAt = DateTime.UtcNow;
-    public void Deactivate() => IsActive = false;
+
+    public void Deactivate()
+    {
+        Status = EntityStatus.Inactive;
+        UpdatedAt = DateTime.UtcNow;
+    }
 }

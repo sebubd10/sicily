@@ -1,3 +1,4 @@
+using BasicCommerce.Domain.Enums;
 using BasicCommerce.Domain.Exceptions;
 
 namespace BasicCommerce.Domain.Entities;
@@ -12,8 +13,8 @@ public class CreditAccount : TenantEntity
     public decimal CreditLimit { get; private set; }
     public decimal OutstandingBalance { get; private set; }
     public DateTime? LastPaymentAt { get; private set; }
-    public bool IsActive { get; private set; } = true;
 
+    public bool IsActive => Status == EntityStatus.Active;
     public decimal AvailableCredit => CreditLimit - OutstandingBalance;
     public bool CanPurchase(decimal amount) => AvailableCredit >= amount;
 

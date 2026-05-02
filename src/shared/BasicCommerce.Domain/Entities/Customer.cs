@@ -1,3 +1,4 @@
+using BasicCommerce.Domain.Enums;
 using BasicCommerce.Domain.ValueObjects;
 
 namespace BasicCommerce.Domain.Entities;
@@ -12,8 +13,8 @@ public class Customer : TenantEntity
     public decimal CreditLimit { get; private set; }
     public decimal CurrentBalance { get; private set; }
     public int LoyaltyPoints { get; private set; }
-    public bool IsActive { get; private set; } = true;
 
+    public bool IsActive => Status == EntityStatus.Active;
     public decimal AvailableCredit => CreditLimit - CurrentBalance;
     public bool HasCredit => AvailableCredit > 0;
 
@@ -66,8 +67,17 @@ public class Customer : TenantEntity
 
     public void UpdateCreditLimit(decimal newLimit) => CreditLimit = newLimit;
 
-    public void Deactivate() => IsActive = false;
-    public void Activate() => IsActive = true;
+    public void Deactivate()
+    {
+        Status = EntityStatus.Inactive;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void Activate()
+    {
+        Status = EntityStatus.Active;
+        UpdatedAt = DateTime.UtcNow;
+    }
 
     private static string GenerateCode() =>
         $"CUST-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString("N")[..6].ToUpper()}";

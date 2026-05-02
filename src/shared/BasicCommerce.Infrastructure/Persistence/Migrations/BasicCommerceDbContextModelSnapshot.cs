@@ -27,8 +27,7 @@ partial class BasicCommerceDbContextModelSnapshot : ModelSnapshot
             b.Property<string>("VatRegistrationNumber").HasMaxLength(50);
             b.Property<string>("CurrencyCode").IsRequired().HasMaxLength(3).HasDefaultValue("BDT");
             b.Property<string>("DefaultLanguage").IsRequired().HasMaxLength(10).HasDefaultValue("en");
-            b.Property<bool>("IsActive").HasDefaultValue(true);
-            b.Property<bool>("IsDeleted").HasDefaultValue(false);
+            b.Property<string>("Status").IsRequired().HasMaxLength(20).HasDefaultValue("Active");
             b.Property<DateTime>("CreatedAt");
             b.Property<DateTime?>("UpdatedAt");
             b.Property<Guid?>("CreatedBy");
@@ -44,8 +43,7 @@ partial class BasicCommerceDbContextModelSnapshot : ModelSnapshot
             b.Property<Guid>("TenantId");
             b.Property<string>("Name").IsRequired().HasMaxLength(200);
             b.Property<string>("Code").IsRequired().HasMaxLength(20);
-            b.Property<bool>("IsActive").HasDefaultValue(true);
-            b.Property<bool>("IsDeleted").HasDefaultValue(false);
+            b.Property<string>("Status").IsRequired().HasMaxLength(20).HasDefaultValue("Active");
             b.Property<DateTime>("CreatedAt");
             b.Property<DateTime?>("UpdatedAt");
             b.HasKey("Id");
@@ -67,8 +65,7 @@ partial class BasicCommerceDbContextModelSnapshot : ModelSnapshot
             b.Property<string>("GoogleId").HasMaxLength(200);
             b.Property<string>("MicrosoftId").HasMaxLength(200);
             b.Property<string>("AuthProvider").IsRequired().HasMaxLength(20).HasDefaultValue("Local");
-            b.Property<bool>("IsActive").HasDefaultValue(true);
-            b.Property<bool>("IsDeleted").HasDefaultValue(false);
+            b.Property<string>("Status").IsRequired().HasMaxLength(20).HasDefaultValue("Active");
             b.Property<string>("PreferredLanguage").IsRequired().HasMaxLength(10).HasDefaultValue("en");
             b.Property<DateTime>("CreatedAt");
             b.Property<DateTime?>("UpdatedAt");
@@ -91,8 +88,7 @@ partial class BasicCommerceDbContextModelSnapshot : ModelSnapshot
             b.Property<Guid>("VatRateId");
             b.Property<bool>("IsWeightBased").HasDefaultValue(false);
             b.Property<bool>("IsAgeRestricted").HasDefaultValue(false);
-            b.Property<bool>("IsActive").HasDefaultValue(true);
-            b.Property<bool>("IsDeleted").HasDefaultValue(false);
+            b.Property<string>("Status").IsRequired().HasMaxLength(20).HasDefaultValue("Active");
             b.Property<DateTime>("CreatedAt");
             b.Property<DateTime?>("UpdatedAt");
             b.HasKey("Id");
@@ -110,7 +106,7 @@ partial class BasicCommerceDbContextModelSnapshot : ModelSnapshot
             b.Property<Guid>("TerminalId");
             b.Property<Guid>("CashierId");
             b.Property<Guid?>("CustomerId");
-            b.Property<string>("Status").IsRequired().HasMaxLength(20).HasDefaultValue("Open");
+            b.Property<string>("TransactionStatus").IsRequired().HasMaxLength(20).HasDefaultValue("Open");
             b.Property<string>("Type").IsRequired().HasMaxLength(20).HasDefaultValue("Sale");
             b.Property<decimal>("SubTotal").HasPrecision(18, 4).HasDefaultValue(0m);
             b.Property<decimal>("TaxTotal").HasPrecision(18, 4).HasDefaultValue(0m);
@@ -119,7 +115,7 @@ partial class BasicCommerceDbContextModelSnapshot : ModelSnapshot
             b.Property<decimal>("AmountPaid").HasPrecision(18, 4).HasDefaultValue(0m);
             b.Property<decimal>("ChangeDue").HasPrecision(18, 4).HasDefaultValue(0m);
             b.Property<bool>("IsSynced").HasDefaultValue(true);
-            b.Property<bool>("IsDeleted").HasDefaultValue(false);
+            b.Property<string>("Status").IsRequired().HasMaxLength(20).HasDefaultValue("Active");
             b.Property<DateTime>("CreatedAt");
             b.Property<DateTime?>("CompletedAt");
             b.Property<DateTime?>("UpdatedAt");

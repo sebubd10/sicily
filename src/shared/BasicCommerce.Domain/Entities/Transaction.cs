@@ -12,7 +12,7 @@ public class Transaction : TenantEntity
     public Guid TerminalId { get; private set; }
     public Guid CashierId { get; private set; }
     public Guid? CustomerId { get; private set; }
-    public TransactionStatus Status { get; private set; } = TransactionStatus.Open;
+    public TransactionStatus TransactionStatus { get; private set; } = TransactionStatus.Open;
     public TransactionType Type { get; private set; } = TransactionType.Sale;
     public Guid? OriginalTransactionId { get; private set; }
 
@@ -60,7 +60,7 @@ public class Transaction : TenantEntity
     public LineItem AddItem(Product product, decimal quantity, decimal? overridePrice = null,
         Guid? overrideApprovedBy = null)
     {
-        if (Status != TransactionStatus.Open)
+        if (TransactionStatus != TransactionStatus.Open)
             throw new DomainException("Cannot add items to a non-open transaction.");
 
         var unitPrice = overridePrice ?? product.Price.Amount;
@@ -82,7 +82,7 @@ public class Transaction : TenantEntity
 
     public Payment AddPayment(PaymentMethod method, decimal amount, string? reference = null)
     {
-        if (Status != TransactionStatus.Open)
+        if (TransactionStatus != TransactionStatus.Open)
             throw new DomainException("Cannot add payment to a non-open transaction.");
 
         var payment = Payment.Create(Id, TenantId, method, amount, reference);
@@ -92,7 +92,7 @@ public class Transaction : TenantEntity
 
     public void RefreshAmountPaid()
     {
-        AmountPaid = _payments.Where(p => p.Status == PaymentStatus.Approved).Sum(p => p.Amount);
+        AmountPaid = _payments.Where(p => p.PaymentStatus == PaymentStatus.Approved).Sum(p => p.Amount);
     }
 
     public void Complete()
@@ -103,30 +103,30 @@ public class Transaction : TenantEntity
                 $"Insufficient payment. Total: {Total:F2}, Paid: {AmountPaid:F2}.");
 
         ChangeDue = AmountPaid - Total;
-        Status = TransactionStatus.Completed;
+        TransactionStatus = TransactionStatus.Completed;
         CompletedAt = DateTime.UtcNow;
         _domainEvents.Add(new TransactionCompletedEvent(Id, StoreId, Total, TaxTotal));
     }
 
     public void Suspend()
     {
-        if (Status != TransactionStatus.Open)
+        if (TransactionStatus != TransactionStatus.Open)
             throw new DomainException("Only open transactions can be suspended.");
-        Status = TransactionStatus.Suspended;
+        TransactionStatus = TransactionStatus.Suspended;
         UpdatedAt = DateTime.UtcNow;
     }
 
     public void Recall()
     {
-        if (Status != TransactionStatus.Suspended)
+        if (TransactionStatus != TransactionStatus.Suspended)
             throw new DomainException("Only suspended transactions can be recalled.");
-        Status = TransactionStatus.Open;
+        TransactionStatus = TransactionStatus.Open;
         UpdatedAt = DateTime.UtcNow;
     }
 
     public void AttachCustomer(Guid customerId)
     {
-        if (Status != TransactionStatus.Open)
+        if (TransactionStatus != TransactionStatus.Open)
             throw new DomainException("Cannot attach a customer to a non-open transaction.");
         CustomerId = customerId;
         UpdatedAt = DateTime.UtcNow;
@@ -134,7 +134,7 @@ public class Transaction : TenantEntity
 
     public void ApplyLineItemDiscount(Guid lineItemId, decimal discountAmount)
     {
-        if (Status != TransactionStatus.Open)
+        if (TransactionStatus != TransactionStatus.Open)
             throw new DomainException("Cannot modify a non-open transaction.");
         var item = _lineItems.FirstOrDefault(l => l.Id == lineItemId)
             ?? throw new DomainException("Line item not found.");
@@ -142,7 +142,7 @@ public class Transaction : TenantEntity
         RecalculateTotals();
     }
 
-    public void MarkRefunded() => Status = TransactionStatus.Refunded;
+    public void MarkRefunded() => TransactionStatus = TransactionStatus.Refunded;
 
     public static Transaction CreateReturn(Guid tenantId, Guid storeId, Guid terminalId,
         Guid cashierId, Guid originalTransactionId, Guid? customerId = null)
@@ -163,10 +163,10 @@ public class Transaction : TenantEntity
 
     public void Void(Guid voidedBy, string reason)
     {
-        if (Status == TransactionStatus.Voided)
+        if (TransactionStatus == TransactionStatus.Voided)
             throw new DomainException("Transaction is already voided.");
 
-        Status = TransactionStatus.Voided;
+        TransactionStatus = TransactionStatus.Voided;
         VoidedAt = DateTime.UtcNow;
         VoidedBy = voidedBy;
         VoidReason = reason;

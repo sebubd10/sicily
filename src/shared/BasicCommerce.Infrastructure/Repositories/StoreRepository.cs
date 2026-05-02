@@ -12,12 +12,12 @@ public class StoreRepository : TenantRepository<Store>, IStoreRepository
     public async Task<Store?> GetByCodeAsync(Guid tenantId, string code,
         CancellationToken ct = default) =>
         await Db.Stores.FirstOrDefaultAsync(
-            s => s.TenantId == tenantId && s.Code == code.ToUpperInvariant() && !s.IsDeleted, ct);
+            s => s.TenantId == tenantId && s.Code == code.ToUpperInvariant(), ct);
 
     public async Task<bool> CodeExistsAsync(Guid tenantId, string code,
         CancellationToken ct = default) =>
         await Db.Stores.AnyAsync(
-            s => s.TenantId == tenantId && s.Code == code.ToUpperInvariant() && !s.IsDeleted, ct);
+            s => s.TenantId == tenantId && s.Code == code.ToUpperInvariant(), ct);
 }
 
 public class TerminalRepository : TenantRepository<Terminal>, ITerminalRepository
@@ -27,7 +27,7 @@ public class TerminalRepository : TenantRepository<Terminal>, ITerminalRepositor
     public async Task<IEnumerable<Terminal>> GetByStoreAsync(Guid tenantId, Guid storeId,
         CancellationToken ct = default) =>
         await Db.Terminals
-            .Where(t => t.TenantId == tenantId && t.StoreId == storeId && !t.IsDeleted)
+            .Where(t => t.TenantId == tenantId && t.StoreId == storeId)
             .OrderBy(t => t.Code)
             .ToListAsync(ct);
 
@@ -35,5 +35,5 @@ public class TerminalRepository : TenantRepository<Terminal>, ITerminalRepositor
         CancellationToken ct = default) =>
         await Db.Terminals.FirstOrDefaultAsync(
             t => t.TenantId == tenantId && t.StoreId == storeId &&
-                 t.Code == code.ToUpperInvariant() && !t.IsDeleted, ct);
+                 t.Code == code.ToUpperInvariant(), ct);
 }

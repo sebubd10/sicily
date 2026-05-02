@@ -36,7 +36,7 @@ public class GetTerminalsQueryHandler : IRequestHandler<GetTerminalsQuery, IEnum
             t.Name,
             t.Code,
             t.Type.ToString(),
-            t.Status.ToString(),
+            t.TerminalStatus.ToString(),
             null));
     }
 }

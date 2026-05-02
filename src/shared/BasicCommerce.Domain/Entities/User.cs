@@ -15,13 +15,13 @@ public class User : TenantEntity
     public string? GoogleId { get; private set; }
     public string? MicrosoftId { get; private set; }
     public AuthProvider AuthProvider { get; private set; } = AuthProvider.Local;
-    public bool IsActive { get; private set; } = true;
     public DateTime? LastLoginAt { get; private set; }
     public int FailedLoginAttempts { get; private set; }
     public DateTime? LockedUntil { get; private set; }
     public string PreferredLanguage { get; private set; } = "en";
 
     public string FullName => $"{FirstName} {LastName}";
+    public bool IsActive => Status == EntityStatus.Active;
     public bool IsLocked => LockedUntil.HasValue && LockedUntil > DateTime.UtcNow;
 
     private User() { }
@@ -94,6 +94,15 @@ public class User : TenantEntity
         UpdatedAt = DateTime.UtcNow;
     }
 
-    public void Deactivate() => IsActive = false;
-    public void Activate() => IsActive = true;
+    public void Deactivate()
+    {
+        Status = EntityStatus.Inactive;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void Activate()
+    {
+        Status = EntityStatus.Active;
+        UpdatedAt = DateTime.UtcNow;
+    }
 }

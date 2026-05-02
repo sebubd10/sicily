@@ -1,3 +1,5 @@
+using BasicCommerce.Domain.Enums;
+
 namespace BasicCommerce.Domain.Entities;
 
 public class Category : TenantEntity
@@ -7,8 +9,9 @@ public class Category : TenantEntity
     public string? Description { get; private set; }
     public Guid? ParentCategoryId { get; private set; }
     public int SortOrder { get; private set; }
-    public bool IsActive { get; private set; } = true;
     public string? ImageUrl { get; private set; }
+
+    public bool IsActive => Status == EntityStatus.Active;
 
     private readonly List<Product> _products = [];
     public IReadOnlyCollection<Product> Products => _products.AsReadOnly();
@@ -40,5 +43,9 @@ public class Category : TenantEntity
         UpdatedAt = DateTime.UtcNow;
     }
 
-    public void Deactivate() => IsActive = false;
+    public void Deactivate()
+    {
+        Status = EntityStatus.Inactive;
+        UpdatedAt = DateTime.UtcNow;
+    }
 }

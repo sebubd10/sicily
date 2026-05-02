@@ -1,4 +1,6 @@
+using System.Linq.Expressions;
 using BasicCommerce.Domain.Entities;
+using BasicCommerce.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace BasicCommerce.Infrastructure.Persistence;
@@ -29,6 +31,27 @@ public class BasicCommerceDbContext : DbContext
     {
         base.OnModelCreating(builder);
         builder.ApplyConfigurationsFromAssembly(typeof(BasicCommerceDbContext).Assembly);
+        ApplyEntityStatusFilter(builder);
+    }
+
+    private static void ApplyEntityStatusFilter(ModelBuilder builder)
+    {
+        foreach (var entityType in builder.Model.GetEntityTypes()
+            .Where(t => typeof(BaseEntity).IsAssignableFrom(t.ClrType) && !t.IsOwned()))
+        {
+            var param = Expression.Parameter(entityType.ClrType, "e");
+            var statusProp = Expression.Property(param, nameof(BaseEntity.Status));
+            var notDeleted = Expression.NotEqual(
+                statusProp,
+                Expression.Constant(EntityStatus.Deleted));
+            entityType.SetQueryFilter(Expression.Lambda(notDeleted, param));
+
+            builder.Entity(entityType.ClrType)
+                .Property<EntityStatus>(nameof(BaseEntity.Status))
+                .HasConversion<string>()
+                .HasMaxLength(20)
+                .HasDefaultValue(EntityStatus.Active);
+        }
     }
 
     public override Task<int> SaveChangesAsync(CancellationToken ct = default)

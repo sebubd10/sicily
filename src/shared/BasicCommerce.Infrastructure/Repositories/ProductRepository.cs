@@ -1,4 +1,5 @@
 using BasicCommerce.Domain.Entities;
+using BasicCommerce.Domain.Enums;
 using BasicCommerce.Domain.Interfaces;
 using BasicCommerce.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -14,26 +15,26 @@ public class ProductRepository : TenantRepository<Product>, IProductRepository
         await Db.Products
             .Include(p => p.Category)
             .FirstOrDefaultAsync(
-                p => p.TenantId == tenantId && p.Barcode == barcode && p.IsActive, ct);
+                p => p.TenantId == tenantId && p.Barcode == barcode && p.Status == EntityStatus.Active, ct);
 
     public async Task<Product?> GetByPluAsync(Guid tenantId, string plu,
         CancellationToken ct = default) =>
         await Db.Products
             .Include(p => p.Category)
             .FirstOrDefaultAsync(
-                p => p.TenantId == tenantId && p.Plu == plu && p.IsActive, ct);
+                p => p.TenantId == tenantId && p.Plu == plu && p.Status == EntityStatus.Active, ct);
 
     public async Task<Product?> GetBySkuAsync(Guid tenantId, string sku,
         CancellationToken ct = default) =>
         await Db.Products
             .Include(p => p.Category)
             .FirstOrDefaultAsync(
-                p => p.TenantId == tenantId && p.Sku == sku && p.IsActive, ct);
+                p => p.TenantId == tenantId && p.Sku == sku && p.Status == EntityStatus.Active, ct);
 
     public async Task<IEnumerable<Product>> SearchAsync(Guid tenantId, string term,
         int limit = 20, CancellationToken ct = default) =>
         await Db.Products
-            .Where(p => p.TenantId == tenantId && p.IsActive &&
+            .Where(p => p.TenantId == tenantId && p.Status == EntityStatus.Active &&
                 (p.Name.Contains(term) || p.NameBn.Contains(term) ||
                  p.Sku.Contains(term) || p.Barcode.Contains(term)))
             .Take(limit)
@@ -46,13 +47,13 @@ public class ProductRepository : TenantRepository<Product>, IProductRepository
     {
         var query = Db.Products
             .Include(p => p.Category)
-            .Where(p => p.TenantId == tenantId && !p.IsDeleted);
+            .Where(p => p.TenantId == tenantId);
 
         if (categoryId.HasValue)
             query = query.Where(p => p.CategoryId == categoryId.Value);
 
         if (isActive.HasValue)
-            query = query.Where(p => p.IsActive == isActive.Value);
+            query = query.Where(p => p.Status == (isActive.Value ? EntityStatus.Active : EntityStatus.Inactive));
 
         var total = await query.CountAsync(ct);
         var items = await query

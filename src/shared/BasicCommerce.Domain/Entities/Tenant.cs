@@ -1,3 +1,5 @@
+using BasicCommerce.Domain.Enums;
+
 namespace BasicCommerce.Domain.Entities;
 
 public class Tenant : BaseEntity
@@ -10,7 +12,8 @@ public class Tenant : BaseEntity
     public string? VatRegistrationNumber { get; private set; }
     public string CurrencyCode { get; private set; } = "BDT";
     public string DefaultLanguage { get; private set; } = "en";
-    public bool IsActive { get; private set; } = true;
+
+    public bool IsActive => Status == EntityStatus.Active;
 
     private readonly List<Store> _stores = [];
     public IReadOnlyCollection<Store> Stores => _stores.AsReadOnly();
@@ -45,6 +48,15 @@ public class Tenant : BaseEntity
         UpdatedAt = DateTime.UtcNow;
     }
 
-    public void Deactivate() => IsActive = false;
-    public void Activate() => IsActive = true;
+    public void Deactivate()
+    {
+        Status = EntityStatus.Inactive;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void Activate()
+    {
+        Status = EntityStatus.Active;
+        UpdatedAt = DateTime.UtcNow;
+    }
 }

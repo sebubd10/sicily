@@ -12,20 +12,20 @@ public class CategoryRepository : TenantRepository<Category>, ICategoryRepositor
     public async Task<IEnumerable<Category>> GetRootCategoriesAsync(Guid tenantId,
         CancellationToken ct = default) =>
         await Db.Categories
-            .Where(c => c.TenantId == tenantId && c.ParentCategoryId == null && !c.IsDeleted)
+            .Where(c => c.TenantId == tenantId && c.ParentCategoryId == null)
             .OrderBy(c => c.SortOrder).ThenBy(c => c.Name)
             .ToListAsync(ct);
 
     public async Task<IEnumerable<Category>> GetChildrenAsync(Guid tenantId, Guid parentId,
         CancellationToken ct = default) =>
         await Db.Categories
-            .Where(c => c.TenantId == tenantId && c.ParentCategoryId == parentId && !c.IsDeleted)
+            .Where(c => c.TenantId == tenantId && c.ParentCategoryId == parentId)
             .OrderBy(c => c.SortOrder).ThenBy(c => c.Name)
             .ToListAsync(ct);
 
     public async Task<bool> NameExistsAsync(Guid tenantId, string name,
         Guid? excludeId = null, CancellationToken ct = default) =>
         await Db.Categories.AnyAsync(c =>
-            c.TenantId == tenantId && c.Name == name && !c.IsDeleted &&
+            c.TenantId == tenantId && c.Name == name &&
             (excludeId == null || c.Id != excludeId), ct);
 }

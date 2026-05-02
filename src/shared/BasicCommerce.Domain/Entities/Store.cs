@@ -1,3 +1,4 @@
+using BasicCommerce.Domain.Enums;
 using BasicCommerce.Domain.ValueObjects;
 
 namespace BasicCommerce.Domain.Entities;
@@ -9,9 +10,10 @@ public class Store : TenantEntity
     public Address Address { get; private set; } = default!;
     public string? Phone { get; private set; }
     public string? Email { get; private set; }
-    public bool IsActive { get; private set; } = true;
     public TimeOnly OpeningTime { get; private set; }
     public TimeOnly ClosingTime { get; private set; }
+
+    public bool IsActive => Status == EntityStatus.Active;
 
     private readonly List<Terminal> _terminals = [];
     public IReadOnlyCollection<Terminal> Terminals => _terminals.AsReadOnly();
@@ -49,6 +51,15 @@ public class Store : TenantEntity
         UpdatedAt = DateTime.UtcNow;
     }
 
-    public void Deactivate() => IsActive = false;
-    public void Activate() => IsActive = true;
+    public void Deactivate()
+    {
+        Status = EntityStatus.Inactive;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void Activate()
+    {
+        Status = EntityStatus.Active;
+        UpdatedAt = DateTime.UtcNow;
+    }
 }

@@ -19,7 +19,7 @@ public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
         builder.Property(t => t.Total).HasPrecision(18, 4);
         builder.Property(t => t.AmountPaid).HasPrecision(18, 4);
         builder.Property(t => t.ChangeDue).HasPrecision(18, 4);
-        builder.Property(t => t.Status).HasConversion<string>().HasMaxLength(20);
+        builder.Property(t => t.TransactionStatus).HasColumnName("TransactionStatus").HasConversion<string>().HasMaxLength(20);
         builder.Property(t => t.Type).HasConversion<string>().HasMaxLength(20);
         builder.Property(t => t.VoidReason).HasMaxLength(500);
         builder.Property(t => t.Notes).HasMaxLength(1000);
@@ -35,6 +35,5 @@ public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.Ignore(t => t.DomainEvents);
-        builder.HasQueryFilter(t => !t.IsDeleted);
     }
 }

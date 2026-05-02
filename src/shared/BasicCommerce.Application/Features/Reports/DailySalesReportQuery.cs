@@ -37,8 +37,8 @@ public class DailySalesReportQueryHandler : IRequestHandler<DailySalesReportQuer
         var transactions = await _uow.Transactions.GetForDailyReportAsync(
             tenantId, request.StoreId, request.Date, ct);
 
-        var completed = transactions.Where(t => t.Status == TransactionStatus.Completed).ToList();
-        var voided = transactions.Where(t => t.Status == TransactionStatus.Voided).ToList();
+        var completed = transactions.Where(t => t.TransactionStatus == TransactionStatus.Completed).ToList();
+        var voided = transactions.Where(t => t.TransactionStatus == TransactionStatus.Voided).ToList();
 
         var grossRevenue = completed.Sum(t => t.Total);
         var taxTotal = completed.Sum(t => t.TaxTotal);
@@ -47,7 +47,7 @@ public class DailySalesReportQueryHandler : IRequestHandler<DailySalesReportQuer
 
         var paymentBreakdown = completed
             .SelectMany(t => t.Payments)
-            .Where(p => p.Status == PaymentStatus.Approved)
+            .Where(p => p.PaymentStatus == PaymentStatus.Approved)
             .GroupBy(p => p.Method)
             .Select(g => new PaymentMethodSummary(
                 g.Key.ToString(),

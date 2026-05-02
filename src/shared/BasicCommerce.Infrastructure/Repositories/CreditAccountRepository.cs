@@ -1,4 +1,5 @@
 using BasicCommerce.Domain.Entities;
+using BasicCommerce.Domain.Enums;
 using BasicCommerce.Domain.Interfaces;
 using BasicCommerce.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -13,7 +14,7 @@ public class CreditAccountRepository : TenantRepository<CreditAccount>, ICreditA
         Guid storeId, CancellationToken ct = default) =>
         await Db.CreditAccounts.FirstOrDefaultAsync(
             a => a.TenantId == tenantId && a.CustomerId == customerId &&
-                 a.StoreId == storeId && a.IsActive, ct);
+                 a.StoreId == storeId && a.Status == EntityStatus.Active, ct);
 
     public async Task<IEnumerable<CreditAccount>> GetByCustomerAsync(Guid tenantId,
         Guid customerId, CancellationToken ct = default) =>

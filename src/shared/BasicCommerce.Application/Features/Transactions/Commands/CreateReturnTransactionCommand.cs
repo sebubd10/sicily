@@ -44,7 +44,7 @@ public class CreateReturnTransactionCommandHandler
             request.TenantId, request.OriginalTransactionId, ct)
             ?? throw new NotFoundException("Transaction", request.OriginalTransactionId);
 
-        if (original.Status != TransactionStatus.Completed)
+        if (original.TransactionStatus != TransactionStatus.Completed)
             throw new DomainException("Only completed transactions can be returned.");
 
         var returnItems = request.Items.ToList();

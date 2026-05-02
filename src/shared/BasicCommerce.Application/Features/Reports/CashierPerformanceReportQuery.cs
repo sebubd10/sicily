@@ -40,8 +40,8 @@ public class CashierPerformanceReportQueryHandler
         var grouped = transactions.GroupBy(t => t.CashierId);
         var summaries = grouped.Select(g =>
         {
-            var completed = g.Where(t => t.Status == TransactionStatus.Completed).ToList();
-            var voided = g.Where(t => t.Status == TransactionStatus.Voided).ToList();
+            var completed = g.Where(t => t.TransactionStatus == TransactionStatus.Completed).ToList();
+            var voided = g.Where(t => t.TransactionStatus == TransactionStatus.Voided).ToList();
             var revenue = completed.Sum(t => t.Total);
             var overrides = g.SelectMany(t => t.LineItems).Count(l => l.IsPriceOverridden);
 
