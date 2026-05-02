@@ -1,3 +1,4 @@
+using BasicCommerce.Application.Features.Products;
 using BasicCommerce.Application.Interfaces;
 using BasicCommerce.Contracts.Products;
 using BasicCommerce.Domain.Exceptions;
@@ -42,24 +43,6 @@ public class UpdateProductPriceCommandHandler : IRequestHandler<UpdateProductPri
         await _uow.SaveChangesAsync(ct);
 
         var vatRate = await _uow.VatRates.GetByIdAsync(product.VatRateId, ct);
-
-        return new ProductResponse(
-            product.Id,
-            product.Sku,
-            product.Barcode,
-            product.Plu,
-            product.Name,
-            product.NameBn,
-            product.CategoryId.ToString(),
-            string.Empty,
-            product.Price.Amount,
-            product.Price.Currency,
-            vatRate?.Rate ?? 0,
-            product.UnitType.ToString(),
-            product.IsWeightBased,
-            product.IsAgeRestricted,
-            product.AgeRestrictionYears,
-            product.IsActive,
-            product.ImageUrl);
+        return ProductMapper.ToResponse(product, vatRate);
     }
 }

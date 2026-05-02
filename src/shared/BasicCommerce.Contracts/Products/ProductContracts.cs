@@ -7,17 +7,27 @@ public record ProductResponse(
     string? Plu,
     string Name,
     string NameBn,
-    string CategoryId,
+    string? Description,
+    Guid CategoryId,
     string CategoryName,
     decimal Price,
     string Currency,
+    decimal? CostPrice,
+    Guid VatRateId,
+    string VatRateName,
     decimal VatRate,
     string UnitType,
+    string? UnitLabel,
     bool IsWeightBased,
     bool IsAgeRestricted,
     int? AgeRestrictionYears,
+    bool IsEbtEligible,
+    bool TrackInventory,
+    int ReorderLevel,
     bool IsActive,
-    string? ImageUrl);
+    string? ImageUrl,
+    DateTime CreatedAt,
+    DateTime? UpdatedAt);
 
 public record ProductListResponse(
     IEnumerable<ProductResponse> Items,
@@ -38,6 +48,50 @@ public record CreateProductRequest(
     bool IsWeightBased = false,
     bool IsAgeRestricted = false,
     int? AgeRestrictionYears = null,
-    decimal? CostPrice = null);
+    decimal? CostPrice = null,
+    string? Description = null,
+    string? UnitLabel = null);
+
+public record UpdateProductRequest(
+    string Name,
+    string NameBn,
+    string? Description,
+    Guid CategoryId,
+    Guid VatRateId,
+    string UnitType,
+    string? UnitLabel,
+    bool IsWeightBased,
+    bool IsAgeRestricted,
+    int? AgeRestrictionYears,
+    bool IsEbtEligible,
+    bool TrackInventory,
+    int ReorderLevel,
+    string? ImageUrl,
+    decimal? CostPrice);
 
 public record UpdateProductPriceRequest(decimal NewPrice);
+
+public record VatRateResponse(
+    Guid Id,
+    string Name,
+    string Code,
+    decimal Rate,
+    bool IsDefault,
+    bool IsActive);
+
+public record CategoryResponse(
+    Guid Id,
+    string Name,
+    string NameBn,
+    string? Description,
+    Guid? ParentCategoryId,
+    string? ParentCategoryName,
+    int SortOrder,
+    bool IsActive,
+    int ChildCount);
+
+public record UpdateCategoryRequest(
+    string Name,
+    string NameBn,
+    string? Description,
+    int SortOrder);

@@ -59,6 +59,33 @@ public class Product : TenantEntity
         UpdatedAt = DateTime.UtcNow;
     }
 
+    public void UpdateCostPrice(Money? costPrice)
+    {
+        CostPrice = costPrice;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void UpdateDetails(string name, string nameBn, string? description,
+        Guid categoryId, Guid vatRateId, UnitType unitType, string? unitLabel,
+        bool isWeightBased, bool isEbtEligible, bool trackInventory,
+        int reorderLevel, string? imageUrl, Money? costPrice = null)
+    {
+        Name = name;
+        NameBn = nameBn;
+        Description = description;
+        CategoryId = categoryId;
+        VatRateId = vatRateId;
+        UnitType = unitType;
+        UnitLabel = unitLabel;
+        IsWeightBased = isWeightBased;
+        IsEbtEligible = isEbtEligible;
+        TrackInventory = trackInventory;
+        ReorderLevel = reorderLevel;
+        ImageUrl = imageUrl;
+        if (costPrice is not null) CostPrice = costPrice;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
     public void SetAgeRestriction(int years)
     {
         IsAgeRestricted = true;

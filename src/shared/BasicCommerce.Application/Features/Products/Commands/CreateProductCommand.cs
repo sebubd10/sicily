@@ -1,3 +1,4 @@
+using BasicCommerce.Application.Features.Products;
 using BasicCommerce.Application.Interfaces;
 using BasicCommerce.Contracts.Products;
 using BasicCommerce.Domain.Entities;
@@ -23,7 +24,9 @@ public record CreateProductCommand(
     bool IsWeightBased,
     bool IsAgeRestricted,
     int? AgeRestrictionYears,
-    decimal? CostPrice) : IRequest<ProductResponse>;
+    decimal? CostPrice,
+    string? Description = null,
+    string? UnitLabel = null) : IRequest<ProductResponse>;
 
 public class CreateProductCommandValidator : AbstractValidator<CreateProductCommand>
 {
@@ -84,23 +87,6 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
         await _uow.Products.AddAsync(product, ct);
         await _uow.SaveChangesAsync(ct);
 
-        return new ProductResponse(
-            product.Id,
-            product.Sku,
-            product.Barcode,
-            product.Plu,
-            product.Name,
-            product.NameBn,
-            product.CategoryId.ToString(),
-            string.Empty,
-            product.Price.Amount,
-            product.Price.Currency,
-            vatRate.Rate,
-            product.UnitType.ToString(),
-            product.IsWeightBased,
-            product.IsAgeRestricted,
-            product.AgeRestrictionYears,
-            product.IsActive,
-            product.ImageUrl);
+        return ProductMapper.ToResponse(product, vatRate);
     }
 }

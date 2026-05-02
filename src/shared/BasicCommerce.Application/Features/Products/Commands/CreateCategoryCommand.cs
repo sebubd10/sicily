@@ -1,4 +1,5 @@
 using BasicCommerce.Application.Interfaces;
+using BasicCommerce.Contracts.Products;
 using BasicCommerce.Domain.Entities;
 using BasicCommerce.Domain.Exceptions;
 using BasicCommerce.Domain.Interfaces;
@@ -6,15 +7,6 @@ using FluentValidation;
 using MediatR;
 
 namespace BasicCommerce.Application.Features.Products.Commands;
-
-public record CategoryResponse(
-    Guid Id,
-    string Name,
-    string NameBn,
-    string? Description,
-    Guid? ParentCategoryId,
-    int SortOrder,
-    bool IsActive);
 
 public record CreateCategoryCommand(
     string Name,
@@ -70,7 +62,9 @@ public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryComman
             category.NameBn,
             category.Description,
             category.ParentCategoryId,
+            null,
             category.SortOrder,
-            category.IsActive);
+            category.IsActive,
+            0);
     }
 }

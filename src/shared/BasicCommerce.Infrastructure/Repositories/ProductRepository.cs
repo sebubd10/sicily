@@ -38,6 +38,31 @@ public class ProductRepository : TenantRepository<Product>, IProductRepository
                  p.Sku.Contains(term) || p.Barcode.Contains(term)))
             .Take(limit)
             .ToListAsync(ct);
+
+    public async Task<(IEnumerable<Product> Items, int TotalCount)> GetPagedAsync(
+        Guid tenantId, int page, int pageSize,
+        Guid? categoryId = null, bool? isActive = null,
+        CancellationToken ct = default)
+    {
+        var query = Db.Products
+            .Include(p => p.Category)
+            .Where(p => p.TenantId == tenantId && !p.IsDeleted);
+
+        if (categoryId.HasValue)
+            query = query.Where(p => p.CategoryId == categoryId.Value);
+
+        if (isActive.HasValue)
+            query = query.Where(p => p.IsActive == isActive.Value);
+
+        var total = await query.CountAsync(ct);
+        var items = await query
+            .OrderBy(p => p.Name)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct);
+
+        return (items, total);
+    }
 }
 
 public class StockLevelRepository : TenantRepository<StockLevel>, IStockLevelRepository
