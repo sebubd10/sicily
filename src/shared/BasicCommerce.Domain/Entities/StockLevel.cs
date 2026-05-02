@@ -11,6 +11,8 @@ public class StockLevel : TenantEntity
     public decimal LowStockThreshold { get; private set; } = 10;
     public DateTime? LastCountedAt { get; private set; }
 
+    public Product? Product { get; private set; }
+
     public decimal AvailableQuantity => Quantity - ReservedQuantity;
     public bool IsLowStock => AvailableQuantity <= LowStockThreshold;
 

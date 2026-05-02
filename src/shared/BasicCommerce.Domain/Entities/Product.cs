@@ -26,6 +26,8 @@ public class Product : TenantEntity
     public bool IsActive { get; private set; } = true;
     public string? ImageUrl { get; private set; }
 
+    public Category? Category { get; private set; }
+
     private Product() { }
 
     public static Product Create(Guid tenantId, string sku, string barcode, string name,

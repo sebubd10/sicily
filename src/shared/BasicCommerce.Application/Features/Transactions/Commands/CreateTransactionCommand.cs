@@ -38,6 +38,30 @@ public class CreateTransactionCommandHandler
             request.TenantId, request.StoreId,
             request.TerminalId, request.CashierId, request.CustomerId);
 
-        throw new NotImplementedException("Implement after Infrastructure is wired up.");
+        await _uow.Transactions.AddAsync(transaction, ct);
+        await _uow.SaveChangesAsync(ct);
+
+        return MapToResponse(transaction);
     }
+
+    internal static TransactionResponse MapToResponse(Transaction t) =>
+        new(
+            Id: t.Id,
+            TransactionNumber: t.TransactionNumber,
+            Status: t.Status.ToString(),
+            Type: t.Type.ToString(),
+            LineItems: t.LineItems.Select(l => new LineItemResponse(
+                l.Id, l.ProductName, l.ProductSku, l.Quantity, l.UnitPrice,
+                l.TaxRate, l.TaxAmount, l.DiscountAmount, l.LineTotal,
+                l.IsVoided, l.IsPriceOverridden)),
+            Payments: t.Payments.Select(p => new PaymentResponse(
+                p.Id, p.Method.ToString(), p.Amount, p.Status.ToString(), p.GatewayReference)),
+            SubTotal: t.SubTotal,
+            TaxTotal: t.TaxTotal,
+            DiscountTotal: t.DiscountTotal,
+            Total: t.Total,
+            AmountPaid: t.AmountPaid,
+            ChangeDue: t.ChangeDue,
+            CreatedAt: t.CreatedAt,
+            CompletedAt: t.CompletedAt);
 }

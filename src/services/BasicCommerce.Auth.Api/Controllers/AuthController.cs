@@ -30,8 +30,10 @@ public class AuthController : ControllerBase
     public async Task<ActionResult<ApiResponse<AuthResponse>>> Refresh(
         [FromBody] RefreshTokenRequest request, CancellationToken ct)
     {
-        // TODO: implement refresh token handler
-        return StatusCode(501, ApiResponse<AuthResponse>.Fail("Not implemented yet."));
+        var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
+        var result = await _mediator.Send(
+            new RefreshTokenCommand(request.RefreshToken, ip), ct);
+        return Ok(ApiResponse<AuthResponse>.Ok(result));
     }
 
     [HttpGet("google")]

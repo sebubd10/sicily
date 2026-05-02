@@ -1,8 +1,7 @@
 using System.Text;
 using BasicCommerce.Application.Common.Behaviors;
 using BasicCommerce.Application.Interfaces;
-using BasicCommerce.Infrastructure.Persistence;
-using BasicCommerce.Infrastructure.Providers;
+using BasicCommerce.Infrastructure;
 using BasicCommerce.Infrastructure.Services;
 using FluentValidation;
 using MediatR;
@@ -25,8 +24,9 @@ builder.Services.AddValidatorsFromAssembly(
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
 
-builder.Services.AddScoped<IJwtService, JwtService>();
-builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
 var jwtKey = builder.Configuration["Jwt:SecretKey"]!;
 builder.Services

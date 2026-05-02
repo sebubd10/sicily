@@ -1,7 +1,7 @@
 using System.Text;
 using BasicCommerce.Application.Common.Behaviors;
 using BasicCommerce.Application.Interfaces;
-using BasicCommerce.Infrastructure.Providers;
+using BasicCommerce.Infrastructure;
 using BasicCommerce.Infrastructure.Services;
 using BasicCommerce.Pos.Api.Hubs;
 using FluentValidation;
@@ -11,7 +11,9 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDatabase(builder.Configuration);
+builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssembly(
         typeof(BasicCommerce.Application.Features.Auth.Commands.LoginCommand).Assembly));
@@ -19,7 +21,6 @@ builder.Services.AddValidatorsFromAssembly(
     typeof(BasicCommerce.Application.Features.Auth.Commands.LoginCommand).Assembly);
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
-builder.Services.AddScoped<IJwtService, JwtService>();
 
 var jwtKey = builder.Configuration["Jwt:SecretKey"]!;
 builder.Services
