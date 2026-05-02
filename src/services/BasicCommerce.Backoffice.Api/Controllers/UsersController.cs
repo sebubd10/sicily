@@ -1,3 +1,5 @@
+using BasicCommerce.Application.Features.Users.Commands;
+using BasicCommerce.Application.Features.Users.Queries;
 using BasicCommerce.Application.Interfaces;
 using BasicCommerce.Contracts.Common;
 using BasicCommerce.Contracts.Users;
@@ -22,24 +24,41 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet]
-    public IActionResult GetAll([FromQuery] PaginatedRequest request) =>
-        StatusCode(501, ApiResponse<object>.Fail("GetUsersQuery not yet implemented."));
-
-    [HttpGet("{id:guid}")]
-    public IActionResult GetById(Guid id) =>
-        StatusCode(501, ApiResponse<object>.Fail("GetUserQuery not yet implemented."));
+    public async Task<ActionResult<ApiResponse<IEnumerable<UserListResponse>>>> GetAll(
+        [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
+    {
+        var result = await _mediator.Send(new GetUsersQuery(page, pageSize), ct);
+        return Ok(ApiResponse<IEnumerable<UserListResponse>>.Ok(result));
+    }
 
     [HttpPost]
     [Authorize(Policy = "ChainAdminOnly")]
-    public IActionResult Create([FromBody] CreateUserRequest request) =>
-        StatusCode(501, ApiResponse<object>.Fail("CreateUserCommand not yet implemented."));
+    public async Task<ActionResult<ApiResponse<UserListResponse>>> Create(
+        [FromBody] CreateUserRequest request, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new CreateUserCommand(
+            request.FirstName,
+            request.LastName,
+            request.Email,
+            request.Password,
+            request.Role,
+            request.StoreId,
+            request.PhoneNumber), ct);
+        return CreatedAtAction(null, ApiResponse<UserListResponse>.Ok(result));
+    }
 
     [HttpPut("{id:guid}/deactivate")]
     [Authorize(Policy = "ChainAdminOnly")]
-    public IActionResult Deactivate(Guid id) =>
-        StatusCode(501, ApiResponse<object>.Fail("DeactivateUserCommand not yet implemented."));
+    public async Task<ActionResult<ApiResponse<object>>> Deactivate(Guid id, CancellationToken ct)
+    {
+        await _mediator.Send(new DeactivateUserCommand(id), ct);
+        return Ok(ApiResponse<object>.Ok(null!));
+    }
 
     [HttpPut("{id:guid}/unlock")]
-    public IActionResult Unlock(Guid id) =>
-        StatusCode(501, ApiResponse<object>.Fail("UnlockUserCommand not yet implemented."));
+    public async Task<ActionResult<ApiResponse<object>>> Unlock(Guid id, CancellationToken ct)
+    {
+        await _mediator.Send(new UnlockUserCommand(id), ct);
+        return Ok(ApiResponse<object>.Ok(null!));
+    }
 }

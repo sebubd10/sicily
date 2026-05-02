@@ -71,6 +71,8 @@ public class Product : TenantEntity
         AgeRestrictionYears = null;
     }
 
+    public void SetPlu(string plu) => Plu = plu;
+
     public void Deactivate() => IsActive = false;
     public void Activate() => IsActive = true;
 }

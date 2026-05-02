@@ -1,3 +1,4 @@
+using BasicCommerce.Application.Features.Products.Commands;
 using BasicCommerce.Application.Features.Products.Queries;
 using BasicCommerce.Application.Interfaces;
 using BasicCommerce.Contracts.Common;
@@ -40,13 +41,35 @@ public class ProductsController : ControllerBase
         return Ok(ApiResponse<ProductResponse>.Ok(result));
     }
 
-    // POST /api/products — create product (wired to CreateProductCommand, to be built)
     [HttpPost]
-    public IActionResult Create([FromBody] CreateProductRequest request) =>
-        StatusCode(501, ApiResponse<object>.Fail("CreateProductCommand not yet implemented."));
+    [Authorize(Policy = "StoreManagerAndAbove")]
+    public async Task<ActionResult<ApiResponse<ProductResponse>>> Create(
+        [FromBody] CreateProductRequest request, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new CreateProductCommand(
+            request.Sku,
+            request.Barcode,
+            request.Plu,
+            request.Name,
+            request.NameBn,
+            request.CategoryId,
+            request.Price,
+            request.VatRateId,
+            request.UnitType,
+            request.IsWeightBased,
+            request.IsAgeRestricted,
+            request.AgeRestrictionYears,
+            request.CostPrice), ct);
+        return CreatedAtAction(nameof(GetByBarcode), new { barcode = result.Barcode },
+            ApiResponse<ProductResponse>.Ok(result));
+    }
 
-    // PUT /api/products/{id}/price — update price
     [HttpPut("{id:guid}/price")]
-    public IActionResult UpdatePrice(Guid id, [FromBody] UpdateProductPriceRequest request) =>
-        StatusCode(501, ApiResponse<object>.Fail("UpdateProductPriceCommand not yet implemented."));
+    [Authorize(Policy = "StoreManagerAndAbove")]
+    public async Task<ActionResult<ApiResponse<ProductResponse>>> UpdatePrice(
+        Guid id, [FromBody] UpdateProductPriceRequest request, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new UpdateProductPriceCommand(id, request.NewPrice), ct);
+        return Ok(ApiResponse<ProductResponse>.Ok(result));
+    }
 }

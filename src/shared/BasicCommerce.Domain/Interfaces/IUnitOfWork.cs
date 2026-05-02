@@ -8,6 +8,10 @@ public interface IUnitOfWork : IDisposable
     IStockLevelRepository StockLevels { get; }
     ITransactionRepository Transactions { get; }
     IVatRateRepository VatRates { get; }
+    IStoreRepository Stores { get; }
+    ITerminalRepository Terminals { get; }
+    ICategoryRepository Categories { get; }
+    ICustomerRepository Customers { get; }
 
     Task<int> SaveChangesAsync(CancellationToken ct = default);
     Task BeginTransactionAsync(CancellationToken ct = default);

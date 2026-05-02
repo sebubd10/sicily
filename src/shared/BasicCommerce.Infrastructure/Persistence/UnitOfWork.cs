@@ -15,6 +15,10 @@ public class UnitOfWork : IUnitOfWork
     public IStockLevelRepository StockLevels { get; }
     public ITransactionRepository Transactions { get; }
     public IVatRateRepository VatRates { get; }
+    public IStoreRepository Stores { get; }
+    public ITerminalRepository Terminals { get; }
+    public ICategoryRepository Categories { get; }
+    public ICustomerRepository Customers { get; }
 
     public UnitOfWork(BasicCommerceDbContext db)
     {
@@ -25,6 +29,10 @@ public class UnitOfWork : IUnitOfWork
         StockLevels = new StockLevelRepository(db);
         Transactions = new TransactionRepository(db);
         VatRates = new VatRateRepository(db);
+        Stores = new StoreRepository(db);
+        Terminals = new TerminalRepository(db);
+        Categories = new CategoryRepository(db);
+        Customers = new CustomerRepository(db);
     }
 
     public async Task<int> SaveChangesAsync(CancellationToken ct = default) =>
