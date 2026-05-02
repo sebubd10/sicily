@@ -5,6 +5,9 @@ public record TransactionResponse(
     string TransactionNumber,
     string Status,
     string Type,
+    Guid? CustomerId,
+    string? CustomerName,
+    Guid? OriginalTransactionId,
     IEnumerable<LineItemResponse> LineItems,
     IEnumerable<PaymentResponse> Payments,
     decimal SubTotal,
@@ -51,3 +54,16 @@ public record AddPaymentRequest(
 public record VoidLineItemRequest(Guid LineItemId);
 
 public record VoidTransactionRequest(string Reason, Guid SupervisorId);
+
+public record AttachCustomerRequest(Guid CustomerId);
+
+public record SuspendTransactionRequest(string? Notes = null);
+
+public record ReturnLineItemRequest(Guid OriginalLineItemId, decimal Quantity);
+
+public record CreateReturnTransactionRequest(
+    IEnumerable<ReturnLineItemRequest> Items,
+    string RefundMethod,
+    string? Notes = null);
+
+public record ApplyDiscountRequest(decimal DiscountAmount);

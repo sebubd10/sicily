@@ -19,6 +19,13 @@ public class GetTransactionQueryHandler : IRequestHandler<GetTransactionQuery, T
             request.TenantId, request.TransactionId, ct)
             ?? throw new NotFoundException("Transaction", request.TransactionId);
 
-        return CreateTransactionCommandHandler.MapToResponse(transaction);
+        string? customerName = null;
+        if (transaction.CustomerId.HasValue)
+        {
+            var customer = await _uow.Customers.GetByIdAsync(transaction.CustomerId.Value, ct);
+            customerName = customer?.Name;
+        }
+
+        return CreateTransactionCommandHandler.MapToResponse(transaction, customerName);
     }
 }

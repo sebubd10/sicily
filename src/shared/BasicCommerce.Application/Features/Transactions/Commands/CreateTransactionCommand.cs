@@ -44,12 +44,16 @@ public class CreateTransactionCommandHandler
         return MapToResponse(transaction);
     }
 
-    internal static TransactionResponse MapToResponse(Transaction t) =>
+    internal static TransactionResponse MapToResponse(Transaction t,
+        string? customerName = null) =>
         new(
             Id: t.Id,
             TransactionNumber: t.TransactionNumber,
             Status: t.Status.ToString(),
             Type: t.Type.ToString(),
+            CustomerId: t.CustomerId,
+            CustomerName: customerName,
+            OriginalTransactionId: t.OriginalTransactionId,
             LineItems: t.LineItems.Select(l => new LineItemResponse(
                 l.Id, l.ProductName, l.ProductSku, l.Quantity, l.UnitPrice,
                 l.TaxRate, l.TaxAmount, l.DiscountAmount, l.LineTotal,

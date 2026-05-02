@@ -87,19 +87,78 @@ public class Transaction : TenantEntity
 
         var payment = Payment.Create(Id, TenantId, method, amount, reference);
         _payments.Add(payment);
-        AmountPaid = _payments.Where(p => p.Status == PaymentStatus.Approved).Sum(p => p.Amount);
         return payment;
+    }
+
+    public void RefreshAmountPaid()
+    {
+        AmountPaid = _payments.Where(p => p.Status == PaymentStatus.Approved).Sum(p => p.Amount);
     }
 
     public void Complete()
     {
+        RefreshAmountPaid();
         if (Total > AmountPaid)
-            throw new DomainException("Transaction total exceeds amount paid.");
+            throw new DomainException(
+                $"Insufficient payment. Total: {Total:F2}, Paid: {AmountPaid:F2}.");
 
         ChangeDue = AmountPaid - Total;
         Status = TransactionStatus.Completed;
         CompletedAt = DateTime.UtcNow;
         _domainEvents.Add(new TransactionCompletedEvent(Id, StoreId, Total, TaxTotal));
+    }
+
+    public void Suspend()
+    {
+        if (Status != TransactionStatus.Open)
+            throw new DomainException("Only open transactions can be suspended.");
+        Status = TransactionStatus.Suspended;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void Recall()
+    {
+        if (Status != TransactionStatus.Suspended)
+            throw new DomainException("Only suspended transactions can be recalled.");
+        Status = TransactionStatus.Open;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void AttachCustomer(Guid customerId)
+    {
+        if (Status != TransactionStatus.Open)
+            throw new DomainException("Cannot attach a customer to a non-open transaction.");
+        CustomerId = customerId;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void ApplyLineItemDiscount(Guid lineItemId, decimal discountAmount)
+    {
+        if (Status != TransactionStatus.Open)
+            throw new DomainException("Cannot modify a non-open transaction.");
+        var item = _lineItems.FirstOrDefault(l => l.Id == lineItemId)
+            ?? throw new DomainException("Line item not found.");
+        item.ApplyDiscount(discountAmount);
+        RecalculateTotals();
+    }
+
+    public void MarkRefunded() => Status = TransactionStatus.Refunded;
+
+    public static Transaction CreateReturn(Guid tenantId, Guid storeId, Guid terminalId,
+        Guid cashierId, Guid originalTransactionId, Guid? customerId = null)
+    {
+        var t = new Transaction
+        {
+            TenantId = tenantId,
+            StoreId = storeId,
+            TerminalId = terminalId,
+            CashierId = cashierId,
+            CustomerId = customerId,
+            Type = TransactionType.Return,
+            OriginalTransactionId = originalTransactionId,
+            TransactionNumber = GenerateNumber()
+        };
+        return t;
     }
 
     public void Void(Guid voidedBy, string reason)
