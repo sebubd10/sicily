@@ -23,4 +23,15 @@ public class CustomerRepository : TenantRepository<Customer>, ICustomerRepositor
         CancellationToken ct = default) =>
         await Db.Customers.FirstOrDefaultAsync(
             c => c.TenantId == tenantId && c.Email == email.ToLowerInvariant() && !c.IsDeleted, ct);
+
+    public async Task<IEnumerable<Customer>> SearchAsync(Guid tenantId, string term,
+        int limit = 20, CancellationToken ct = default) =>
+        await Db.Customers
+            .Where(c => c.TenantId == tenantId && !c.IsDeleted &&
+                (c.Name.Contains(term) || c.Code.Contains(term) ||
+                 (c.Phone != null && c.Phone.Contains(term)) ||
+                 (c.Email != null && c.Email.Contains(term))))
+            .OrderBy(c => c.Name)
+            .Take(limit)
+            .ToListAsync(ct);
 }

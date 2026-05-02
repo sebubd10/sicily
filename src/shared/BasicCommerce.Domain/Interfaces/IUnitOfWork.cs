@@ -12,6 +12,7 @@ public interface IUnitOfWork : IDisposable
     ITerminalRepository Terminals { get; }
     ICategoryRepository Categories { get; }
     ICustomerRepository Customers { get; }
+    ICreditAccountRepository CreditAccounts { get; }
 
     Task<int> SaveChangesAsync(CancellationToken ct = default);
     Task BeginTransactionAsync(CancellationToken ct = default);

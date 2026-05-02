@@ -19,6 +19,7 @@ public class UnitOfWork : IUnitOfWork
     public ITerminalRepository Terminals { get; }
     public ICategoryRepository Categories { get; }
     public ICustomerRepository Customers { get; }
+    public ICreditAccountRepository CreditAccounts { get; }
 
     public UnitOfWork(BasicCommerceDbContext db)
     {
@@ -33,6 +34,7 @@ public class UnitOfWork : IUnitOfWork
         Terminals = new TerminalRepository(db);
         Categories = new CategoryRepository(db);
         Customers = new CustomerRepository(db);
+        CreditAccounts = new CreditAccountRepository(db);
     }
 
     public async Task<int> SaveChangesAsync(CancellationToken ct = default) =>

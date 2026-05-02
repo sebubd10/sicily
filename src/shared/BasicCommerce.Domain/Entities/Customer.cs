@@ -55,7 +55,19 @@ public class Customer : TenantEntity
         CurrentBalance = Math.Max(0, CurrentBalance - amount);
     }
 
+    public void Update(string name, string? email, string? phone, Address? address)
+    {
+        Name = name;
+        Email = email?.ToLowerInvariant();
+        Phone = phone;
+        Address = address;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
     public void UpdateCreditLimit(decimal newLimit) => CreditLimit = newLimit;
+
+    public void Deactivate() => IsActive = false;
+    public void Activate() => IsActive = true;
 
     private static string GenerateCode() =>
         $"CUST-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString("N")[..6].ToUpper()}";
