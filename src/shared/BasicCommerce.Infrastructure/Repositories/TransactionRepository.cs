@@ -32,4 +32,40 @@ public class TransactionRepository : TenantRepository<Transaction>, ITransaction
                 t.CreatedAt >= from && t.CreatedAt <= to)
             .OrderByDescending(t => t.CreatedAt)
             .ToListAsync(ct);
+
+    public async Task<IEnumerable<Transaction>> GetForDailyReportAsync(Guid tenantId,
+        Guid? storeId, DateOnly date, CancellationToken ct = default)
+    {
+        var from = date.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+        var to = date.ToDateTime(TimeOnly.MaxValue, DateTimeKind.Utc);
+        return await Db.Transactions
+            .Include(t => t.Payments)
+            .Include(t => t.LineItems)
+            .Where(t => t.TenantId == tenantId &&
+                (storeId == null || t.StoreId == storeId) &&
+                t.CreatedAt >= from && t.CreatedAt <= to)
+            .ToListAsync(ct);
+    }
+
+    public async Task<IEnumerable<Transaction>> GetForDateRangeReportAsync(Guid tenantId,
+        Guid? storeId, DateTime from, DateTime to, CancellationToken ct = default) =>
+        await Db.Transactions
+            .Include(t => t.Payments)
+            .Include(t => t.LineItems)
+            .Where(t => t.TenantId == tenantId &&
+                (storeId == null || t.StoreId == storeId) &&
+                t.CreatedAt >= from && t.CreatedAt <= to)
+            .ToListAsync(ct);
+
+    public async Task<IEnumerable<Transaction>> GetForReconciliationAsync(Guid tenantId,
+        Guid terminalId, DateOnly date, CancellationToken ct = default)
+    {
+        var from = date.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+        var to = date.ToDateTime(TimeOnly.MaxValue, DateTimeKind.Utc);
+        return await Db.Transactions
+            .Include(t => t.Payments)
+            .Where(t => t.TenantId == tenantId && t.TerminalId == terminalId &&
+                t.CreatedAt >= from && t.CreatedAt <= to)
+            .ToListAsync(ct);
+    }
 }

@@ -49,6 +49,14 @@ public class StockLevelRepository : TenantRepository<StockLevel>, IStockLevelRep
         await Db.StockLevels.FirstOrDefaultAsync(
             s => s.TenantId == tenantId && s.StoreId == storeId && s.ProductId == productId, ct);
 
+    public async Task<IEnumerable<StockLevel>> GetByStoreAsync(Guid tenantId, Guid storeId,
+        CancellationToken ct = default) =>
+        await Db.StockLevels
+            .Include(s => s.Product)
+            .Where(s => s.TenantId == tenantId && s.StoreId == storeId)
+            .OrderBy(s => s.Product!.Name)
+            .ToListAsync(ct);
+
     public async Task<IEnumerable<StockLevel>> GetLowStockAsync(Guid tenantId, Guid storeId,
         CancellationToken ct = default) =>
         await Db.StockLevels

@@ -1,5 +1,7 @@
+using BasicCommerce.Application.Features.Reports;
 using BasicCommerce.Application.Interfaces;
 using BasicCommerce.Contracts.Common;
+using BasicCommerce.Contracts.Reports;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,22 +24,49 @@ public class ReportsController : ControllerBase
 
     /// <summary>Daily sales summary — total revenue, tax, transactions by payment method.</summary>
     [HttpGet("daily-sales")]
-    public IActionResult DailySales([FromQuery] DateTime? date, [FromQuery] Guid? storeId) =>
-        StatusCode(501, ApiResponse<object>.Fail("DailySalesReportQuery not yet implemented."));
+    public async Task<ActionResult<ApiResponse<DailySalesReportResponse>>> DailySales(
+        [FromQuery] DateOnly? date,
+        [FromQuery] Guid? storeId,
+        CancellationToken ct)
+    {
+        var reportDate = date ?? DateOnly.FromDateTime(DateTime.UtcNow);
+        var result = await _mediator.Send(new DailySalesReportQuery(reportDate, storeId), ct);
+        return Ok(ApiResponse<DailySalesReportResponse>.Ok(result));
+    }
 
     /// <summary>Cashier performance — transactions, voids, overrides per cashier.</summary>
     [HttpGet("cashier-performance")]
-    public IActionResult CashierPerformance(
-        [FromQuery] DateTime from, [FromQuery] DateTime to, [FromQuery] Guid? storeId) =>
-        StatusCode(501, ApiResponse<object>.Fail("CashierPerformanceReportQuery not yet implemented."));
+    public async Task<ActionResult<ApiResponse<CashierPerformanceReportResponse>>> CashierPerformance(
+        [FromQuery] DateTime? from,
+        [FromQuery] DateTime? to,
+        [FromQuery] Guid? storeId,
+        CancellationToken ct)
+    {
+        var start = from ?? DateTime.UtcNow.Date;
+        var end = to ?? DateTime.UtcNow.Date.AddDays(1).AddTicks(-1);
+        var result = await _mediator.Send(new CashierPerformanceReportQuery(start, end, storeId), ct);
+        return Ok(ApiResponse<CashierPerformanceReportResponse>.Ok(result));
+    }
 
     /// <summary>End-of-day cash reconciliation for a terminal.</summary>
     [HttpGet("reconciliation/{terminalId:guid}")]
-    public IActionResult Reconciliation(Guid terminalId, [FromQuery] DateTime? date) =>
-        StatusCode(501, ApiResponse<object>.Fail("ReconciliationReportQuery not yet implemented."));
+    public async Task<ActionResult<ApiResponse<ReconciliationReportResponse>>> Reconciliation(
+        Guid terminalId,
+        [FromQuery] DateOnly? date,
+        CancellationToken ct)
+    {
+        var reportDate = date ?? DateOnly.FromDateTime(DateTime.UtcNow);
+        var result = await _mediator.Send(new ReconciliationReportQuery(terminalId, reportDate), ct);
+        return Ok(ApiResponse<ReconciliationReportResponse>.Ok(result));
+    }
 
     /// <summary>Stock levels and low-stock alerts for a store.</summary>
     [HttpGet("stock/{storeId:guid}")]
-    public IActionResult StockReport(Guid storeId) =>
-        StatusCode(501, ApiResponse<object>.Fail("StockReportQuery not yet implemented."));
+    public async Task<ActionResult<ApiResponse<StockReportResponse>>> StockReport(
+        Guid storeId,
+        CancellationToken ct)
+    {
+        var result = await _mediator.Send(new StockReportQuery(storeId), ct);
+        return Ok(ApiResponse<StockReportResponse>.Ok(result));
+    }
 }
