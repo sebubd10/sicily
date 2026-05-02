@@ -1,3 +1,4 @@
+using BasicCommerce.Infrastructure.Persistence;
 using BasicCommerce.Infrastructure.Middleware;
 using System.Text;
 using BasicCommerce.Application.Common.Behaviors;
@@ -82,5 +83,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<PosHub>("/hubs/pos");
+
+await app.Services.MigrateAndSeedAsync();
 
 app.Run();
