@@ -1,3 +1,4 @@
+using BasicCommerce.Infrastructure.Middleware;
 using System.Text;
 using BasicCommerce.Application.Common.Behaviors;
 using BasicCommerce.Application.Interfaces;
@@ -95,6 +96,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseExceptionHandling();
 app.UseCors("BasicCommerceCors");
 app.UseAuthentication();
 app.UseAuthorization();
