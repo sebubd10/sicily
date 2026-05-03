@@ -90,5 +90,5 @@ public class RegisterCustomerCommandHandler : IRequestHandler<RegisterCustomerCo
         c.Id, c.Code, c.Name, c.Email, c.Phone,
         c.Address?.Line1, c.Address?.City,
         c.LoyaltyPoints, c.CreditLimit, c.CurrentBalance, c.AvailableCredit,
-        c.IsActive, c.CreatedAt);
+        c.Status.ToString(), c.CreatedAt);
 }

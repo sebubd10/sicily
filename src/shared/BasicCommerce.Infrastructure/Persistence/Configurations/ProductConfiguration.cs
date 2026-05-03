@@ -34,6 +34,5 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         });
 
         builder.Property(p => p.UnitType).HasConversion<string>().HasMaxLength(20);
-        builder.Ignore(p => p.IsActive);
     }
 }

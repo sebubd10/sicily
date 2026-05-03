@@ -1,5 +1,6 @@
 using BasicCommerce.Application.Interfaces;
 using BasicCommerce.Contracts.Auth;
+using BasicCommerce.Domain.Enums;
 using BasicCommerce.Domain.Exceptions;
 using BasicCommerce.Domain.Interfaces;
 using FluentValidation;
@@ -40,7 +41,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponse>
         var user = await _uow.Users.GetByEmailAcrossTenantsAsync(request.Email, ct)
             ?? throw new UnauthorizedException("Invalid email or password.");
 
-        if (!user.IsActive)
+        if (user.Status != EntityStatus.Active)
             throw new UnauthorizedException("Account is deactivated.");
 
         if (user.IsLocked)

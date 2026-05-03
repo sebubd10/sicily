@@ -24,7 +24,7 @@ public record ProductResponse(
     bool IsEbtEligible,
     bool TrackInventory,
     int ReorderLevel,
-    bool IsActive,
+    string Status,
     string? ImageUrl,
     DateTime CreatedAt,
     DateTime? UpdatedAt);
@@ -77,7 +77,7 @@ public record VatRateResponse(
     string Code,
     decimal Rate,
     bool IsDefault,
-    bool IsActive);
+    string Status);
 
 public record CategoryResponse(
     Guid Id,
@@ -87,7 +87,7 @@ public record CategoryResponse(
     Guid? ParentCategoryId,
     string? ParentCategoryName,
     int SortOrder,
-    bool IsActive,
+    string Status,
     int ChildCount);
 
 public record UpdateCategoryRequest(

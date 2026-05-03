@@ -1,6 +1,7 @@
 using BasicCommerce.Application.Interfaces;
 using BasicCommerce.Contracts.Auth;
 using BasicCommerce.Domain.Entities;
+using BasicCommerce.Domain.Enums;
 using BasicCommerce.Domain.Exceptions;
 using BasicCommerce.Domain.Interfaces;
 using MediatR;
@@ -32,7 +33,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, A
         var user = await _uow.Users.GetByIdAsync(existing.UserId, ct)
             ?? throw new UnauthorizedException("User not found.");
 
-        if (!user.IsActive)
+        if (user.Status != EntityStatus.Active)
             throw new UnauthorizedException("Account is deactivated.");
 
         // Rotate refresh token

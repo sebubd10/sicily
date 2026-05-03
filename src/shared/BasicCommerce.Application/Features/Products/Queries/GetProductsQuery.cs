@@ -2,6 +2,7 @@ using BasicCommerce.Application.Features.Products;
 using BasicCommerce.Application.Interfaces;
 using BasicCommerce.Contracts.Products;
 using BasicCommerce.Domain.Entities;
+using BasicCommerce.Domain.Enums;
 using BasicCommerce.Domain.Interfaces;
 using MediatR;
 
@@ -11,7 +12,7 @@ public record GetProductsQuery(
     int Page = 1,
     int PageSize = 20,
     Guid? CategoryId = null,
-    bool? IsActive = null) : IRequest<ProductListResponse>;
+    EntityStatus? Status = null) : IRequest<ProductListResponse>;
 
 public class GetProductsQueryHandler : IRequestHandler<GetProductsQuery, ProductListResponse>
 {
@@ -28,7 +29,7 @@ public class GetProductsQueryHandler : IRequestHandler<GetProductsQuery, Product
     {
         var tenantId = _currentUser.TenantId;
         var (items, total) = await _uow.Products.GetPagedAsync(
-            tenantId, request.Page, request.PageSize, request.CategoryId, request.IsActive, ct);
+            tenantId, request.Page, request.PageSize, request.CategoryId, request.Status, ct);
 
         var vatRateIds = items.Select(p => p.VatRateId).Distinct().ToList();
         var vatRates = new Dictionary<Guid, VatRate>();

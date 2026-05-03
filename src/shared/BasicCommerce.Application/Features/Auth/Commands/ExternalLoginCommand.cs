@@ -73,7 +73,7 @@ public class ExternalLoginCommandHandler : IRequestHandler<ExternalLoginCommand,
             await _uow.Users.AddAsync(user, ct);
         }
 
-        if (!user.IsActive)
+        if (user.Status != EntityStatus.Active)
             throw new UnauthorizedException("Account is deactivated.");
 
         user.RecordLogin();

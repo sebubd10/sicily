@@ -25,7 +25,6 @@ public class Product : TenantEntity
     public int ReorderLevel { get; private set; }
     public string? ImageUrl { get; private set; }
 
-    public bool IsActive => Status == EntityStatus.Active;
 
     public Category? Category { get; private set; }
 

@@ -7,7 +7,7 @@ public record StoreResponse(
     string Address,
     string? Phone,
     string? Email,
-    bool IsActive,
+    string Status,
     int TerminalCount);
 
 public record CreateStoreRequest(

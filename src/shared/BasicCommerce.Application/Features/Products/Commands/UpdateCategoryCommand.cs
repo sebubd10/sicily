@@ -67,7 +67,7 @@ public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryComman
             category.ParentCategoryId,
             parentName,
             category.SortOrder,
-            category.IsActive,
+            category.Status.ToString(),
             children.Count());
     }
 }

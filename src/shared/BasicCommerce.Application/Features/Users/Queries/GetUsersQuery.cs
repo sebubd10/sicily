@@ -55,7 +55,7 @@ public class GetUsersQueryHandler : IRequestHandler<GetUsersQuery, IEnumerable<U
                 user.Email,
                 user.Role.ToString(),
                 storeName,
-                user.IsActive,
+                user.Status.ToString(),
                 user.LastLoginAt));
         }
 

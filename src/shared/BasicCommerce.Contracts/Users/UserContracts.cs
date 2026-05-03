@@ -7,7 +7,7 @@ public record UserListResponse(
     string Email,
     string Role,
     string? StoreName,
-    bool IsActive,
+    string Status,
     DateTime? LastLoginAt);
 
 public record CreateUserRequest(

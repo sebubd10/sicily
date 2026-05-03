@@ -14,7 +14,6 @@ public class Customer : TenantEntity
     public decimal CurrentBalance { get; private set; }
     public int LoyaltyPoints { get; private set; }
 
-    public bool IsActive => Status == EntityStatus.Active;
     public decimal AvailableCredit => CreditLimit - CurrentBalance;
     public bool HasCredit => AvailableCredit > 0;
 

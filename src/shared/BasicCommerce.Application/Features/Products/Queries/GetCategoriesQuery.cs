@@ -1,5 +1,6 @@
 using BasicCommerce.Application.Interfaces;
 using BasicCommerce.Contracts.Products;
+using BasicCommerce.Domain.Enums;
 using BasicCommerce.Domain.Interfaces;
 using MediatR;
 
@@ -26,7 +27,7 @@ public class GetCategoriesQueryHandler : IRequestHandler<GetCategoriesQuery, IEn
         var all = await _uow.Categories.GetAllForTenantAsync(tenantId, ct);
 
         if (!request.IncludeInactive)
-            all = all.Where(c => c.IsActive);
+            all = all.Where(c => c.Status == EntityStatus.Active);
 
         var list = all.ToList();
         var parentNames = list
@@ -50,7 +51,7 @@ public class GetCategoriesQueryHandler : IRequestHandler<GetCategoriesQuery, IEn
                 ? parentNames.GetValueOrDefault(c.ParentCategoryId.Value)
                 : null,
             c.SortOrder,
-            c.IsActive,
+            c.Status.ToString(),
             childCounts.GetValueOrDefault(c.Id)));
     }
 }
@@ -91,7 +92,7 @@ public class GetCategoryQueryHandler : IRequestHandler<GetCategoryQuery, Categor
             category.ParentCategoryId,
             parentName,
             category.SortOrder,
-            category.IsActive,
+            category.Status.ToString(),
             children.Count());
     }
 }

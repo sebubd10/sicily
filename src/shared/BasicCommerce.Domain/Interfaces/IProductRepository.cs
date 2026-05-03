@@ -1,4 +1,5 @@
 using BasicCommerce.Domain.Entities;
+using BasicCommerce.Domain.Enums;
 
 namespace BasicCommerce.Domain.Interfaces;
 
@@ -9,7 +10,7 @@ public interface IProductRepository : ITenantRepository<Product>
     Task<Product?> GetBySkuAsync(Guid tenantId, string sku, CancellationToken ct = default);
     Task<IEnumerable<Product>> SearchAsync(Guid tenantId, string term, int limit = 20, CancellationToken ct = default);
     Task<(IEnumerable<Product> Items, int TotalCount)> GetPagedAsync(Guid tenantId,
-        int page, int pageSize, Guid? categoryId = null, bool? isActive = null,
+        int page, int pageSize, Guid? categoryId = null, EntityStatus? status = null,
         CancellationToken ct = default);
 }
 

@@ -13,7 +13,6 @@ public class Tenant : BaseEntity
     public string CurrencyCode { get; private set; } = "BDT";
     public string DefaultLanguage { get; private set; } = "en";
 
-    public bool IsActive => Status == EntityStatus.Active;
 
     private readonly List<Store> _stores = [];
     public IReadOnlyCollection<Store> Stores => _stores.AsReadOnly();

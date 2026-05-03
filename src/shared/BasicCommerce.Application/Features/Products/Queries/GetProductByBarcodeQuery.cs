@@ -49,7 +49,7 @@ public class GetProductByBarcodeQueryHandler
             IsWeightBased: product.IsWeightBased,
             IsAgeRestricted: product.IsAgeRestricted,
             AgeRestrictionYears: product.AgeRestrictionYears,
-            IsActive: product.IsActive,
+            Status: product.Status.ToString(),
             ImageUrl: product.ImageUrl);
     }
 }

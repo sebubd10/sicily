@@ -21,7 +21,6 @@ public class User : TenantEntity
     public string PreferredLanguage { get; private set; } = "en";
 
     public string FullName => $"{FirstName} {LastName}";
-    public bool IsActive => Status == EntityStatus.Active;
     public bool IsLocked => LockedUntil.HasValue && LockedUntil > DateTime.UtcNow;
 
     private User() { }

@@ -44,7 +44,7 @@ public class GetCreditAccountQueryHandler : IRequestHandler<GetCreditAccountQuer
             account.CreditLimit,
             account.OutstandingBalance,
             account.AvailableCredit,
-            account.IsActive,
+            account.Status.ToString(),
             account.LastPaymentAt,
             account.Transactions
                 .OrderByDescending(t => t.CreatedAt)

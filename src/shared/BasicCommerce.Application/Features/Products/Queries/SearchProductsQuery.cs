@@ -38,6 +38,6 @@ public class SearchProductsQueryHandler
             p.Price.Amount, p.Price.Currency,
             0, p.UnitType.ToString(),
             p.IsWeightBased, p.IsAgeRestricted,
-            p.AgeRestrictionYears, p.IsActive, p.ImageUrl));
+            p.AgeRestrictionYears, p.Status.ToString(), p.ImageUrl));
     }
 }

@@ -25,6 +25,5 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.Role).HasConversion<string>().HasMaxLength(30);
         builder.Property(u => u.AuthProvider).HasConversion<string>().HasMaxLength(20);
         builder.Property(u => u.PreferredLanguage).HasMaxLength(10).HasDefaultValue("en");
-        builder.Ignore(u => u.IsActive);
     }
 }

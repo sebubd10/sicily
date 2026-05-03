@@ -13,7 +13,6 @@ public class Store : TenantEntity
     public TimeOnly OpeningTime { get; private set; }
     public TimeOnly ClosingTime { get; private set; }
 
-    public bool IsActive => Status == EntityStatus.Active;
 
     private readonly List<Terminal> _terminals = [];
     public IReadOnlyCollection<Terminal> Terminals => _terminals.AsReadOnly();

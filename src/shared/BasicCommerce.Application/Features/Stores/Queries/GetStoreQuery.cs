@@ -36,7 +36,7 @@ public class GetStoreQueryHandler : IRequestHandler<GetStoreQuery, StoreResponse
             $"{store.Address.Line1}, {store.Address.City}",
             store.Phone,
             store.Email,
-            store.IsActive,
+            store.Status.ToString(),
             terminals.Count());
     }
 }

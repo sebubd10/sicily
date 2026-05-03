@@ -29,7 +29,7 @@ internal static class ProductMapper
             p.IsEbtEligible,
             p.TrackInventory,
             p.ReorderLevel,
-            p.IsActive,
+            p.Status.ToString(),
             p.ImageUrl,
             p.CreatedAt,
             p.UpdatedAt);

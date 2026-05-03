@@ -12,7 +12,6 @@ public class VatRate : TenantEntity
     public decimal Rate { get; private set; }
     public bool IsDefault { get; private set; }
 
-    public bool IsActive => Status == EntityStatus.Active;
 
     private VatRate() { }
 

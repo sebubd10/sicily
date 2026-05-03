@@ -78,7 +78,7 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, UserL
             user.Email,
             user.Role.ToString(),
             null,
-            user.IsActive,
+            user.Status.ToString(),
             user.LastLoginAt);
     }
 

@@ -3,6 +3,7 @@ using BasicCommerce.Application.Features.Products.Queries;
 using BasicCommerce.Application.Interfaces;
 using BasicCommerce.Contracts.Common;
 using BasicCommerce.Contracts.Products;
+using BasicCommerce.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -28,11 +29,11 @@ public class ProductsController : ControllerBase
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         [FromQuery] Guid? categoryId = null,
-        [FromQuery] bool? isActive = null,
+        [FromQuery] EntityStatus? status = null,
         CancellationToken ct = default)
     {
         var result = await _mediator.Send(
-            new GetProductsQuery(page, pageSize, categoryId, isActive), ct);
+            new GetProductsQuery(page, pageSize, categoryId, status), ct);
         return Ok(ApiResponse<ProductListResponse>.Ok(result));
     }
 

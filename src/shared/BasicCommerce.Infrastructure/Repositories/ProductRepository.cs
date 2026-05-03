@@ -42,7 +42,7 @@ public class ProductRepository : TenantRepository<Product>, IProductRepository
 
     public async Task<(IEnumerable<Product> Items, int TotalCount)> GetPagedAsync(
         Guid tenantId, int page, int pageSize,
-        Guid? categoryId = null, bool? isActive = null,
+        Guid? categoryId = null, EntityStatus? status = null,
         CancellationToken ct = default)
     {
         var query = Db.Products
@@ -52,8 +52,8 @@ public class ProductRepository : TenantRepository<Product>, IProductRepository
         if (categoryId.HasValue)
             query = query.Where(p => p.CategoryId == categoryId.Value);
 
-        if (isActive.HasValue)
-            query = query.Where(p => p.Status == (isActive.Value ? EntityStatus.Active : EntityStatus.Inactive));
+        if (status.HasValue)
+            query = query.Where(p => p.Status == status.Value);
 
         var total = await query.CountAsync(ct);
         var items = await query

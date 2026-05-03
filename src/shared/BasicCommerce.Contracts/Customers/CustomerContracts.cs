@@ -12,7 +12,7 @@ public record CustomerResponse(
     decimal CreditLimit,
     decimal CurrentBalance,
     decimal AvailableCredit,
-    bool IsActive,
+    string Status,
     DateTime CreatedAt);
 
 public record RegisterCustomerRequest(
@@ -43,7 +43,7 @@ public record CreditAccountResponse(
     decimal CreditLimit,
     decimal OutstandingBalance,
     decimal AvailableCredit,
-    bool IsActive,
+    string Status,
     DateTime? LastPaymentAt,
     IEnumerable<CreditTransactionRow> RecentHistory);
 

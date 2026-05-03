@@ -38,6 +38,6 @@ public class GetProductByPluQueryHandler : IRequestHandler<GetProductByPluQuery,
             product.Price.Amount, product.Price.Currency,
             vatRate?.Rate ?? 0, product.UnitType.ToString(),
             product.IsWeightBased, product.IsAgeRestricted,
-            product.AgeRestrictionYears, product.IsActive, product.ImageUrl);
+            product.AgeRestrictionYears, product.Status.ToString(), product.ImageUrl);
     }
 }

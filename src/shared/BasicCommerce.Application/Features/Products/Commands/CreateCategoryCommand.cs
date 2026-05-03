@@ -64,7 +64,7 @@ public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryComman
             category.ParentCategoryId,
             null,
             category.SortOrder,
-            category.IsActive,
+            category.Status.ToString(),
             0);
     }
 }

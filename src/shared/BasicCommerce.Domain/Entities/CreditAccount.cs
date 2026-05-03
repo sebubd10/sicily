@@ -14,7 +14,6 @@ public class CreditAccount : TenantEntity
     public decimal OutstandingBalance { get; private set; }
     public DateTime? LastPaymentAt { get; private set; }
 
-    public bool IsActive => Status == EntityStatus.Active;
     public decimal AvailableCredit => CreditLimit - OutstandingBalance;
     public bool CanPurchase(decimal amount) => AvailableCredit >= amount;
 

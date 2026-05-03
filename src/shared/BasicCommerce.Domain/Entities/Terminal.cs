@@ -13,7 +13,6 @@ public class Terminal : TenantEntity
     public decimal OpeningFloat { get; private set; }
     public DateTime? LastActivityAt { get; private set; }
 
-    public bool IsActive => Status == EntityStatus.Active;
 
     private Terminal() { }
 

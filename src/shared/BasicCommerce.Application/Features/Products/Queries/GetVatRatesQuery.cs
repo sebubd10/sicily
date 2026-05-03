@@ -24,7 +24,7 @@ public class GetVatRatesQueryHandler : IRequestHandler<GetVatRatesQuery, IEnumer
     public async Task<IEnumerable<VatRateResponse>> Handle(GetVatRatesQuery request, CancellationToken ct)
     {
         var all = await _uow.VatRates.GetAllForTenantAsync(_currentUser.TenantId, ct);
-        return all.Select(v => new VatRateResponse(v.Id, v.Name, v.Code, v.Rate, v.IsDefault, v.IsActive));
+        return all.Select(v => new VatRateResponse(v.Id, v.Name, v.Code, v.Rate, v.IsDefault, v.Status.ToString()));
     }
 }
 
@@ -47,6 +47,6 @@ public class GetVatRateQueryHandler : IRequestHandler<GetVatRateQuery, VatRateRe
         if (vr.TenantId != _currentUser.TenantId)
             throw new NotFoundException("VatRate", request.VatRateId);
 
-        return new VatRateResponse(vr.Id, vr.Name, vr.Code, vr.Rate, vr.IsDefault, vr.IsActive);
+        return new VatRateResponse(vr.Id, vr.Name, vr.Code, vr.Rate, vr.IsDefault, vr.Status.ToString());
     }
 }
