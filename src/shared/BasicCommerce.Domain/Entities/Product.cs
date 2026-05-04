@@ -26,7 +26,10 @@ public class Product : TenantEntity
     public string? ImageUrl { get; private set; }
 
 
+    public Guid? ManufacturerId { get; private set; }
+
     public Category? Category { get; private set; }
+    public Manufacturer? Manufacturer { get; private set; }
 
     private Product() { }
 
@@ -68,7 +71,8 @@ public class Product : TenantEntity
     public void UpdateDetails(string name, string nameBn, string? description,
         Guid categoryId, Guid vatRateId, UnitType unitType, string? unitLabel,
         bool isWeightBased, bool isEbtEligible, bool trackInventory,
-        int reorderLevel, string? imageUrl, Money? costPrice = null)
+        int reorderLevel, string? imageUrl, Money? costPrice = null,
+        Guid? manufacturerId = null)
     {
         Name = name;
         NameBn = nameBn;
@@ -82,6 +86,7 @@ public class Product : TenantEntity
         TrackInventory = trackInventory;
         ReorderLevel = reorderLevel;
         ImageUrl = imageUrl;
+        ManufacturerId = manufacturerId;
         if (costPrice is not null) CostPrice = costPrice;
         UpdatedAt = DateTime.UtcNow;
     }
@@ -99,6 +104,7 @@ public class Product : TenantEntity
     }
 
     public void SetPlu(string plu) => Plu = plu;
+    public void SetManufacturer(Guid? manufacturerId) { ManufacturerId = manufacturerId; UpdatedAt = DateTime.UtcNow; }
 
     public void Deactivate()
     {

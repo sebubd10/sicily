@@ -82,7 +82,8 @@ public class ProductsController : ControllerBase
             request.AgeRestrictionYears,
             request.CostPrice,
             request.Description,
-            request.UnitLabel), ct);
+            request.UnitLabel,
+            request.ManufacturerId), ct);
         return CreatedAtAction(nameof(GetById), new { id = result.Id },
             ApiResponse<ProductResponse>.Ok(result));
     }
@@ -108,7 +109,8 @@ public class ProductsController : ControllerBase
             request.TrackInventory,
             request.ReorderLevel,
             request.ImageUrl,
-            request.CostPrice), ct);
+            request.CostPrice,
+            request.ManufacturerId), ct);
         return Ok(ApiResponse<ProductResponse>.Ok(result));
     }
 

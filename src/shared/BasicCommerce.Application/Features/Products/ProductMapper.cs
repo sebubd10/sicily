@@ -5,7 +5,8 @@ namespace BasicCommerce.Application.Features.Products;
 
 internal static class ProductMapper
 {
-    internal static ProductResponse ToResponse(Product p, VatRate? vatRate, string? categoryName = null) =>
+    internal static ProductResponse ToResponse(Product p, VatRate? vatRate,
+        string? categoryName = null, string? manufacturerName = null) =>
         new(p.Id,
             p.Sku,
             p.Barcode,
@@ -31,6 +32,8 @@ internal static class ProductMapper
             p.ReorderLevel,
             p.Status.ToString(),
             p.ImageUrl,
+            p.ManufacturerId,
+            manufacturerName ?? p.Manufacturer?.Name,
             p.CreatedAt,
             p.UpdatedAt);
 }

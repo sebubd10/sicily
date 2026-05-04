@@ -14,6 +14,12 @@ public interface IUnitOfWork : IDisposable
     ICustomerRepository Customers { get; }
     ICreditAccountRepository CreditAccounts { get; }
     IStockMovementRepository StockMovements { get; }
+    IManufacturerRepository Manufacturers { get; }
+    ISupplierRepository Suppliers { get; }
+    IWarehouseRepository Warehouses { get; }
+    IWarehouseStockLevelRepository WarehouseStockLevels { get; }
+    IWarehouseMovementRepository WarehouseMovements { get; }
+    IPurchaseOrderRepository PurchaseOrders { get; }
 
     Task<int> SaveChangesAsync(CancellationToken ct = default);
     Task BeginTransactionAsync(CancellationToken ct = default);

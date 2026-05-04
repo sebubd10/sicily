@@ -10,3 +10,12 @@ public enum StockMovementType
     Sale = 6,
     Return = 7
 }
+
+public enum WarehouseMovementType
+{
+    PurchaseOrderReceipt = 1,
+    TransferToStore = 2,
+    Adjustment = 3,
+    WriteOff = 4,
+    Return = 5
+}

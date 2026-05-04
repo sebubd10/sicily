@@ -31,13 +31,6 @@ public class GetProductByPluQueryHandler : IRequestHandler<GetProductByPluQuery,
         var vatRate = await _uow.VatRates.GetByIdForTenantAsync(
             request.TenantId, product.VatRateId, ct);
 
-        return new ProductResponse(
-            product.Id, product.Sku, product.Barcode, product.Plu,
-            product.Name, product.NameBn,
-            product.CategoryId.ToString(), product.Category?.Name ?? string.Empty,
-            product.Price.Amount, product.Price.Currency,
-            vatRate?.Rate ?? 0, product.UnitType.ToString(),
-            product.IsWeightBased, product.IsAgeRestricted,
-            product.AgeRestrictionYears, product.Status.ToString(), product.ImageUrl);
+        return ProductMapper.ToResponse(product, vatRate);
     }
 }

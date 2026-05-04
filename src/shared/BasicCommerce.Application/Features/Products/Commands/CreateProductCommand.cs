@@ -26,7 +26,8 @@ public record CreateProductCommand(
     int? AgeRestrictionYears,
     decimal? CostPrice,
     string? Description = null,
-    string? UnitLabel = null) : IRequest<ProductResponse>;
+    string? UnitLabel = null,
+    Guid? ManufacturerId = null) : IRequest<ProductResponse>;
 
 public class CreateProductCommandValidator : AbstractValidator<CreateProductCommand>
 {
@@ -83,6 +84,9 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
 
         if (request.IsAgeRestricted && request.AgeRestrictionYears.HasValue)
             product.SetAgeRestriction(request.AgeRestrictionYears.Value);
+
+        if (request.ManufacturerId.HasValue)
+            product.SetManufacturer(request.ManufacturerId.Value);
 
         await _uow.Products.AddAsync(product, ct);
         await _uow.SaveChangesAsync(ct);

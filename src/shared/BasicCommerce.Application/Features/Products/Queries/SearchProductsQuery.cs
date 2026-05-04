@@ -31,13 +31,6 @@ public class SearchProductsQueryHandler
         var products = await _uow.Products.SearchAsync(
             request.TenantId, request.Term, request.Limit, ct);
 
-        return products.Select(p => new ProductResponse(
-            p.Id, p.Sku, p.Barcode, p.Plu,
-            p.Name, p.NameBn,
-            p.CategoryId.ToString(), p.Category?.Name ?? string.Empty,
-            p.Price.Amount, p.Price.Currency,
-            0, p.UnitType.ToString(),
-            p.IsWeightBased, p.IsAgeRestricted,
-            p.AgeRestrictionYears, p.Status.ToString(), p.ImageUrl));
+        return products.Select(p => ProductMapper.ToResponse(p, null));
     }
 }

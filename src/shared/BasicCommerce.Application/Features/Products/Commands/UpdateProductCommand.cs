@@ -26,7 +26,8 @@ public record UpdateProductCommand(
     bool TrackInventory,
     int ReorderLevel,
     string? ImageUrl,
-    decimal? CostPrice) : IRequest<ProductResponse>;
+    decimal? CostPrice,
+    Guid? ManufacturerId = null) : IRequest<ProductResponse>;
 
 public class UpdateProductCommandValidator : AbstractValidator<UpdateProductCommand>
 {
@@ -75,7 +76,8 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
             request.CategoryId, request.VatRateId,
             unitType, request.UnitLabel, request.IsWeightBased,
             request.IsEbtEligible, request.TrackInventory,
-            request.ReorderLevel, request.ImageUrl, costPrice);
+            request.ReorderLevel, request.ImageUrl, costPrice,
+            request.ManufacturerId);
 
         if (request.IsAgeRestricted && request.AgeRestrictionYears.HasValue)
             product.SetAgeRestriction(request.AgeRestrictionYears.Value);

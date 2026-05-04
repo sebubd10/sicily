@@ -33,23 +33,6 @@ public class GetProductByBarcodeQueryHandler
         var vatRate = await _uow.VatRates.GetByIdForTenantAsync(
             request.TenantId, product.VatRateId, ct);
 
-        return new ProductResponse(
-            Id: product.Id,
-            Sku: product.Sku,
-            Barcode: product.Barcode,
-            Plu: product.Plu,
-            Name: product.Name,
-            NameBn: product.NameBn,
-            CategoryId: product.CategoryId.ToString(),
-            CategoryName: product.Category?.Name ?? string.Empty,
-            Price: product.Price.Amount,
-            Currency: product.Price.Currency,
-            VatRate: vatRate?.Rate ?? 0,
-            UnitType: product.UnitType.ToString(),
-            IsWeightBased: product.IsWeightBased,
-            IsAgeRestricted: product.IsAgeRestricted,
-            AgeRestrictionYears: product.AgeRestrictionYears,
-            Status: product.Status.ToString(),
-            ImageUrl: product.ImageUrl);
+        return ProductMapper.ToResponse(product, vatRate);
     }
 }

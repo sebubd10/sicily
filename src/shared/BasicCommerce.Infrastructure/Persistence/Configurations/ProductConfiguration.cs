@@ -34,5 +34,10 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         });
 
         builder.Property(p => p.UnitType).HasConversion<string>().HasMaxLength(20);
+
+        builder.HasOne(p => p.Manufacturer)
+            .WithMany()
+            .HasForeignKey(p => p.ManufacturerId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

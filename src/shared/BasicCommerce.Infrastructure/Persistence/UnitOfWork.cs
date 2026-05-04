@@ -21,6 +21,12 @@ public class UnitOfWork : IUnitOfWork
     public ICustomerRepository Customers { get; }
     public ICreditAccountRepository CreditAccounts { get; }
     public IStockMovementRepository StockMovements { get; }
+    public IManufacturerRepository Manufacturers { get; }
+    public ISupplierRepository Suppliers { get; }
+    public IWarehouseRepository Warehouses { get; }
+    public IWarehouseStockLevelRepository WarehouseStockLevels { get; }
+    public IWarehouseMovementRepository WarehouseMovements { get; }
+    public IPurchaseOrderRepository PurchaseOrders { get; }
 
     public UnitOfWork(BasicCommerceDbContext db)
     {
@@ -37,6 +43,12 @@ public class UnitOfWork : IUnitOfWork
         Customers = new CustomerRepository(db);
         CreditAccounts = new CreditAccountRepository(db);
         StockMovements = new StockMovementRepository(db);
+        Manufacturers = new ManufacturerRepository(db);
+        Suppliers = new SupplierRepository(db);
+        Warehouses = new WarehouseRepository(db);
+        WarehouseStockLevels = new WarehouseStockLevelRepository(db);
+        WarehouseMovements = new WarehouseMovementRepository(db);
+        PurchaseOrders = new PurchaseOrderRepository(db);
     }
 
     public async Task<int> SaveChangesAsync(CancellationToken ct = default) =>

@@ -26,6 +26,8 @@ public record ProductResponse(
     int ReorderLevel,
     string Status,
     string? ImageUrl,
+    Guid? ManufacturerId,
+    string? ManufacturerName,
     DateTime CreatedAt,
     DateTime? UpdatedAt);
 
@@ -50,7 +52,8 @@ public record CreateProductRequest(
     int? AgeRestrictionYears = null,
     decimal? CostPrice = null,
     string? Description = null,
-    string? UnitLabel = null);
+    string? UnitLabel = null,
+    Guid? ManufacturerId = null);
 
 public record UpdateProductRequest(
     string Name,
@@ -67,7 +70,8 @@ public record UpdateProductRequest(
     bool TrackInventory,
     int ReorderLevel,
     string? ImageUrl,
-    decimal? CostPrice);
+    decimal? CostPrice,
+    Guid? ManufacturerId = null);
 
 public record UpdateProductPriceRequest(decimal NewPrice);
 
