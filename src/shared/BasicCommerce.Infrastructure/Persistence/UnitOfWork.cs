@@ -27,6 +27,8 @@ public class UnitOfWork : IUnitOfWork
     public IWarehouseStockLevelRepository WarehouseStockLevels { get; }
     public IWarehouseMovementRepository WarehouseMovements { get; }
     public IPurchaseOrderRepository PurchaseOrders { get; }
+    public IRewardPointsSettingsRepository RewardPointsSettings { get; }
+    public IRewardPointsAccountRepository RewardPointsAccounts { get; }
 
     public UnitOfWork(BasicCommerceDbContext db)
     {
@@ -49,6 +51,8 @@ public class UnitOfWork : IUnitOfWork
         WarehouseStockLevels = new WarehouseStockLevelRepository(db);
         WarehouseMovements = new WarehouseMovementRepository(db);
         PurchaseOrders = new PurchaseOrderRepository(db);
+        RewardPointsSettings = new RewardPointsSettingsRepository(db);
+        RewardPointsAccounts = new RewardPointsAccountRepository(db);
     }
 
     public async Task<int> SaveChangesAsync(CancellationToken ct = default) =>

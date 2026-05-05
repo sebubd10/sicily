@@ -1,6 +1,7 @@
 using BasicCommerce.Application.Interfaces;
 using BasicCommerce.Contracts.Customers;
 using BasicCommerce.Domain.Entities;
+using BasicCommerce.Domain.Enums;
 using BasicCommerce.Domain.Exceptions;
 using BasicCommerce.Domain.Interfaces;
 using BasicCommerce.Domain.ValueObjects;
@@ -80,6 +81,25 @@ public class RegisterCustomerCommandHandler : IRequestHandler<RegisterCustomerCo
             var creditAccount = CreditAccount.Create(tenantId, customer.Id,
                 _currentUser.StoreId.Value, request.CreditLimit);
             await _uow.CreditAccounts.AddAsync(creditAccount, ct);
+        }
+
+        var rewardSettings = await _uow.RewardPointsSettings.GetByTenantAsync(tenantId, ct);
+        if (rewardSettings is { Status: EntityStatus.Active, PointsForRegistration: > 0 })
+        {
+            var storeId = rewardSettings.PointsAccumulatedForAllStores
+                ? null : _currentUser.StoreId;
+
+            var rewardAccount = RewardPointsAccount.Create(tenantId, customer.Id, storeId);
+            await _uow.RewardPointsAccounts.AddAsync(rewardAccount, ct);
+
+            rewardAccount.EarnPoints(
+                rewardSettings.PointsForRegistration,
+                RewardPointsEntryType.RegistrationEarned,
+                rewardSettings.ActivatePointsImmediately,
+                rewardSettings.RegistrationPointsValidityDays,
+                notes: "Registration bonus");
+
+            customer.AddLoyaltyPoints(rewardSettings.PointsForRegistration);
         }
 
         await _uow.SaveChangesAsync(ct);

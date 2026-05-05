@@ -15,8 +15,6 @@ public class CompleteTransactionCommandHandler
 {
     private readonly IUnitOfWork _uow;
 
-    private const int LoyaltyPointsPerBdt = 100;
-
     public CompleteTransactionCommandHandler(IUnitOfWork uow) => _uow = uow;
 
     public async Task<TransactionResponse> Handle(
@@ -73,11 +71,33 @@ public class CompleteTransactionCommandHandler
     {
         if (!transaction.CustomerId.HasValue) return;
 
-        var customer = await _uow.Customers.GetByIdAsync(transaction.CustomerId.Value, ct);
-        if (customer is null) return;
+        var settings = await _uow.RewardPointsSettings.GetByTenantAsync(tenantId, ct);
+        if (settings is null || settings.Status != EntityStatus.Active) return;
 
-        var points = (int)(transaction.Total / LoyaltyPointsPerBdt);
-        if (points > 0)
+        var points = settings.CalculatePurchasePoints(transaction.Total);
+        if (points <= 0) return;
+
+        var storeId = settings.PointsAccumulatedForAllStores ? null : transaction.StoreId;
+
+        var account = await _uow.RewardPointsAccounts.GetByCustomerAsync(
+            tenantId, transaction.CustomerId.Value, storeId, ct);
+
+        if (account is null)
+        {
+            account = RewardPointsAccount.Create(tenantId, transaction.CustomerId.Value, storeId);
+            await _uow.RewardPointsAccounts.AddAsync(account, ct);
+        }
+
+        account.EarnPoints(points, RewardPointsEntryType.PurchaseEarned,
+            settings.ActivatePointsImmediately,
+            settings.PurchasePointsValidityDays,
+            transaction.Id,
+            $"Purchase: {transaction.TransactionNumber}");
+
+        _uow.RewardPointsAccounts.Update(account);
+
+        var customer = await _uow.Customers.GetByIdAsync(transaction.CustomerId.Value, ct);
+        if (customer is not null)
         {
             customer.AddLoyaltyPoints(points);
             _uow.Customers.Update(customer);

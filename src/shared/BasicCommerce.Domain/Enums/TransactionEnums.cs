@@ -28,7 +28,8 @@ public enum PaymentMethod
     Credit = 6,
     GiftCard = 7,
     SslCommerz = 8,
-    AamarPay = 9
+    AamarPay = 9,
+    RewardPoints = 10
 }
 
 public enum PaymentStatus
@@ -39,3 +40,13 @@ public enum PaymentStatus
     Refunded = 3,
     PendingSync = 4
 }
+
+public enum RewardPointsEntryType
+{
+    PurchaseEarned = 1,
+    RegistrationEarned = 2,
+    Redeemed = 3,
+    Expired = 4,
+    ManualAdjustment = 5
+}
+

@@ -20,6 +20,8 @@ public interface IUnitOfWork : IDisposable
     IWarehouseStockLevelRepository WarehouseStockLevels { get; }
     IWarehouseMovementRepository WarehouseMovements { get; }
     IPurchaseOrderRepository PurchaseOrders { get; }
+    IRewardPointsSettingsRepository RewardPointsSettings { get; }
+    IRewardPointsAccountRepository RewardPointsAccounts { get; }
 
     Task<int> SaveChangesAsync(CancellationToken ct = default);
     Task BeginTransactionAsync(CancellationToken ct = default);

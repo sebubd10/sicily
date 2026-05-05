@@ -33,6 +33,9 @@ public class BasicCommerceDbContext : DbContext
     public DbSet<WarehouseMovement> WarehouseMovements => Set<WarehouseMovement>();
     public DbSet<PurchaseOrder> PurchaseOrders => Set<PurchaseOrder>();
     public DbSet<PurchaseOrderItem> PurchaseOrderItems => Set<PurchaseOrderItem>();
+    public DbSet<RewardPointsSettings> RewardPointsSettings => Set<RewardPointsSettings>();
+    public DbSet<RewardPointsAccount> RewardPointsAccounts => Set<RewardPointsAccount>();
+    public DbSet<RewardPointsEntry> RewardPointsEntries => Set<RewardPointsEntry>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

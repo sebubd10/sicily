@@ -125,6 +125,83 @@ partial class BasicCommerceDbContextModelSnapshot : ModelSnapshot
             b.ToTable("Transactions");
         });
 
+        modelBuilder.Entity("BasicCommerce.Domain.Entities.RewardPointsSettings", b =>
+        {
+            b.Property<Guid>("Id").ValueGeneratedOnAdd();
+            b.Property<Guid>("TenantId");
+            b.Property<decimal>("ExchangeRate").HasPrecision(18, 4);
+            b.Property<int>("MinimumPointsToUse");
+            b.Property<int>("MaximumPointsPerOrder");
+            b.Property<decimal>("MaximumRedeemedRate").HasPrecision(5, 4);
+            b.Property<decimal>("PurchaseSpendPerPoint").HasPrecision(18, 4);
+            b.Property<int>("PointsEarnedPerSpend");
+            b.Property<int>("PurchasePointsValidityDays");
+            b.Property<decimal>("MinimumOrderTotalForPoints").HasPrecision(18, 4);
+            b.Property<int>("PointsForRegistration");
+            b.Property<int>("RegistrationPointsValidityDays");
+            b.Property<bool>("ActivatePointsImmediately");
+            b.Property<bool>("DisplayHowMuchWillBeEarned");
+            b.Property<bool>("PointsAccumulatedForAllStores");
+            b.Property<string>("Status").IsRequired().HasMaxLength(20).HasDefaultValue("Active");
+            b.Property<DateTime>("CreatedAt");
+            b.Property<DateTime?>("UpdatedAt");
+            b.Property<Guid?>("CreatedBy");
+            b.Property<Guid?>("UpdatedBy");
+            b.HasKey("Id");
+            b.HasIndex("TenantId").IsUnique();
+            b.ToTable("RewardPointsSettings");
+        });
+
+        modelBuilder.Entity("BasicCommerce.Domain.Entities.RewardPointsAccount", b =>
+        {
+            b.Property<Guid>("Id").ValueGeneratedOnAdd();
+            b.Property<Guid>("TenantId");
+            b.Property<Guid>("CustomerId");
+            b.Property<Guid?>("StoreId");
+            b.Property<int>("TotalEarnedPoints");
+            b.Property<int>("UsedPoints");
+            b.Property<int>("ExpiredPoints");
+            b.Property<int>("PendingPoints");
+            b.Property<string>("Status").IsRequired().HasMaxLength(20).HasDefaultValue("Active");
+            b.Property<DateTime>("CreatedAt");
+            b.Property<DateTime?>("UpdatedAt");
+            b.Property<Guid?>("CreatedBy");
+            b.Property<Guid?>("UpdatedBy");
+            b.HasKey("Id");
+            b.HasIndex("TenantId", "CustomerId", "StoreId").IsUnique();
+            b.ToTable("RewardPointsAccounts");
+        });
+
+        modelBuilder.Entity("BasicCommerce.Domain.Entities.RewardPointsEntry", b =>
+        {
+            b.Property<Guid>("Id").ValueGeneratedOnAdd();
+            b.Property<Guid>("RewardPointsAccountId");
+            b.Property<int>("Points");
+            b.Property<string>("EntryType").IsRequired().HasMaxLength(30);
+            b.Property<bool>("IsActivated");
+            b.Property<DateTime?>("ExpiresAt");
+            b.Property<Guid?>("TransactionId");
+            b.Property<string>("Notes").HasMaxLength(500);
+            b.Property<string>("Status").IsRequired().HasMaxLength(20).HasDefaultValue("Active");
+            b.Property<DateTime>("CreatedAt");
+            b.Property<DateTime?>("UpdatedAt");
+            b.Property<Guid?>("CreatedBy");
+            b.Property<Guid?>("UpdatedBy");
+            b.HasKey("Id");
+            b.HasIndex("RewardPointsAccountId", "CreatedAt");
+            b.HasIndex("TransactionId");
+            b.ToTable("RewardPointsEntries");
+        });
+
+        modelBuilder.Entity("BasicCommerce.Domain.Entities.RewardPointsEntry", b =>
+        {
+            b.HasOne("BasicCommerce.Domain.Entities.RewardPointsAccount", null)
+                .WithMany("Entries")
+                .HasForeignKey("RewardPointsAccountId")
+                .OnDelete(DeleteBehavior.Cascade)
+                .IsRequired();
+        });
+
 #pragma warning restore 612, 618
     }
 }
