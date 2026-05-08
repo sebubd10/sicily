@@ -1,0 +1,67 @@
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import AppLayout from './components/layout/AppLayout';
+import DashboardPage from './pages/DashboardPage';
+import CategoriesPage from './pages/CategoriesPage';
+import PlaceholderPage from './pages/PlaceholderPage';
+import { useThemeStore } from './store/themeStore';
+
+export default function App() {
+  const { dark } = useThemeStore();
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', dark);
+  }, [dark]);
+
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route element={<AppLayout />}>
+          <Route index element={<DashboardPage />} />
+
+          {/* Products */}
+          <Route path="products" element={<PlaceholderPage title="All Products" />} />
+          <Route path="products/categories" element={<CategoriesPage />} />
+          <Route path="products/manufacturers" element={<PlaceholderPage title="Manufacturers" />} />
+          <Route path="products/tags" element={<PlaceholderPage title="Product Tags" />} />
+
+          {/* Inventory */}
+          <Route path="inventory/stock" element={<PlaceholderPage title="Stock Levels" />} />
+          <Route path="inventory/movements" element={<PlaceholderPage title="Stock Movements" />} />
+          <Route path="inventory/warehouses" element={<PlaceholderPage title="Warehouses" />} />
+
+          {/* Purchasing */}
+          <Route path="purchasing/orders" element={<PlaceholderPage title="Purchase Orders" />} />
+          <Route path="purchasing/suppliers" element={<PlaceholderPage title="Suppliers" />} />
+          <Route path="purchasing/returns" element={<PlaceholderPage title="Supplier Returns" />} />
+
+          {/* Sales */}
+          <Route path="sales/transactions" element={<PlaceholderPage title="Transactions" />} />
+          <Route path="sales/till-sessions" element={<PlaceholderPage title="Till Sessions" />} />
+
+          {/* Customers */}
+          <Route path="customers" element={<PlaceholderPage title="All Customers" />} />
+          <Route path="customers/credit" element={<PlaceholderPage title="Credit Accounts" />} />
+          <Route path="customers/rewards" element={<PlaceholderPage title="Reward Points" />} />
+
+          {/* Promotions */}
+          <Route path="promotions" element={<PlaceholderPage title="Promotions" />} />
+          <Route path="promotions/gift-cards" element={<PlaceholderPage title="Gift Cards" />} />
+
+          {/* Reports */}
+          <Route path="reports/daily-sales" element={<PlaceholderPage title="Daily Sales Report" />} />
+          <Route path="reports/stock" element={<PlaceholderPage title="Stock Report" />} />
+          <Route path="reports/categories" element={<PlaceholderPage title="Category Report (PDF)" />} />
+
+          {/* Settings */}
+          <Route path="settings/users" element={<PlaceholderPage title="Users" />} />
+          <Route path="settings/user-types" element={<PlaceholderPage title="User Types" />} />
+          <Route path="settings/menus" element={<PlaceholderPage title="Menu Management" />} />
+          <Route path="settings/permissions" element={<PlaceholderPage title="API Permissions" />} />
+
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  );
+}
