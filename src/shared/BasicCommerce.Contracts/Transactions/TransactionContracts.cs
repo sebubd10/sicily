@@ -30,7 +30,9 @@ public record LineItemResponse(
     decimal DiscountAmount,
     decimal LineTotal,
     bool IsVoided,
-    bool IsPriceOverridden);
+    bool IsPriceOverridden,
+    string? ReturnReason,
+    string? DamageDisposition);
 
 public record PaymentResponse(
     Guid Id,
@@ -59,7 +61,11 @@ public record AttachCustomerRequest(Guid CustomerId);
 
 public record SuspendTransactionRequest(string? Notes = null);
 
-public record ReturnLineItemRequest(Guid OriginalLineItemId, decimal Quantity);
+public record ReturnLineItemRequest(
+    Guid OriginalLineItemId,
+    decimal Quantity,
+    string ReturnReason = "Other",
+    string DamageDisposition = "RestoreToStock");
 
 public record CreateReturnTransactionRequest(
     IEnumerable<ReturnLineItemRequest> Items,

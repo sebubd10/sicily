@@ -32,6 +32,7 @@ public class UnitOfWork : IUnitOfWork
     public IProductTagRepository ProductTags { get; }
     public IProductReviewRepository ProductReviews { get; }
     public IStockBatchRepository StockBatches { get; }
+    public ISupplierReturnRepository SupplierReturns { get; }
 
     public UnitOfWork(BasicCommerceDbContext db)
     {
@@ -59,6 +60,7 @@ public class UnitOfWork : IUnitOfWork
         ProductTags = new ProductTagRepository(db);
         ProductReviews = new ProductReviewRepository(db);
         StockBatches = new StockBatchRepository(db);
+        SupplierReturns = new SupplierReturnRepository(db);
     }
 
     public async Task<int> SaveChangesAsync(CancellationToken ct = default) =>

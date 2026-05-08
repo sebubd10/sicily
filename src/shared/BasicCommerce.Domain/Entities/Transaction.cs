@@ -142,6 +142,16 @@ public class Transaction : TenantEntity
         RecalculateTotals();
     }
 
+    public LineItem AddReturnLineItem(Guid productId, string productName, string productSku,
+        decimal quantity, decimal unitPrice, ReturnReason reason, DamageDisposition disposition)
+    {
+        var item = LineItem.CreateReturnItem(
+            Id, productId, productName, productSku, quantity, unitPrice, reason, disposition);
+        _lineItems.Add(item);
+        RecalculateTotals();
+        return item;
+    }
+
     public void MarkRefunded() => TransactionStatus = TransactionStatus.Refunded;
 
     public static Transaction CreateReturn(Guid tenantId, Guid storeId, Guid terminalId,

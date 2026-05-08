@@ -50,3 +50,18 @@ public enum RewardPointsEntryType
     ManualAdjustment = 5
 }
 
+public enum ReturnReason
+{
+    CustomerChangedMind = 1,
+    Defective = 2,
+    WrongItem = 3,
+    Expired = 4,
+    Other = 5
+}
+
+public enum DamageDisposition
+{
+    RestoreToStock = 1,
+    WriteOff = 2
+}
+

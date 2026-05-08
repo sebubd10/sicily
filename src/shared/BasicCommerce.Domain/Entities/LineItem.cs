@@ -1,3 +1,5 @@
+using BasicCommerce.Domain.Enums;
+
 namespace BasicCommerce.Domain.Entities;
 
 public class LineItem : BaseEntity
@@ -17,6 +19,9 @@ public class LineItem : BaseEntity
     public bool IsVoided { get; private set; }
     public Guid? VoidedBy { get; private set; }
     public DateTime? VoidedAt { get; private set; }
+
+    public ReturnReason? ReturnReason { get; private set; }
+    public DamageDisposition? DamageDisposition { get; private set; }
 
     private LineItem() { }
 
@@ -48,6 +53,24 @@ public class LineItem : BaseEntity
     internal void ApplyDiscount(decimal discountAmount)
     {
         DiscountAmount = discountAmount;
+    }
+
+    internal static LineItem CreateReturnItem(Guid transactionId, Guid productId,
+        string productName, string productSku, decimal quantity, decimal unitPrice,
+        ReturnReason reason, DamageDisposition disposition)
+    {
+        return new LineItem
+        {
+            TransactionId = transactionId,
+            ProductId = productId,
+            ProductName = productName,
+            ProductSku = productSku,
+            Quantity = quantity,
+            UnitPrice = unitPrice,
+            LineTotal = unitPrice * quantity,
+            ReturnReason = reason,
+            DamageDisposition = disposition
+        };
     }
 
     internal void Void(Guid voidedBy)

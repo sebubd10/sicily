@@ -57,7 +57,8 @@ public class CreateTransactionCommandHandler
             LineItems: t.LineItems.Select(l => new LineItemResponse(
                 l.Id, l.ProductName, l.ProductSku, l.Quantity, l.UnitPrice,
                 l.TaxRate, l.TaxAmount, l.DiscountAmount, l.LineTotal,
-                l.IsVoided, l.IsPriceOverridden)),
+                l.IsVoided, l.IsPriceOverridden,
+                l.ReturnReason?.ToString(), l.DamageDisposition?.ToString())),
             Payments: t.Payments.Select(p => new PaymentResponse(
                 p.Id, p.Method.ToString(), p.Amount, p.PaymentStatus.ToString(), p.GatewayReference)),
             SubTotal: t.SubTotal,

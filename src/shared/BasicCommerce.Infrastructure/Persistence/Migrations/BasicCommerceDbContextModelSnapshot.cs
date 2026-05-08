@@ -368,6 +368,79 @@ partial class BasicCommerceDbContextModelSnapshot : ModelSnapshot
                 .IsRequired();
         });
 
+        modelBuilder.Entity("BasicCommerce.Domain.Entities.SupplierReturn", b =>
+        {
+            b.Property<Guid>("Id").ValueGeneratedOnAdd();
+            b.Property<Guid>("TenantId");
+            b.Property<string>("ReturnNumber").IsRequired().HasMaxLength(50);
+            b.Property<Guid>("SupplierId");
+            b.Property<Guid>("StoreId");
+            b.Property<Guid?>("PurchaseOrderId");
+            b.Property<string>("ReturnStatus").IsRequired().HasMaxLength(20).HasDefaultValue("Draft");
+            b.Property<string>("Notes").HasMaxLength(1000);
+            b.Property<decimal?>("ExpectedCreditAmount").HasPrecision(18, 4);
+            b.Property<decimal?>("ActualCreditAmount").HasPrecision(18, 4);
+            b.Property<string>("CreditNoteReference").HasMaxLength(100);
+            b.Property<DateTime?>("ShippedAt");
+            b.Property<DateTime?>("CreditReceivedAt");
+            b.Property<string>("Status").IsRequired().HasMaxLength(20).HasDefaultValue("Active");
+            b.Property<DateTime>("CreatedAt");
+            b.Property<DateTime?>("UpdatedAt");
+            b.HasKey("Id");
+            b.HasIndex("ReturnNumber").IsUnique();
+            b.HasIndex("TenantId", "SupplierId", "ReturnStatus");
+            b.ToTable("SupplierReturns");
+        });
+
+        modelBuilder.Entity("BasicCommerce.Domain.Entities.SupplierReturnItem", b =>
+        {
+            b.Property<Guid>("Id").ValueGeneratedOnAdd();
+            b.Property<Guid>("SupplierReturnId");
+            b.Property<Guid>("ProductId");
+            b.Property<decimal>("Quantity").HasPrecision(18, 4);
+            b.Property<decimal>("UnitCost").HasPrecision(18, 4);
+            b.Property<string>("Reason").IsRequired().HasMaxLength(30);
+            b.Property<string>("Notes").HasMaxLength(500);
+            b.Property<string>("Status").IsRequired().HasMaxLength(20).HasDefaultValue("Active");
+            b.Property<DateTime>("CreatedAt");
+            b.Property<DateTime?>("UpdatedAt");
+            b.HasKey("Id");
+            b.HasIndex("SupplierReturnId");
+            b.ToTable("SupplierReturnItems");
+        });
+
+        modelBuilder.Entity("BasicCommerce.Domain.Entities.SupplierReturn", b =>
+        {
+            b.HasOne("BasicCommerce.Domain.Entities.Supplier", null)
+                .WithMany()
+                .HasForeignKey("SupplierId")
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired();
+            b.HasOne("BasicCommerce.Domain.Entities.Store", null)
+                .WithMany()
+                .HasForeignKey("StoreId")
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired();
+            b.HasOne("BasicCommerce.Domain.Entities.PurchaseOrder", null)
+                .WithMany()
+                .HasForeignKey("PurchaseOrderId")
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity("BasicCommerce.Domain.Entities.SupplierReturnItem", b =>
+        {
+            b.HasOne("BasicCommerce.Domain.Entities.SupplierReturn", null)
+                .WithMany("Items")
+                .HasForeignKey("SupplierReturnId")
+                .OnDelete(DeleteBehavior.Cascade)
+                .IsRequired();
+            b.HasOne("BasicCommerce.Domain.Entities.Product", null)
+                .WithMany()
+                .HasForeignKey("ProductId")
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired();
+        });
+
 #pragma warning restore 612, 618
     }
 }

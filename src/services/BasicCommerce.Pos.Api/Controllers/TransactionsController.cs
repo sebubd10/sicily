@@ -173,7 +173,13 @@ public class TransactionsController : ControllerBase
             _currentUser.TenantId,
             id,
             GetTerminalIdFromContext(),
-            request.Items.Select(i => new ReturnItem(i.OriginalLineItemId, i.Quantity)),
+            request.Items.Select(i => new ReturnItem(
+                i.OriginalLineItemId,
+                i.Quantity,
+                Enum.TryParse<ReturnReason>(i.ReturnReason, true, out var reason)
+                    ? reason : ReturnReason.Other,
+                Enum.TryParse<DamageDisposition>(i.DamageDisposition, true, out var disp)
+                    ? disp : DamageDisposition.RestoreToStock)),
             method,
             request.Notes), ct);
         return Ok(ApiResponse<TransactionResponse>.Ok(result));

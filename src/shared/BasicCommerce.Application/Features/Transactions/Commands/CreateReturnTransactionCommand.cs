@@ -8,7 +8,11 @@ using MediatR;
 
 namespace BasicCommerce.Application.Features.Transactions.Commands;
 
-public record ReturnItem(Guid OriginalLineItemId, decimal Quantity);
+public record ReturnItem(
+    Guid OriginalLineItemId,
+    decimal Quantity,
+    ReturnReason Reason,
+    DamageDisposition Disposition);
 
 public record CreateReturnTransactionCommand(
     Guid TenantId,
@@ -48,7 +52,6 @@ public class CreateReturnTransactionCommandHandler
             throw new DomainException("Only completed transactions can be returned.");
 
         var returnItems = request.Items.ToList();
-        var returnTotal = 0m;
 
         var returnTx = Transaction.CreateReturn(
             request.TenantId, original.StoreId, request.TerminalId,
@@ -59,15 +62,20 @@ public class CreateReturnTransactionCommandHandler
 
         foreach (var returnItem in returnItems)
         {
-            var originalLine = original.LineItems.FirstOrDefault(l => l.Id == returnItem.OriginalLineItemId)
-                ?? throw new DomainException($"Line item {returnItem.OriginalLineItemId} not found in original transaction.");
+            var originalLine = original.LineItems
+                .FirstOrDefault(l => l.Id == returnItem.OriginalLineItemId)
+                ?? throw new DomainException(
+                    $"Line item {returnItem.OriginalLineItemId} not found in original transaction.");
 
             if (returnItem.Quantity > originalLine.Quantity)
                 throw new DomainException(
-                    $"Cannot return {returnItem.Quantity} of '{originalLine.ProductName}' — original quantity was {originalLine.Quantity}.");
+                    $"Cannot return {returnItem.Quantity} of '{originalLine.ProductName}' " +
+                    $"— original quantity was {originalLine.Quantity}.");
 
-            var lineTotal = originalLine.UnitPrice * returnItem.Quantity;
-            returnTotal += lineTotal;
+            returnTx.AddReturnLineItem(
+                originalLine.ProductId, originalLine.ProductName, originalLine.ProductSku,
+                returnItem.Quantity, originalLine.UnitPrice,
+                returnItem.Reason, returnItem.Disposition);
 
             var stockLevel = await _uow.StockLevels.GetAsync(
                 request.TenantId, original.StoreId, originalLine.ProductId, ct);
@@ -75,26 +83,47 @@ public class CreateReturnTransactionCommandHandler
             if (stockLevel is not null)
             {
                 var before = stockLevel.Quantity;
-                stockLevel.Increment(returnItem.Quantity);
-                _uow.StockLevels.Update(stockLevel);
 
-                await _uow.StockMovements.AddAsync(StockMovement.Create(
-                    request.TenantId, original.StoreId, originalLine.ProductId,
-                    StockMovementType.Return, returnItem.Quantity, before,
-                    original.CashierId,
-                    reference: original.TransactionNumber,
-                    notes: $"Return: {originalLine.ProductName}"), ct);
+                if (returnItem.Disposition == DamageDisposition.RestoreToStock)
+                {
+                    stockLevel.Increment(returnItem.Quantity);
+                    _uow.StockLevels.Update(stockLevel);
+
+                    await _uow.StockMovements.AddAsync(StockMovement.Create(
+                        request.TenantId, original.StoreId, originalLine.ProductId,
+                        StockMovementType.Return, returnItem.Quantity, before,
+                        original.CashierId,
+                        reference: original.TransactionNumber,
+                        notes: $"Return ({returnItem.Reason}): {originalLine.ProductName}"), ct);
+                }
+                else
+                {
+                    // Damaged — write off rather than restoring to saleable stock
+                    if (stockLevel.Quantity >= returnItem.Quantity)
+                    {
+                        stockLevel.Decrement(returnItem.Quantity);
+                        _uow.StockLevels.Update(stockLevel);
+                    }
+
+                    await _uow.StockMovements.AddAsync(StockMovement.Create(
+                        request.TenantId, original.StoreId, originalLine.ProductId,
+                        StockMovementType.WriteOff, -returnItem.Quantity, before,
+                        original.CashierId,
+                        reference: original.TransactionNumber,
+                        notes: $"Damage write-off ({returnItem.Reason}): {originalLine.ProductName}"), ct);
+                }
             }
         }
 
-        // Issue refund payment and complete the return
+        var returnTotal = returnTx.Total;
+
         var refund = returnTx.AddPayment(request.RefundMethod, returnTotal,
             $"Refund for {original.TransactionNumber}");
         refund.Approve();
         returnTx.RefreshAmountPaid();
         returnTx.Complete();
 
-        // Award negative loyalty points (reversal) if customer attached
+        // Reverse loyalty points proportional to refund
         if (original.CustomerId.HasValue)
         {
             var customer = await _uow.Customers.GetByIdAsync(original.CustomerId.Value, ct);
@@ -102,10 +131,15 @@ public class CreateReturnTransactionCommandHandler
             {
                 var pointsToReverse = (int)(returnTotal / 100);
                 if (pointsToReverse > 0 && customer.LoyaltyPoints >= pointsToReverse)
+                {
                     customer.RedeemLoyaltyPoints(pointsToReverse);
+                    _uow.Customers.Update(customer);
+                }
             }
         }
 
+        original.MarkRefunded();
+        _uow.Transactions.Update(original);
         _uow.Transactions.Update(returnTx);
         await _uow.SaveChangesAsync(ct);
 

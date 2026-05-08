@@ -41,6 +41,8 @@ public class BasicCommerceDbContext : DbContext
     public DbSet<ProductReviewDetail> ProductReviewDetails => Set<ProductReviewDetail>();
     public DbSet<ProductReviewHelpfulness> ProductReviewHelpfulnesses => Set<ProductReviewHelpfulness>();
     public DbSet<StockBatch> StockBatches => Set<StockBatch>();
+    public DbSet<SupplierReturn> SupplierReturns => Set<SupplierReturn>();
+    public DbSet<SupplierReturnItem> SupplierReturnItems => Set<SupplierReturnItem>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
