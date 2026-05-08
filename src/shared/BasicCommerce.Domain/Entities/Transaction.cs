@@ -142,6 +142,17 @@ public class Transaction : TenantEntity
         RecalculateTotals();
     }
 
+    public void ApplyPromotionToLineItem(Guid lineItemId, decimal discountAmount,
+        Guid promotionId, string promotionName)
+    {
+        if (TransactionStatus != TransactionStatus.Open)
+            throw new DomainException("Cannot modify a non-open transaction.");
+        var item = _lineItems.FirstOrDefault(l => l.Id == lineItemId)
+            ?? throw new DomainException("Line item not found.");
+        item.ApplyPromotionDiscount(discountAmount, promotionId, promotionName);
+        RecalculateTotals();
+    }
+
     public LineItem AddReturnLineItem(Guid productId, string productName, string productSku,
         decimal quantity, decimal unitPrice, ReturnReason reason, DamageDisposition disposition)
     {

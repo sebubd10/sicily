@@ -27,5 +27,7 @@ public class LineItemConfiguration : IEntityTypeConfiguration<LineItem>
         builder.Property(l => l.DamageDisposition)
             .HasConversion<string>()
             .HasMaxLength(20);
+
+        builder.Property(l => l.AppliedPromotionName).HasMaxLength(200);
     }
 }

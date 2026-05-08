@@ -32,7 +32,9 @@ public record LineItemResponse(
     bool IsVoided,
     bool IsPriceOverridden,
     string? ReturnReason,
-    string? DamageDisposition);
+    string? DamageDisposition,
+    Guid? AppliedPromotionId,
+    string? AppliedPromotionName);
 
 public record PaymentResponse(
     Guid Id,
@@ -51,7 +53,8 @@ public record AddPaymentRequest(
     string Method,
     decimal Amount,
     string? MobileNumber = null,
-    string? Reference = null);
+    string? Reference = null,
+    string? GiftCardCode = null);
 
 public record VoidLineItemRequest(Guid LineItemId);
 

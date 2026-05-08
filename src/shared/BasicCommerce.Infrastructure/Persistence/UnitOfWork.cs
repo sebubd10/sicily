@@ -33,6 +33,9 @@ public class UnitOfWork : IUnitOfWork
     public IProductReviewRepository ProductReviews { get; }
     public IStockBatchRepository StockBatches { get; }
     public ISupplierReturnRepository SupplierReturns { get; }
+    public IGiftCardRepository GiftCards { get; }
+    public ITillSessionRepository TillSessions { get; }
+    public IPromotionRepository Promotions { get; }
 
     public UnitOfWork(BasicCommerceDbContext db)
     {
@@ -61,6 +64,9 @@ public class UnitOfWork : IUnitOfWork
         ProductReviews = new ProductReviewRepository(db);
         StockBatches = new StockBatchRepository(db);
         SupplierReturns = new SupplierReturnRepository(db);
+        GiftCards = new GiftCardRepository(db);
+        TillSessions = new TillSessionRepository(db);
+        Promotions = new PromotionRepository(db);
     }
 
     public async Task<int> SaveChangesAsync(CancellationToken ct = default) =>

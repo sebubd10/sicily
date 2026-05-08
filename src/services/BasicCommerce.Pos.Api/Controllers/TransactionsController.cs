@@ -98,7 +98,7 @@ public class TransactionsController : ControllerBase
 
         var result = await _mediator.Send(new AddPaymentCommand(
             _currentUser.TenantId, id, method, request.Amount,
-            request.MobileNumber, request.Reference), ct);
+            request.MobileNumber, request.Reference, request.GiftCardCode), ct);
         return Ok(ApiResponse<TransactionResponse>.Ok(result));
     }
 
@@ -123,7 +123,7 @@ public class TransactionsController : ControllerBase
 
         await _mediator.Send(new AddPaymentCommand(
             _currentUser.TenantId, id, method, request.Amount,
-            request.MobileNumber, request.Reference), ct);
+            request.MobileNumber, request.Reference, request.GiftCardCode), ct);
 
         var result = await _mediator.Send(
             new CompleteTransactionCommand(_currentUser.TenantId, id), ct);

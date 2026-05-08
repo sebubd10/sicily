@@ -441,6 +441,135 @@ partial class BasicCommerceDbContextModelSnapshot : ModelSnapshot
                 .IsRequired();
         });
 
+        modelBuilder.Entity("BasicCommerce.Domain.Entities.GiftCard", b =>
+        {
+            b.Property<Guid>("Id").ValueGeneratedOnAdd();
+            b.Property<Guid>("TenantId");
+            b.Property<string>("Code").IsRequired().HasMaxLength(50);
+            b.Property<Guid>("StoreId");
+            b.Property<decimal>("InitialBalance").HasPrecision(18, 4);
+            b.Property<decimal>("Balance").HasPrecision(18, 4);
+            b.Property<string>("CardStatus").IsRequired().HasMaxLength(20).HasDefaultValue("Inactive");
+            b.Property<DateTime?>("ExpiryDate");
+            b.Property<Guid?>("IssuedToCustomerId");
+            b.Property<Guid?>("IssuedInTransactionId");
+            b.Property<string>("Notes").HasMaxLength(500);
+            b.Property<string>("Status").IsRequired().HasMaxLength(20).HasDefaultValue("Active");
+            b.Property<DateTime>("CreatedAt");
+            b.Property<DateTime?>("UpdatedAt");
+            b.HasKey("Id");
+            b.HasIndex("TenantId", "Code").IsUnique();
+            b.HasIndex("TenantId", "StoreId", "CardStatus");
+            b.ToTable("GiftCards");
+        });
+
+        modelBuilder.Entity("BasicCommerce.Domain.Entities.GiftCardTransaction", b =>
+        {
+            b.Property<Guid>("Id").ValueGeneratedOnAdd();
+            b.Property<Guid>("GiftCardId");
+            b.Property<string>("TransactionType").IsRequired().HasMaxLength(20);
+            b.Property<decimal>("Amount").HasPrecision(18, 4);
+            b.Property<decimal>("BalanceAfter").HasPrecision(18, 4);
+            b.Property<Guid?>("SaleTransactionId");
+            b.Property<string>("Notes").HasMaxLength(500);
+            b.Property<string>("Status").IsRequired().HasMaxLength(20).HasDefaultValue("Active");
+            b.Property<DateTime>("CreatedAt");
+            b.Property<DateTime?>("UpdatedAt");
+            b.HasKey("Id");
+            b.HasIndex("GiftCardId");
+            b.ToTable("GiftCardTransactions");
+        });
+
+        modelBuilder.Entity("BasicCommerce.Domain.Entities.GiftCardTransaction", b =>
+        {
+            b.HasOne("BasicCommerce.Domain.Entities.GiftCard", null)
+                .WithMany("Transactions")
+                .HasForeignKey("GiftCardId")
+                .OnDelete(DeleteBehavior.Cascade)
+                .IsRequired();
+        });
+
+        modelBuilder.Entity("BasicCommerce.Domain.Entities.TillSession", b =>
+        {
+            b.Property<Guid>("Id").ValueGeneratedOnAdd();
+            b.Property<Guid>("TenantId");
+            b.Property<Guid>("StoreId");
+            b.Property<Guid>("TerminalId");
+            b.Property<Guid>("OpenedBy");
+            b.Property<Guid?>("ClosedBy");
+            b.Property<decimal>("OpeningFloat").HasPrecision(18, 4);
+            b.Property<decimal?>("ClosingBalance").HasPrecision(18, 4);
+            b.Property<decimal?>("ClosingVariance").HasPrecision(18, 4);
+            b.Property<decimal?>("ExpectedClosingBalance").HasPrecision(18, 4);
+            b.Property<string>("SessionStatus").IsRequired().HasMaxLength(20).HasDefaultValue("Open");
+            b.Property<DateTime>("OpenedAt");
+            b.Property<DateTime?>("ClosedAt");
+            b.Property<string>("Notes").HasMaxLength(500);
+            b.Property<string>("Status").IsRequired().HasMaxLength(20).HasDefaultValue("Active");
+            b.Property<DateTime>("CreatedAt");
+            b.Property<DateTime?>("UpdatedAt");
+            b.HasKey("Id");
+            b.HasIndex("TenantId", "TerminalId", "SessionStatus");
+            b.HasIndex("TenantId", "StoreId");
+            b.ToTable("TillSessions");
+        });
+
+        modelBuilder.Entity("BasicCommerce.Domain.Entities.PettyTransaction", b =>
+        {
+            b.Property<Guid>("Id").ValueGeneratedOnAdd();
+            b.Property<Guid>("TillSessionId");
+            b.Property<string>("Type").IsRequired().HasMaxLength(20);
+            b.Property<decimal>("Amount").HasPrecision(18, 4);
+            b.Property<string>("Reason").IsRequired().HasMaxLength(200);
+            b.Property<Guid>("PerformedBy");
+            b.Property<string>("Status").IsRequired().HasMaxLength(20).HasDefaultValue("Active");
+            b.Property<DateTime>("CreatedAt");
+            b.Property<DateTime?>("UpdatedAt");
+            b.HasKey("Id");
+            b.HasIndex("TillSessionId");
+            b.ToTable("PettyTransactions");
+        });
+
+        modelBuilder.Entity("BasicCommerce.Domain.Entities.PettyTransaction", b =>
+        {
+            b.HasOne("BasicCommerce.Domain.Entities.TillSession", null)
+                .WithMany("PettyTransactions")
+                .HasForeignKey("TillSessionId")
+                .OnDelete(DeleteBehavior.Cascade)
+                .IsRequired();
+        });
+
+        modelBuilder.Entity("BasicCommerce.Domain.Entities.Promotion", b =>
+        {
+            b.Property<Guid>("Id").ValueGeneratedOnAdd();
+            b.Property<Guid>("TenantId");
+            b.Property<string>("Name").IsRequired().HasMaxLength(200);
+            b.Property<string>("Description").HasMaxLength(1000);
+            b.Property<string>("Type").IsRequired().HasMaxLength(30);
+            b.Property<string>("PromotionStatus").IsRequired().HasMaxLength(20).HasDefaultValue("Draft");
+            b.Property<Guid?>("ProductId");
+            b.Property<Guid?>("CategoryId");
+            b.Property<Guid?>("StoreId");
+            b.Property<decimal?>("DiscountPercentage").HasPrecision(18, 4);
+            b.Property<decimal?>("DiscountAmount").HasPrecision(18, 4);
+            b.Property<int?>("BuyQuantity");
+            b.Property<int?>("GetQuantity");
+            b.Property<decimal?>("MinimumCartValue").HasPrecision(18, 4);
+            b.Property<string>("CouponCode").HasMaxLength(50);
+            b.Property<bool>("RequiresCoupon").HasDefaultValue(false);
+            b.Property<DateTime?>("StartsAt");
+            b.Property<DateTime?>("EndsAt");
+            b.Property<int?>("MaxUses");
+            b.Property<int>("UsedCount").HasDefaultValue(0);
+            b.Property<string>("Status").IsRequired().HasMaxLength(20).HasDefaultValue("Active");
+            b.Property<DateTime>("CreatedAt");
+            b.Property<DateTime?>("UpdatedAt");
+            b.HasKey("Id");
+            b.HasIndex("TenantId", "PromotionStatus");
+            b.HasIndex("TenantId", "CouponCode").IsUnique().HasFilter("\"CouponCode\" IS NOT NULL");
+            b.ToTable("Promotions");
+        });
+
 #pragma warning restore 612, 618
     }
 }

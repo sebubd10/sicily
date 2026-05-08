@@ -65,3 +65,34 @@ public enum DamageDisposition
     WriteOff = 2
 }
 
+public enum GiftCardStatus
+{
+    Inactive = 0,
+    Active = 1,
+    Depleted = 2,
+    Expired = 3,
+    Cancelled = 4
+}
+
+public enum GiftCardTransactionType
+{
+    Issue = 1,
+    Redeem = 2,
+    Reload = 3,
+    Refund = 4,
+    Expire = 5,
+    Cancel = 6
+}
+
+public enum TillSessionStatus
+{
+    Open = 1,
+    Closed = 2
+}
+
+public enum PettyTransactionType
+{
+    CashIn = 1,
+    CashOut = 2
+}
+

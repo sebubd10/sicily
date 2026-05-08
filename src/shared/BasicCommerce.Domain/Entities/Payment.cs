@@ -44,4 +44,10 @@ public class Payment : TenantEntity
     }
 
     public void SetMobileNumber(string mobileNumber) => MobileNumber = mobileNumber;
+
+    public void SetGiftCardRedemption(string giftCardCode, decimal actualAmount)
+    {
+        GatewayReference = giftCardCode;
+        Amount = actualAmount;
+    }
 }

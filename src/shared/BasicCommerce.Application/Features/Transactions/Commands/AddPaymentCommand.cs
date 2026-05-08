@@ -14,7 +14,8 @@ public record AddPaymentCommand(
     PaymentMethod Method,
     decimal Amount,
     string? MobileNumber = null,
-    string? Reference = null) : IRequest<TransactionResponse>;
+    string? Reference = null,
+    string? GiftCardCode = null) : IRequest<TransactionResponse>;
 
 public class AddPaymentCommandValidator : AbstractValidator<AddPaymentCommand>
 {
@@ -26,6 +27,9 @@ public class AddPaymentCommandValidator : AbstractValidator<AddPaymentCommand>
         RuleFor(x => x.MobileNumber).NotEmpty()
             .When(x => x.Method is PaymentMethod.BKash or PaymentMethod.Nagad or PaymentMethod.Rocket)
             .WithMessage("Mobile number is required for mobile wallet payments.");
+        RuleFor(x => x.GiftCardCode).NotEmpty()
+            .When(x => x.Method == PaymentMethod.GiftCard)
+            .WithMessage("Gift card code is required for gift card payments.");
     }
 }
 
@@ -59,6 +63,11 @@ public class AddPaymentCommandHandler : IRequestHandler<AddPaymentCommand, Trans
 
             case PaymentMethod.RewardPoints:
                 await RedeemRewardPointsAsync(transaction, request, ct);
+                payment.Approve();
+                break;
+
+            case PaymentMethod.GiftCard:
+                await RedeemGiftCardAsync(transaction, request, payment, ct);
                 payment.Approve();
                 break;
 
@@ -119,6 +128,28 @@ public class AddPaymentCommandHandler : IRequestHandler<AddPaymentCommand, Trans
         if (customer is not null) _uow.Customers.Update(customer);
 
         _uow.RewardPointsAccounts.Update(account);
+    }
+
+    private async Task RedeemGiftCardAsync(
+        Domain.Entities.Transaction transaction,
+        AddPaymentCommand request,
+        Domain.Entities.Payment payment,
+        CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(request.GiftCardCode))
+            throw new DomainException("Gift card code is required.");
+
+        var card = await _uow.GiftCards.GetByCodeAsync(request.TenantId, request.GiftCardCode, ct)
+            ?? throw new DomainException($"Gift card '{request.GiftCardCode}' not found.");
+
+        if (card.Balance < request.Amount)
+            throw new DomainException(
+                $"Gift card balance ({card.Balance:F2}) is insufficient for this payment ({request.Amount:F2}). " +
+                $"Use a smaller amount or split the payment.");
+
+        var actual = card.Redeem(request.Amount, transaction.Id);
+        payment.SetGiftCardRedemption(request.GiftCardCode, actual);
+        _uow.GiftCards.Update(card);
     }
 
     private async Task ChargeCreditAccountAsync(

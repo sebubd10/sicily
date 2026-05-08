@@ -22,6 +22,8 @@ public class LineItem : BaseEntity
 
     public ReturnReason? ReturnReason { get; private set; }
     public DamageDisposition? DamageDisposition { get; private set; }
+    public Guid? AppliedPromotionId { get; private set; }
+    public string? AppliedPromotionName { get; private set; }
 
     private LineItem() { }
 
@@ -53,6 +55,13 @@ public class LineItem : BaseEntity
     internal void ApplyDiscount(decimal discountAmount)
     {
         DiscountAmount = discountAmount;
+    }
+
+    internal void ApplyPromotionDiscount(decimal discountAmount, Guid promotionId, string promotionName)
+    {
+        DiscountAmount = discountAmount;
+        AppliedPromotionId = promotionId;
+        AppliedPromotionName = promotionName;
     }
 
     internal static LineItem CreateReturnItem(Guid transactionId, Guid productId,

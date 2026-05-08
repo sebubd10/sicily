@@ -26,6 +26,9 @@ public interface IUnitOfWork : IDisposable
     IProductReviewRepository ProductReviews { get; }
     IStockBatchRepository StockBatches { get; }
     ISupplierReturnRepository SupplierReturns { get; }
+    IGiftCardRepository GiftCards { get; }
+    ITillSessionRepository TillSessions { get; }
+    IPromotionRepository Promotions { get; }
 
     Task<int> SaveChangesAsync(CancellationToken ct = default);
     Task BeginTransactionAsync(CancellationToken ct = default);
