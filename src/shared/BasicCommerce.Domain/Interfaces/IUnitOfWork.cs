@@ -23,6 +23,7 @@ public interface IUnitOfWork : IDisposable
     IRewardPointsSettingsRepository RewardPointsSettings { get; }
     IRewardPointsAccountRepository RewardPointsAccounts { get; }
     IProductTagRepository ProductTags { get; }
+    IProductReviewRepository ProductReviews { get; }
 
     Task<int> SaveChangesAsync(CancellationToken ct = default);
     Task BeginTransactionAsync(CancellationToken ct = default);

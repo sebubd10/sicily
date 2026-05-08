@@ -240,6 +240,97 @@ partial class BasicCommerceDbContextModelSnapshot : ModelSnapshot
                 .IsRequired();
         });
 
+        modelBuilder.Entity("BasicCommerce.Domain.Entities.ProductReview", b =>
+        {
+            b.Property<Guid>("Id").ValueGeneratedOnAdd();
+            b.Property<Guid>("TenantId");
+            b.Property<Guid>("ProductId");
+            b.Property<Guid?>("CustomerId");
+            b.Property<Guid?>("StoreId");
+            b.Property<string>("CustomerName").IsRequired().HasMaxLength(200);
+            b.Property<string>("Title").IsRequired().HasMaxLength(300);
+            b.Property<string>("ReviewText").IsRequired().HasMaxLength(3000);
+            b.Property<int>("Rating");
+            b.Property<bool>("IsApproved");
+            b.Property<bool>("IsVerifiedPurchase");
+            b.Property<int>("HelpfulYesTotal");
+            b.Property<int>("HelpfulNoTotal");
+            b.Property<string>("Status").IsRequired().HasMaxLength(20).HasDefaultValue("Active");
+            b.Property<DateTime>("CreatedAt");
+            b.Property<DateTime?>("UpdatedAt");
+            b.Property<Guid?>("CreatedBy");
+            b.Property<Guid?>("UpdatedBy");
+            b.HasKey("Id");
+            b.HasIndex("TenantId", "ProductId", "CreatedAt");
+            b.HasIndex("TenantId", "CustomerId");
+            b.ToTable("ProductReviews");
+        });
+
+        modelBuilder.Entity("BasicCommerce.Domain.Entities.ProductReviewDetail", b =>
+        {
+            b.Property<Guid>("Id").ValueGeneratedOnAdd();
+            b.Property<Guid>("ProductReviewId");
+            b.Property<string>("Comment").IsRequired().HasMaxLength(2000);
+            b.Property<bool>("IsAdminReply");
+            b.Property<Guid?>("UserId");
+            b.Property<string?>("CommenterName").HasMaxLength(200);
+            b.Property<string>("Status").IsRequired().HasMaxLength(20).HasDefaultValue("Active");
+            b.Property<DateTime>("CreatedAt");
+            b.Property<DateTime?>("UpdatedAt");
+            b.Property<Guid?>("CreatedBy");
+            b.Property<Guid?>("UpdatedBy");
+            b.HasKey("Id");
+            b.HasIndex("ProductReviewId", "CreatedAt");
+            b.ToTable("ProductReviewDetails");
+        });
+
+        modelBuilder.Entity("BasicCommerce.Domain.Entities.ProductReviewHelpfulness", b =>
+        {
+            b.Property<Guid>("Id").ValueGeneratedOnAdd();
+            b.Property<Guid>("ProductReviewId");
+            b.Property<Guid>("CustomerId");
+            b.Property<bool>("IsHelpful");
+            b.Property<string>("Status").IsRequired().HasMaxLength(20).HasDefaultValue("Active");
+            b.Property<DateTime>("CreatedAt");
+            b.Property<DateTime?>("UpdatedAt");
+            b.Property<Guid?>("CreatedBy");
+            b.Property<Guid?>("UpdatedBy");
+            b.HasKey("Id");
+            b.HasIndex("ProductReviewId", "CustomerId").IsUnique();
+            b.ToTable("ProductReviewHelpfulnesses");
+        });
+
+        modelBuilder.Entity("BasicCommerce.Domain.Entities.ProductReview", b =>
+        {
+            b.HasOne("BasicCommerce.Domain.Entities.Product", null)
+                .WithMany()
+                .HasForeignKey("ProductId")
+                .OnDelete(DeleteBehavior.Cascade)
+                .IsRequired();
+            b.HasOne("BasicCommerce.Domain.Entities.Customer", null)
+                .WithMany()
+                .HasForeignKey("CustomerId")
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity("BasicCommerce.Domain.Entities.ProductReviewDetail", b =>
+        {
+            b.HasOne("BasicCommerce.Domain.Entities.ProductReview", null)
+                .WithMany("Details")
+                .HasForeignKey("ProductReviewId")
+                .OnDelete(DeleteBehavior.Cascade)
+                .IsRequired();
+        });
+
+        modelBuilder.Entity("BasicCommerce.Domain.Entities.ProductReviewHelpfulness", b =>
+        {
+            b.HasOne("BasicCommerce.Domain.Entities.ProductReview", null)
+                .WithMany()
+                .HasForeignKey("ProductReviewId")
+                .OnDelete(DeleteBehavior.Cascade)
+                .IsRequired();
+        });
+
 #pragma warning restore 612, 618
     }
 }
