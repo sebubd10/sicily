@@ -56,7 +56,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, A
             TokenType: "Bearer",
             User: new UserDto(
                 user.Id, user.FullName, user.Email,
-                user.Role.ToString(), user.TenantId, user.StoreId,
+                user.Role.ToString(), user.TenantId, user.StoreId, user.UserTypeId,
                 user.AuthProvider.ToString(), user.PreferredLanguage));
     }
 }

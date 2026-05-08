@@ -25,6 +25,9 @@ public class CurrentUserService : ICurrentUserService
     public Guid? StoreId =>
         Guid.TryParse(Principal?.FindFirstValue("store_id"), out var id) ? id : null;
 
+    public Guid? UserTypeId =>
+        Guid.TryParse(Principal?.FindFirstValue("user_type_id"), out var id) ? id : null;
+
     public UserRole Role =>
         Enum.TryParse<UserRole>(Principal?.FindFirstValue("role"), out var role)
             ? role : UserRole.Customer;

@@ -18,6 +18,7 @@ public record UserDto(
     string Role,
     Guid TenantId,
     Guid? StoreId,
+    Guid? UserTypeId,
     string AuthProvider,
     string PreferredLanguage);
 

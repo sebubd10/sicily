@@ -1,7 +1,9 @@
+using BasicCommerce.Application.Features.UserTypes;
 using BasicCommerce.Application.Features.Users.Commands;
 using BasicCommerce.Application.Features.Users.Queries;
 using BasicCommerce.Application.Interfaces;
 using BasicCommerce.Contracts.Common;
+using BasicCommerce.Contracts.UserTypes;
 using BasicCommerce.Contracts.Users;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -59,6 +61,16 @@ public class UsersController : ControllerBase
     public async Task<ActionResult<ApiResponse<object>>> Unlock(Guid id, CancellationToken ct)
     {
         await _mediator.Send(new UnlockUserCommand(id), ct);
+        return Ok(ApiResponse<object>.Ok(null!));
+    }
+
+    /// <summary>Assigns or removes a user type from a user.</summary>
+    [HttpPut("{id:guid}/user-type")]
+    [Authorize(Policy = "ChainAdminOnly")]
+    public async Task<IActionResult> AssignUserType(
+        Guid id, [FromBody] AssignUserTypeRequest request, CancellationToken ct)
+    {
+        await _mediator.Send(new AssignUserTypeCommand(id, request.UserTypeId), ct);
         return Ok(ApiResponse<object>.Ok(null!));
     }
 }

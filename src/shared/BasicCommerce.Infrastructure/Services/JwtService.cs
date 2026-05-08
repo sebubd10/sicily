@@ -38,6 +38,9 @@ public class JwtService : IJwtService
         else if (user.StoreId.HasValue)
             claims.Add(new("store_id", user.StoreId.Value.ToString()));
 
+        if (user.UserTypeId.HasValue)
+            claims.Add(new("user_type_id", user.UserTypeId.Value.ToString()));
+
         var expiryMinutes = int.Parse(_config["Jwt:ExpiryMinutes"] ?? "60");
 
         var token = new JwtSecurityToken(

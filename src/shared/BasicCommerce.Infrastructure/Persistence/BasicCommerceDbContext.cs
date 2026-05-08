@@ -52,6 +52,10 @@ public class BasicCommerceDbContext : DbContext
     public DbSet<LabelTemplate> LabelTemplates => Set<LabelTemplate>();
     public DbSet<LabelPrintJob> LabelPrintJobs => Set<LabelPrintJob>();
     public DbSet<LabelPrintJobItem> LabelPrintJobItems => Set<LabelPrintJobItem>();
+    public DbSet<UserType> UserTypes => Set<UserType>();
+    public DbSet<AppMenu> AppMenus => Set<AppMenu>();
+    public DbSet<AppSubMenu> AppSubMenus => Set<AppSubMenu>();
+    public DbSet<ApiPermission> ApiPermissions => Set<ApiPermission>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

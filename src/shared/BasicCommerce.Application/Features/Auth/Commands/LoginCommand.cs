@@ -78,6 +78,6 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponse>
             TokenType: "Bearer",
             User: new UserDto(
                 user.Id, user.FullName, user.Email,
-                user.Role.ToString(), user.TenantId, user.StoreId,
+                user.Role.ToString(), user.TenantId, user.StoreId, user.UserTypeId,
                 user.AuthProvider.ToString(), user.PreferredLanguage));
 }

@@ -39,6 +39,10 @@ public class UnitOfWork : IUnitOfWork
     public IPromotionRepository Promotions { get; }
     public ILabelTemplateRepository LabelTemplates { get; }
     public ILabelPrintJobRepository LabelPrintJobs { get; }
+    public IUserTypeRepository UserTypes { get; }
+    public IAppMenuRepository AppMenus { get; }
+    public IApiPermissionRepository ApiPermissions { get; }
+    public ITenantLookupRepository Tenants { get; }
 
     public UnitOfWork(BasicCommerceDbContext db)
     {
@@ -73,6 +77,10 @@ public class UnitOfWork : IUnitOfWork
         Promotions = new PromotionRepository(db);
         LabelTemplates = new LabelTemplateRepository(db);
         LabelPrintJobs = new LabelPrintJobRepository(db);
+        UserTypes = new UserTypeRepository(db);
+        AppMenus = new AppMenuRepository(db);
+        ApiPermissions = new ApiPermissionRepository(db);
+        Tenants = new TenantLookupRepository(db);
     }
 
     public async Task<int> SaveChangesAsync(CancellationToken ct = default) =>

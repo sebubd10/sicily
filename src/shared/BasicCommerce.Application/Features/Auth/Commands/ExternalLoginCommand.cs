@@ -48,29 +48,53 @@ public class ExternalLoginCommandHandler : IRequestHandler<ExternalLoginCommand,
     {
         var provider = Enum.Parse<AuthProvider>(request.Provider);
 
-        // Look up existing user by external ID first, then fall back to email
+        // Try to find existing user by external provider ID first
         var user = provider == AuthProvider.Google
             ? await _uow.Users.GetByGoogleIdAsync(request.ExternalId, ct)
             : await _uow.Users.GetByMicrosoftIdAsync(request.ExternalId, ct);
 
         if (user is null)
         {
-            // Check if an account with this email already exists
+            // Check if an account with this email already exists — link the provider
             user = await _uow.Users.GetByEmailAcrossTenantsAsync(request.Email, ct);
 
             if (user is not null)
-                throw new UnauthorizedException(
-                    $"An account with this email already exists. " +
-                    $"Please log in with your original method.");
+            {
+                // Link external provider to the existing account
+                if (provider == AuthProvider.Google && string.IsNullOrEmpty(user.GoogleId))
+                    user.LinkGoogle(request.ExternalId);
+                else if (provider == AuthProvider.Microsoft && string.IsNullOrEmpty(user.MicrosoftId))
+                    user.LinkMicrosoft(request.ExternalId);
+                else
+                    throw new UnauthorizedException(
+                        "An account with this email already exists with a different sign-in method.");
 
-            // Auto-register new customer via social login
-            // TenantId is a placeholder — resolved via TenantSlug in a real setup
-            var tenantId = Guid.Empty; // TODO: resolve from TenantSlug
-            user = User.CreateWithExternalProvider(
-                tenantId, request.FirstName, request.LastName,
-                request.Email, provider, request.ExternalId);
+                _uow.Users.Update(user);
+            }
+            else
+            {
+                // Resolve tenant: required for admin users, optional for customers
+                Guid tenantId;
+                if (!string.IsNullOrWhiteSpace(request.TenantSlug))
+                {
+                    var tenant = await _uow.Tenants.GetBySlugAsync(request.TenantSlug, ct)
+                        ?? throw new UnauthorizedException(
+                            $"Tenant '{request.TenantSlug}' not found.");
+                    tenantId = tenant.Id;
+                }
+                else
+                {
+                    // Customer self-registration: no tenant context required
+                    // Tenant association can be done later via customer portal
+                    tenantId = Guid.Empty;
+                }
 
-            await _uow.Users.AddAsync(user, ct);
+                user = User.CreateWithExternalProvider(
+                    tenantId, request.FirstName, request.LastName,
+                    request.Email, provider, request.ExternalId);
+
+                await _uow.Users.AddAsync(user, ct);
+            }
         }
 
         if (user.Status != EntityStatus.Active)
@@ -96,7 +120,7 @@ public class ExternalLoginCommandHandler : IRequestHandler<ExternalLoginCommand,
             TokenType: "Bearer",
             User: new UserDto(
                 user.Id, user.FullName, user.Email,
-                user.Role.ToString(), user.TenantId, user.StoreId,
+                user.Role.ToString(), user.TenantId, user.StoreId, user.UserTypeId,
                 user.AuthProvider.ToString(), user.PreferredLanguage));
     }
 }

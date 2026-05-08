@@ -32,6 +32,10 @@ public interface IUnitOfWork : IDisposable
     IPromotionRepository Promotions { get; }
     ILabelTemplateRepository LabelTemplates { get; }
     ILabelPrintJobRepository LabelPrintJobs { get; }
+    IUserTypeRepository UserTypes { get; }
+    IAppMenuRepository AppMenus { get; }
+    IApiPermissionRepository ApiPermissions { get; }
+    ITenantLookupRepository Tenants { get; }
 
     Task<int> SaveChangesAsync(CancellationToken ct = default);
     Task BeginTransactionAsync(CancellationToken ct = default);

@@ -32,6 +32,8 @@ public static class DependencyInjection
         services.AddScoped<IStockMovementRepository, StockMovementRepository>();
 
         services.AddScoped<ILabelRenderService, LabelRenderService>();
+        services.AddScoped<IPermissionService, PermissionService>();
+        services.AddMemoryCache();
 
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<IPasswordHasher, PasswordHasher>();

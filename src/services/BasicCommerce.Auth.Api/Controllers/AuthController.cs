@@ -36,53 +36,73 @@ public class AuthController : ControllerBase
         return Ok(ApiResponse<AuthResponse>.Ok(result));
     }
 
+    // ── Google OAuth ──────────────────────────────────────────────────────────
+
+    /// <summary>Initiates Google OAuth. Pass tenantSlug for admin users; omit for customers.</summary>
     [HttpGet("google")]
-    public IActionResult GoogleLogin([FromQuery] string? returnUrl = null)
+    public IActionResult GoogleLogin([FromQuery] string? tenantSlug = null)
     {
-        var redirectUrl = Url.Action(nameof(GoogleCallback), new { returnUrl });
-        var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
+        var redirectUrl = Url.Action(nameof(GoogleCallback));
+        var properties = new AuthenticationProperties
+        {
+            RedirectUri = redirectUrl,
+            Items = { ["tenantSlug"] = tenantSlug ?? string.Empty }
+        };
         return Challenge(properties, GoogleDefaults.AuthenticationScheme);
     }
 
     [HttpGet("google/callback")]
-    public async Task<IActionResult> GoogleCallback([FromQuery] string? returnUrl, CancellationToken ct)
+    public async Task<IActionResult> GoogleCallback(CancellationToken ct)
     {
         var result = await HttpContext.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
         if (!result.Succeeded) return BadRequest("Google authentication failed.");
 
+        var tenantSlug = result.Properties?.Items.TryGetValue("tenantSlug", out var slug) == true
+            ? (string.IsNullOrWhiteSpace(slug) ? null : slug)
+            : null;
+
         var externalId = result.Principal!.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value;
-        var email = result.Principal.FindFirst(System.Security.Claims.ClaimTypes.Email)!.Value;
-        var firstName = result.Principal.FindFirst(System.Security.Claims.ClaimTypes.GivenName)?.Value ?? string.Empty;
-        var lastName = result.Principal.FindFirst(System.Security.Claims.ClaimTypes.Surname)?.Value ?? string.Empty;
+        var email      = result.Principal.FindFirst(System.Security.Claims.ClaimTypes.Email)!.Value;
+        var firstName  = result.Principal.FindFirst(System.Security.Claims.ClaimTypes.GivenName)?.Value ?? string.Empty;
+        var lastName   = result.Principal.FindFirst(System.Security.Claims.ClaimTypes.Surname)?.Value ?? string.Empty;
 
         var authResult = await _mediator.Send(
-            new ExternalLoginCommand("Google", externalId, email, firstName, lastName, null), ct);
-
+            new ExternalLoginCommand("Google", externalId, email, firstName, lastName, tenantSlug), ct);
         return Ok(ApiResponse<AuthResponse>.Ok(authResult));
     }
 
+    // ── Microsoft OAuth ───────────────────────────────────────────────────────
+
+    /// <summary>Initiates Microsoft OAuth. Pass tenantSlug for admin users; omit for customers.</summary>
     [HttpGet("microsoft")]
-    public IActionResult MicrosoftLogin([FromQuery] string? returnUrl = null)
+    public IActionResult MicrosoftLogin([FromQuery] string? tenantSlug = null)
     {
-        var redirectUrl = Url.Action(nameof(MicrosoftCallback), new { returnUrl });
-        var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
+        var redirectUrl = Url.Action(nameof(MicrosoftCallback));
+        var properties = new AuthenticationProperties
+        {
+            RedirectUri = redirectUrl,
+            Items = { ["tenantSlug"] = tenantSlug ?? string.Empty }
+        };
         return Challenge(properties, MicrosoftAccountDefaults.AuthenticationScheme);
     }
 
     [HttpGet("microsoft/callback")]
-    public async Task<IActionResult> MicrosoftCallback([FromQuery] string? returnUrl, CancellationToken ct)
+    public async Task<IActionResult> MicrosoftCallback(CancellationToken ct)
     {
         var result = await HttpContext.AuthenticateAsync(MicrosoftAccountDefaults.AuthenticationScheme);
         if (!result.Succeeded) return BadRequest("Microsoft authentication failed.");
 
+        var tenantSlug = result.Properties?.Items.TryGetValue("tenantSlug", out var slug) == true
+            ? (string.IsNullOrWhiteSpace(slug) ? null : slug)
+            : null;
+
         var externalId = result.Principal!.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value;
-        var email = result.Principal.FindFirst(System.Security.Claims.ClaimTypes.Email)!.Value;
-        var firstName = result.Principal.FindFirst(System.Security.Claims.ClaimTypes.GivenName)?.Value ?? string.Empty;
-        var lastName = result.Principal.FindFirst(System.Security.Claims.ClaimTypes.Surname)?.Value ?? string.Empty;
+        var email      = result.Principal.FindFirst(System.Security.Claims.ClaimTypes.Email)!.Value;
+        var firstName  = result.Principal.FindFirst(System.Security.Claims.ClaimTypes.GivenName)?.Value ?? string.Empty;
+        var lastName   = result.Principal.FindFirst(System.Security.Claims.ClaimTypes.Surname)?.Value ?? string.Empty;
 
         var authResult = await _mediator.Send(
-            new ExternalLoginCommand("Microsoft", externalId, email, firstName, lastName, null), ct);
-
+            new ExternalLoginCommand("Microsoft", externalId, email, firstName, lastName, tenantSlug), ct);
         return Ok(ApiResponse<AuthResponse>.Ok(authResult));
     }
 }

@@ -67,11 +67,13 @@ partial class BasicCommerceDbContextModelSnapshot : ModelSnapshot
             b.Property<string>("AuthProvider").IsRequired().HasMaxLength(20).HasDefaultValue("Local");
             b.Property<string>("Status").IsRequired().HasMaxLength(20).HasDefaultValue("Active");
             b.Property<string>("PreferredLanguage").IsRequired().HasMaxLength(10).HasDefaultValue("en");
+            b.Property<Guid?>("UserTypeId");
             b.Property<DateTime>("CreatedAt");
             b.Property<DateTime?>("UpdatedAt");
             b.HasKey("Id");
             b.HasIndex("Email").IsUnique();
             b.HasIndex("TenantId", "EmployeeCode").IsUnique();
+            b.HasIndex("UserTypeId").HasFilter("\"UserTypeId\" IS NOT NULL");
             b.ToTable("Users");
         });
 
@@ -662,6 +664,78 @@ partial class BasicCommerceDbContextModelSnapshot : ModelSnapshot
             b.HasIndex("TenantId", "SupplierId", "ProductId").IsUnique();
             b.HasIndex("TenantId", "ProductId");
             b.ToTable("SupplierProducts");
+        });
+
+        modelBuilder.Entity("BasicCommerce.Domain.Entities.ApiPermission", b =>
+        {
+            b.Property<Guid>("Id");
+            b.Property<string>("Code").IsRequired().HasMaxLength(100);
+            b.Property<string>("Name").IsRequired().HasMaxLength(200);
+            b.Property<string>("Group").IsRequired().HasMaxLength(100);
+            b.Property<string>("Description").HasMaxLength(500);
+            b.Property<string>("Status").IsRequired().HasMaxLength(20).HasDefaultValue("Active");
+            b.Property<DateTime>("CreatedAt");
+            b.Property<DateTime?>("UpdatedAt");
+            b.HasKey("Id");
+            b.HasIndex("Code").IsUnique();
+            b.HasIndex("Group");
+            b.ToTable("ApiPermissions");
+        });
+
+        modelBuilder.Entity("BasicCommerce.Domain.Entities.AppMenu", b =>
+        {
+            b.Property<Guid>("Id");
+            b.Property<string>("Name").IsRequired().HasMaxLength(100);
+            b.Property<string>("Icon").HasMaxLength(50);
+            b.Property<int>("SortOrder").HasDefaultValue(0);
+            b.Property<string>("Status").IsRequired().HasMaxLength(20).HasDefaultValue("Active");
+            b.Property<DateTime>("CreatedAt");
+            b.Property<DateTime?>("UpdatedAt");
+            b.HasKey("Id");
+            b.ToTable("AppMenus");
+        });
+
+        modelBuilder.Entity("BasicCommerce.Domain.Entities.AppSubMenu", b =>
+        {
+            b.Property<Guid>("Id");
+            b.Property<Guid>("MenuId");
+            b.Property<string>("Name").IsRequired().HasMaxLength(100);
+            b.Property<string>("Icon").HasMaxLength(50);
+            b.Property<string>("Route").IsRequired().HasMaxLength(200);
+            b.Property<string>("PermissionCode").HasMaxLength(100);
+            b.Property<int>("SortOrder").HasDefaultValue(0);
+            b.Property<string>("Status").IsRequired().HasMaxLength(20).HasDefaultValue("Active");
+            b.Property<DateTime>("CreatedAt");
+            b.Property<DateTime?>("UpdatedAt");
+            b.HasKey("Id");
+            b.HasIndex("MenuId");
+            b.ToTable("AppSubMenus");
+        });
+
+        modelBuilder.Entity("BasicCommerce.Domain.Entities.AppSubMenu", b =>
+        {
+            b.HasOne("BasicCommerce.Domain.Entities.AppMenu", null)
+                .WithMany("SubMenus")
+                .HasForeignKey("MenuId")
+                .OnDelete(DeleteBehavior.Cascade)
+                .IsRequired();
+        });
+
+        modelBuilder.Entity("BasicCommerce.Domain.Entities.UserType", b =>
+        {
+            b.Property<Guid>("Id");
+            b.Property<Guid>("TenantId");
+            b.Property<string>("Name").IsRequired().HasMaxLength(100);
+            b.Property<string>("Description").HasMaxLength(500);
+            b.Property<bool>("IsSystem").HasDefaultValue(false);
+            b.Property<int>("SortOrder").HasDefaultValue(0);
+            b.Property<string>("Color").HasMaxLength(20);
+            b.Property<string>("Status").IsRequired().HasMaxLength(20).HasDefaultValue("Active");
+            b.Property<DateTime>("CreatedAt");
+            b.Property<DateTime?>("UpdatedAt");
+            b.HasKey("Id");
+            b.HasIndex("TenantId", "Name").IsUnique();
+            b.ToTable("UserTypes");
         });
 
         modelBuilder.Entity("BasicCommerce.Domain.Entities.SupplierProduct", b =>

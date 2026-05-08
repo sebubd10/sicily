@@ -1,3 +1,4 @@
+using BasicCommerce.Application.Features.Auth;
 using BasicCommerce.Domain.Entities;
 using BasicCommerce.Domain.Enums;
 using BasicCommerce.Domain.ValueObjects;
@@ -25,6 +26,7 @@ public class DatabaseSeeder
     public async Task SeedAsync(CancellationToken ct = default)
     {
         await SeedDemoTenantAsync(ct);
+        await SeedMenusAndPermissionsAsync(ct);
         _logger.LogInformation("Database seeding completed.");
     }
 
@@ -141,5 +143,44 @@ public class DatabaseSeeder
             "Seeded: Tenant={Tenant}, Store={Store}, VAT rates={VatCount}, " +
             "Categories={CatCount}, Admin={Admin}",
             tenant.Name, store.Name, vatRates.Length, categories.Length, adminUser.Email);
+    }
+
+    private async Task SeedMenusAndPermissionsAsync(CancellationToken ct)
+    {
+        // ── Api Permissions ────────────────────────────────────────────────────
+        var existingCodes = await _db.Set<ApiPermission>()
+            .Select(p => p.Code).ToHashSetAsync(ct);
+
+        var toAdd = PermissionCodes.All
+            .Where(p => !existingCodes.Contains(p.Code))
+            .Select(p => ApiPermission.Create(p.Code, p.Name, p.Group))
+            .ToList();
+
+        if (toAdd.Count > 0)
+        {
+            await _db.Set<ApiPermission>().AddRangeAsync(toAdd, ct);
+            await _db.SaveChangesAsync(ct);
+            _logger.LogInformation("Seeded {Count} API permissions.", toAdd.Count);
+        }
+
+        // ── App Menus + SubMenus ───────────────────────────────────────────────
+        if (!await _db.Set<AppMenu>().AnyAsync(ct))
+        {
+            foreach (var md in BuiltinMenus.All)
+            {
+                var menu = AppMenu.Create(md.Name, md.Icon, md.Sort);
+                await _db.Set<AppMenu>().AddAsync(menu, ct);
+                await _db.SaveChangesAsync(ct);
+
+                foreach (var sd in md.Items)
+                {
+                    var sub = AppSubMenu.Create(menu.Id, sd.Name, sd.Route,
+                        sd.Permission, sd.Icon, sd.Sort);
+                    await _db.Set<AppSubMenu>().AddAsync(sub, ct);
+                }
+            }
+            await _db.SaveChangesAsync(ct);
+            _logger.LogInformation("Seeded app menus and sub-menus.");
+        }
     }
 }

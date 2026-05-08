@@ -19,6 +19,7 @@ public class User : TenantEntity
     public int FailedLoginAttempts { get; private set; }
     public DateTime? LockedUntil { get; private set; }
     public string PreferredLanguage { get; private set; } = "en";
+    public Guid? UserTypeId { get; private set; }
 
     public string FullName => $"{FirstName} {LastName}";
     public bool IsLocked => LockedUntil.HasValue && LockedUntil > DateTime.UtcNow;
@@ -102,6 +103,15 @@ public class User : TenantEntity
     public void Activate()
     {
         Status = EntityStatus.Active;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void LinkGoogle(string googleId) { GoogleId = googleId; UpdatedAt = DateTime.UtcNow; }
+    public void LinkMicrosoft(string microsoftId) { MicrosoftId = microsoftId; UpdatedAt = DateTime.UtcNow; }
+
+    public void SetUserType(Guid? userTypeId)
+    {
+        UserTypeId = userTypeId;
         UpdatedAt = DateTime.UtcNow;
     }
 }
