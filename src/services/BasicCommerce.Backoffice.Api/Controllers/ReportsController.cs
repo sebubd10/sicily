@@ -1,10 +1,12 @@
 using BasicCommerce.Application.Features.Reports;
 using BasicCommerce.Application.Interfaces;
+using BasicCommerce.Backoffice.Api.Attributes;
 using BasicCommerce.Contracts.Common;
 using BasicCommerce.Contracts.Reports;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using static BasicCommerce.Application.Features.Auth.PermissionCodes;
 
 namespace BasicCommerce.Backoffice.Api.Controllers;
 
@@ -68,5 +70,17 @@ public class ReportsController : ControllerBase
     {
         var result = await _mediator.Send(new StockReportQuery(storeId), ct);
         return Ok(ApiResponse<StockReportResponse>.Ok(result));
+    }
+
+    /// <summary>Downloads a PDF report listing all categories for the current tenant.</summary>
+    [HttpGet("categories/pdf")]
+    [HasPermission(Reports.CategoryReport)]
+    public async Task<IActionResult> CategoryReportPdf(
+        [FromQuery] bool includeInactive = false,
+        CancellationToken ct = default)
+    {
+        var pdf = await _mediator.Send(new CategoryReportQuery(includeInactive), ct);
+        var filename = $"categories_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
+        return File(pdf, "application/pdf", filename);
     }
 }

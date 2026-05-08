@@ -28,6 +28,9 @@
 
     <!-- Misc -->
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="8.0.0" />
+
+    <!-- PDF Reports -->
+    <PackageReference Include="QuestPDF" Version="2024.3.6" />
   </ItemGroup>
 
   <ItemGroup>

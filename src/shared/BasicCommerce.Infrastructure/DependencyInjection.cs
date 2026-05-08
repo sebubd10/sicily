@@ -4,6 +4,7 @@ using BasicCommerce.Infrastructure.Persistence;
 using BasicCommerce.Infrastructure.Providers;
 using BasicCommerce.Infrastructure.Repositories;
 using BasicCommerce.Infrastructure.Services;
+using BasicCommerce.Infrastructure.Services.Reports;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -33,6 +34,7 @@ public static class DependencyInjection
 
         services.AddScoped<ILabelRenderService, LabelRenderService>();
         services.AddScoped<IPermissionService, PermissionService>();
+        services.AddScoped<ICategoryReportService, CategoryReportService>();
         services.AddMemoryCache();
 
         services.AddScoped<IJwtService, JwtService>();
