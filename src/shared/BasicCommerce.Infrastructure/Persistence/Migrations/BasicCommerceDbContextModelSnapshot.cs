@@ -570,6 +570,78 @@ partial class BasicCommerceDbContextModelSnapshot : ModelSnapshot
             b.ToTable("Promotions");
         });
 
+        modelBuilder.Entity("BasicCommerce.Domain.Entities.LabelTemplate", b =>
+        {
+            b.Property<Guid>("Id");
+            b.Property<Guid>("TenantId");
+            b.Property<string>("Name").IsRequired().HasMaxLength(200);
+            b.Property<string>("Description").HasMaxLength(1000);
+            b.Property<string>("LabelType").IsRequired().HasMaxLength(30);
+            b.Property<decimal>("WidthMm").HasPrecision(6, 2);
+            b.Property<decimal>("HeightMm").HasPrecision(6, 2);
+            b.Property<int>("PrinterDpi").HasDefaultValue(203);
+            b.Property<string>("LayoutJson").IsRequired().HasColumnType("nvarchar(max)");
+            b.Property<string>("DefaultBarcodeSymbology").IsRequired().HasMaxLength(20);
+            b.Property<bool>("IsDefault").HasDefaultValue(false);
+            b.Property<int>("SortOrder").HasDefaultValue(0);
+            b.Property<string>("Status").IsRequired().HasMaxLength(20).HasDefaultValue("Active");
+            b.Property<DateTime>("CreatedAt");
+            b.Property<DateTime?>("UpdatedAt");
+            b.HasKey("Id");
+            b.HasIndex("TenantId", "LabelType");
+            b.HasIndex("TenantId", "Name");
+            b.ToTable("LabelTemplates");
+        });
+
+        modelBuilder.Entity("BasicCommerce.Domain.Entities.LabelPrintJob", b =>
+        {
+            b.Property<Guid>("Id");
+            b.Property<Guid>("TenantId");
+            b.Property<string>("JobNumber").IsRequired().HasMaxLength(30);
+            b.Property<Guid>("StoreId");
+            b.Property<Guid>("TemplateId");
+            b.Property<string>("OutputFormat").IsRequired().HasMaxLength(20);
+            b.Property<string>("JobStatus").IsRequired().HasMaxLength(20).HasDefaultValue("Pending");
+            b.Property<string>("PrinterName").HasMaxLength(200);
+            b.Property<string>("Notes").HasMaxLength(500);
+            b.Property<Guid>("CreatedByUserId");
+            b.Property<Guid?>("PrintedByUserId");
+            b.Property<DateTime?>("PrintedAt");
+            b.Property<string>("FailureReason").HasMaxLength(1000);
+            b.Property<int>("TotalLabels").HasDefaultValue(0);
+            b.Property<string>("Status").IsRequired().HasMaxLength(20).HasDefaultValue("Active");
+            b.Property<DateTime>("CreatedAt");
+            b.Property<DateTime?>("UpdatedAt");
+            b.HasKey("Id");
+            b.HasIndex("JobNumber").IsUnique();
+            b.HasIndex("TenantId", "StoreId", "JobStatus");
+            b.ToTable("LabelPrintJobs");
+        });
+
+        modelBuilder.Entity("BasicCommerce.Domain.Entities.LabelPrintJobItem", b =>
+        {
+            b.Property<Guid>("Id");
+            b.Property<Guid>("PrintJobId");
+            b.Property<Guid>("ProductId");
+            b.Property<int>("Quantity");
+            b.Property<decimal?>("OverridePrice").HasPrecision(18, 4);
+            b.Property<string>("CustomText").HasMaxLength(200);
+            b.Property<string>("LotNumber").HasMaxLength(100);
+            b.Property<DateTime?>("ExpiryDate");
+            b.HasKey("Id");
+            b.HasIndex("PrintJobId");
+            b.ToTable("LabelPrintJobItems");
+        });
+
+        modelBuilder.Entity("BasicCommerce.Domain.Entities.LabelPrintJobItem", b =>
+        {
+            b.HasOne("BasicCommerce.Domain.Entities.LabelPrintJob", null)
+                .WithMany("Items")
+                .HasForeignKey("PrintJobId")
+                .OnDelete(DeleteBehavior.Cascade)
+                .IsRequired();
+        });
+
 #pragma warning restore 612, 618
     }
 }

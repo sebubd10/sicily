@@ -29,6 +29,8 @@ public interface IUnitOfWork : IDisposable
     IGiftCardRepository GiftCards { get; }
     ITillSessionRepository TillSessions { get; }
     IPromotionRepository Promotions { get; }
+    ILabelTemplateRepository LabelTemplates { get; }
+    ILabelPrintJobRepository LabelPrintJobs { get; }
 
     Task<int> SaveChangesAsync(CancellationToken ct = default);
     Task BeginTransactionAsync(CancellationToken ct = default);

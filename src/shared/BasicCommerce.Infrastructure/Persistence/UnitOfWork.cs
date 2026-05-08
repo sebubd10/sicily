@@ -36,6 +36,8 @@ public class UnitOfWork : IUnitOfWork
     public IGiftCardRepository GiftCards { get; }
     public ITillSessionRepository TillSessions { get; }
     public IPromotionRepository Promotions { get; }
+    public ILabelTemplateRepository LabelTemplates { get; }
+    public ILabelPrintJobRepository LabelPrintJobs { get; }
 
     public UnitOfWork(BasicCommerceDbContext db)
     {
@@ -67,6 +69,8 @@ public class UnitOfWork : IUnitOfWork
         GiftCards = new GiftCardRepository(db);
         TillSessions = new TillSessionRepository(db);
         Promotions = new PromotionRepository(db);
+        LabelTemplates = new LabelTemplateRepository(db);
+        LabelPrintJobs = new LabelPrintJobRepository(db);
     }
 
     public async Task<int> SaveChangesAsync(CancellationToken ct = default) =>

@@ -48,6 +48,9 @@ public class BasicCommerceDbContext : DbContext
     public DbSet<TillSession> TillSessions => Set<TillSession>();
     public DbSet<PettyTransaction> PettyTransactions => Set<PettyTransaction>();
     public DbSet<Promotion> Promotions => Set<Promotion>();
+    public DbSet<LabelTemplate> LabelTemplates => Set<LabelTemplate>();
+    public DbSet<LabelPrintJob> LabelPrintJobs => Set<LabelPrintJob>();
+    public DbSet<LabelPrintJobItem> LabelPrintJobItems => Set<LabelPrintJobItem>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
