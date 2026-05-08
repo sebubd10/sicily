@@ -31,6 +31,12 @@ public class ProductRepository : TenantRepository<Product>, IProductRepository
             .FirstOrDefaultAsync(
                 p => p.TenantId == tenantId && p.Sku == sku && p.Status == EntityStatus.Active, ct);
 
+    public async Task<Product?> GetWithTagsAsync(Guid tenantId, Guid id,
+        CancellationToken ct = default) =>
+        await Db.Products
+            .Include(p => p.Tags)
+            .FirstOrDefaultAsync(p => p.TenantId == tenantId && p.Id == id, ct);
+
     public async Task<IEnumerable<Product>> SearchAsync(Guid tenantId, string term,
         int limit = 20, CancellationToken ct = default) =>
         await Db.Products

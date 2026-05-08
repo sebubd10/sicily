@@ -202,6 +202,44 @@ partial class BasicCommerceDbContextModelSnapshot : ModelSnapshot
                 .IsRequired();
         });
 
+        modelBuilder.Entity("BasicCommerce.Domain.Entities.ProductTag", b =>
+        {
+            b.Property<Guid>("Id").ValueGeneratedOnAdd();
+            b.Property<Guid>("TenantId");
+            b.Property<string>("Name").IsRequired().HasMaxLength(100);
+            b.Property<string>("Status").IsRequired().HasMaxLength(20).HasDefaultValue("Active");
+            b.Property<DateTime>("CreatedAt");
+            b.Property<DateTime?>("UpdatedAt");
+            b.Property<Guid?>("CreatedBy");
+            b.Property<Guid?>("UpdatedBy");
+            b.HasKey("Id");
+            b.HasIndex("TenantId", "Name").IsUnique();
+            b.ToTable("ProductTags");
+        });
+
+        modelBuilder.Entity("ProductTagAssignments", b =>
+        {
+            b.Property<Guid>("ProductId");
+            b.Property<Guid>("ProductTagId");
+            b.HasKey("ProductId", "ProductTagId");
+            b.HasIndex("ProductTagId");
+            b.ToTable("ProductTagAssignments");
+        });
+
+        modelBuilder.Entity("ProductTagAssignments", b =>
+        {
+            b.HasOne("BasicCommerce.Domain.Entities.Product", null)
+                .WithMany()
+                .HasForeignKey("ProductId")
+                .OnDelete(DeleteBehavior.Cascade)
+                .IsRequired();
+            b.HasOne("BasicCommerce.Domain.Entities.ProductTag", null)
+                .WithMany()
+                .HasForeignKey("ProductTagId")
+                .OnDelete(DeleteBehavior.Cascade)
+                .IsRequired();
+        });
+
 #pragma warning restore 612, 618
     }
 }

@@ -31,6 +31,9 @@ public class Product : TenantEntity
     public Category? Category { get; private set; }
     public Manufacturer? Manufacturer { get; private set; }
 
+    private readonly List<ProductTag> _tags = [];
+    public IReadOnlyCollection<ProductTag> Tags => _tags.AsReadOnly();
+
     private Product() { }
 
     public static Product Create(Guid tenantId, string sku, string barcode, string name,
@@ -101,6 +104,14 @@ public class Product : TenantEntity
     {
         IsAgeRestricted = false;
         AgeRestrictionYears = null;
+    }
+
+    public void SetTags(IEnumerable<ProductTag> tags)
+    {
+        _tags.Clear();
+        foreach (var tag in tags)
+            _tags.Add(tag);
+        UpdatedAt = DateTime.UtcNow;
     }
 
     public void SetPlu(string plu) => Plu = plu;

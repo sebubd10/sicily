@@ -34,6 +34,7 @@ internal static class ProductMapper
             p.ImageUrl,
             p.ManufacturerId,
             manufacturerName ?? p.Manufacturer?.Name,
+            p.Tags.Select(t => new ProductTagResponse(t.Id, t.Name)).ToList(),
             p.CreatedAt,
             p.UpdatedAt);
 }

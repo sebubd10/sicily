@@ -27,7 +27,8 @@ public record UpdateProductCommand(
     int ReorderLevel,
     string? ImageUrl,
     decimal? CostPrice,
-    Guid? ManufacturerId = null) : IRequest<ProductResponse>;
+    Guid? ManufacturerId = null,
+    IEnumerable<Guid>? TagIds = null) : IRequest<ProductResponse>;
 
 public class UpdateProductCommandValidator : AbstractValidator<UpdateProductCommand>
 {
@@ -57,7 +58,7 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
 
     public async Task<ProductResponse> Handle(UpdateProductCommand request, CancellationToken ct)
     {
-        var product = await _uow.Products.GetByIdAsync(request.ProductId, ct)
+        var product = await _uow.Products.GetWithTagsAsync(_currentUser.TenantId, request.ProductId, ct)
             ?? throw new NotFoundException("Product", request.ProductId);
 
         if (product.TenantId != _currentUser.TenantId)
@@ -83,6 +84,13 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
             product.SetAgeRestriction(request.AgeRestrictionYears.Value);
         else if (!request.IsAgeRestricted)
             product.RemoveAgeRestriction();
+
+        if (request.TagIds is not null)
+        {
+            var tags = await _uow.ProductTags.GetByIdsAsync(
+                _currentUser.TenantId, request.TagIds, ct);
+            product.SetTags(tags);
+        }
 
         await _uow.SaveChangesAsync(ct);
 

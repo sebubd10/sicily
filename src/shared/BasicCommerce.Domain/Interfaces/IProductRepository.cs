@@ -8,6 +8,7 @@ public interface IProductRepository : ITenantRepository<Product>
     Task<Product?> GetByBarcodeAsync(Guid tenantId, string barcode, CancellationToken ct = default);
     Task<Product?> GetByPluAsync(Guid tenantId, string plu, CancellationToken ct = default);
     Task<Product?> GetBySkuAsync(Guid tenantId, string sku, CancellationToken ct = default);
+    Task<Product?> GetWithTagsAsync(Guid tenantId, Guid id, CancellationToken ct = default);
     Task<IEnumerable<Product>> SearchAsync(Guid tenantId, string term, int limit = 20, CancellationToken ct = default);
     Task<(IEnumerable<Product> Items, int TotalCount)> GetPagedAsync(Guid tenantId,
         int page, int pageSize, Guid? categoryId = null, EntityStatus? status = null,

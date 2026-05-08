@@ -1,5 +1,7 @@
 namespace BasicCommerce.Contracts.Products;
 
+public record ProductTagResponse(Guid Id, string Name);
+
 public record ProductResponse(
     Guid Id,
     string Sku,
@@ -28,6 +30,7 @@ public record ProductResponse(
     string? ImageUrl,
     Guid? ManufacturerId,
     string? ManufacturerName,
+    IReadOnlyList<ProductTagResponse> Tags,
     DateTime CreatedAt,
     DateTime? UpdatedAt);
 
@@ -53,7 +56,8 @@ public record CreateProductRequest(
     decimal? CostPrice = null,
     string? Description = null,
     string? UnitLabel = null,
-    Guid? ManufacturerId = null);
+    Guid? ManufacturerId = null,
+    IEnumerable<Guid>? TagIds = null);
 
 public record UpdateProductRequest(
     string Name,
@@ -71,7 +75,10 @@ public record UpdateProductRequest(
     int ReorderLevel,
     string? ImageUrl,
     decimal? CostPrice,
-    Guid? ManufacturerId = null);
+    Guid? ManufacturerId = null,
+    IEnumerable<Guid>? TagIds = null);
+
+public record SetProductTagsRequest(IEnumerable<Guid> TagIds);
 
 public record UpdateProductPriceRequest(decimal NewPrice);
 

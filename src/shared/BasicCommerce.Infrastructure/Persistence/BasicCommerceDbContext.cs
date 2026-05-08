@@ -36,6 +36,7 @@ public class BasicCommerceDbContext : DbContext
     public DbSet<RewardPointsSettings> RewardPointsSettings => Set<RewardPointsSettings>();
     public DbSet<RewardPointsAccount> RewardPointsAccounts => Set<RewardPointsAccount>();
     public DbSet<RewardPointsEntry> RewardPointsEntries => Set<RewardPointsEntry>();
+    public DbSet<ProductTag> ProductTags => Set<ProductTag>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

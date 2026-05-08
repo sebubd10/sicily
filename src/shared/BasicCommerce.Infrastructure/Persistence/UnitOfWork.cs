@@ -29,6 +29,7 @@ public class UnitOfWork : IUnitOfWork
     public IPurchaseOrderRepository PurchaseOrders { get; }
     public IRewardPointsSettingsRepository RewardPointsSettings { get; }
     public IRewardPointsAccountRepository RewardPointsAccounts { get; }
+    public IProductTagRepository ProductTags { get; }
 
     public UnitOfWork(BasicCommerceDbContext db)
     {
@@ -53,6 +54,7 @@ public class UnitOfWork : IUnitOfWork
         PurchaseOrders = new PurchaseOrderRepository(db);
         RewardPointsSettings = new RewardPointsSettingsRepository(db);
         RewardPointsAccounts = new RewardPointsAccountRepository(db);
+        ProductTags = new ProductTagRepository(db);
     }
 
     public async Task<int> SaveChangesAsync(CancellationToken ct = default) =>

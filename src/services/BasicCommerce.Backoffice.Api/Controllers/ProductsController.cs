@@ -1,5 +1,6 @@
 using BasicCommerce.Application.Features.Products.Commands;
 using BasicCommerce.Application.Features.Products.Queries;
+using BasicCommerce.Application.Features.ProductTags.Commands;
 using BasicCommerce.Application.Interfaces;
 using BasicCommerce.Contracts.Common;
 using BasicCommerce.Contracts.Products;
@@ -83,7 +84,8 @@ public class ProductsController : ControllerBase
             request.CostPrice,
             request.Description,
             request.UnitLabel,
-            request.ManufacturerId), ct);
+            request.ManufacturerId,
+            request.TagIds), ct);
         return CreatedAtAction(nameof(GetById), new { id = result.Id },
             ApiResponse<ProductResponse>.Ok(result));
     }
@@ -110,7 +112,8 @@ public class ProductsController : ControllerBase
             request.ReorderLevel,
             request.ImageUrl,
             request.CostPrice,
-            request.ManufacturerId), ct);
+            request.ManufacturerId,
+            request.TagIds), ct);
         return Ok(ApiResponse<ProductResponse>.Ok(result));
     }
 
@@ -137,5 +140,14 @@ public class ProductsController : ControllerBase
     {
         await _mediator.Send(new ActivateProductCommand(id), ct);
         return NoContent();
+    }
+
+    [HttpPut("{id:guid}/tags")]
+    [Authorize(Policy = "StoreManagerAndAbove")]
+    public async Task<ActionResult<ApiResponse<ProductResponse>>> SetTags(
+        Guid id, [FromBody] SetProductTagsRequest request, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new SetProductTagsCommand(id, request.TagIds), ct);
+        return Ok(ApiResponse<ProductResponse>.Ok(result));
     }
 }

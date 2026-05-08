@@ -27,7 +27,8 @@ public record CreateProductCommand(
     decimal? CostPrice,
     string? Description = null,
     string? UnitLabel = null,
-    Guid? ManufacturerId = null) : IRequest<ProductResponse>;
+    Guid? ManufacturerId = null,
+    IEnumerable<Guid>? TagIds = null) : IRequest<ProductResponse>;
 
 public class CreateProductCommandValidator : AbstractValidator<CreateProductCommand>
 {
@@ -89,6 +90,13 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
             product.SetManufacturer(request.ManufacturerId.Value);
 
         await _uow.Products.AddAsync(product, ct);
+
+        if (request.TagIds is not null)
+        {
+            var tags = await _uow.ProductTags.GetByIdsAsync(tenantId, request.TagIds, ct);
+            product.SetTags(tags);
+        }
+
         await _uow.SaveChangesAsync(ct);
 
         return ProductMapper.ToResponse(product, vatRate);
