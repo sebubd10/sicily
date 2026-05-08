@@ -59,7 +59,7 @@ public record CreatePurchaseOrderRequest(
 public record PurchaseOrderItemRequest(
     Guid ProductId,
     decimal Quantity,
-    decimal UnitCost);
+    decimal? UnitCost = null);
 
 public record ReceivePurchaseOrderRequest(
     IEnumerable<ReceiveItemRequest> Items,

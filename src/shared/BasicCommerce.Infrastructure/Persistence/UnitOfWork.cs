@@ -33,6 +33,7 @@ public class UnitOfWork : IUnitOfWork
     public IProductReviewRepository ProductReviews { get; }
     public IStockBatchRepository StockBatches { get; }
     public ISupplierReturnRepository SupplierReturns { get; }
+    public ISupplierProductRepository SupplierProducts { get; }
     public IGiftCardRepository GiftCards { get; }
     public ITillSessionRepository TillSessions { get; }
     public IPromotionRepository Promotions { get; }
@@ -66,6 +67,7 @@ public class UnitOfWork : IUnitOfWork
         ProductReviews = new ProductReviewRepository(db);
         StockBatches = new StockBatchRepository(db);
         SupplierReturns = new SupplierReturnRepository(db);
+        SupplierProducts = new SupplierProductRepository(db);
         GiftCards = new GiftCardRepository(db);
         TillSessions = new TillSessionRepository(db);
         Promotions = new PromotionRepository(db);

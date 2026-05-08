@@ -26,6 +26,7 @@ public interface IUnitOfWork : IDisposable
     IProductReviewRepository ProductReviews { get; }
     IStockBatchRepository StockBatches { get; }
     ISupplierReturnRepository SupplierReturns { get; }
+    ISupplierProductRepository SupplierProducts { get; }
     IGiftCardRepository GiftCards { get; }
     ITillSessionRepository TillSessions { get; }
     IPromotionRepository Promotions { get; }

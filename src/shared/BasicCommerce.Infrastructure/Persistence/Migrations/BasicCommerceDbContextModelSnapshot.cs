@@ -642,6 +642,43 @@ partial class BasicCommerceDbContextModelSnapshot : ModelSnapshot
                 .IsRequired();
         });
 
+        modelBuilder.Entity("BasicCommerce.Domain.Entities.SupplierProduct", b =>
+        {
+            b.Property<Guid>("Id");
+            b.Property<Guid>("TenantId");
+            b.Property<Guid>("SupplierId");
+            b.Property<Guid>("ProductId");
+            b.Property<string>("SupplierSku").HasMaxLength(100);
+            b.Property<decimal>("UnitCost").HasPrecision(18, 4);
+            b.Property<string>("CurrencyCode").IsRequired().HasMaxLength(3).HasDefaultValue("BDT");
+            b.Property<int?>("MinOrderQuantity");
+            b.Property<int?>("LeadTimeDays");
+            b.Property<string>("Notes").HasMaxLength(500);
+            b.Property<DateTime>("PriceLastConfirmedAt");
+            b.Property<string>("Status").IsRequired().HasMaxLength(20).HasDefaultValue("Active");
+            b.Property<DateTime>("CreatedAt");
+            b.Property<DateTime?>("UpdatedAt");
+            b.HasKey("Id");
+            b.HasIndex("TenantId", "SupplierId", "ProductId").IsUnique();
+            b.HasIndex("TenantId", "ProductId");
+            b.ToTable("SupplierProducts");
+        });
+
+        modelBuilder.Entity("BasicCommerce.Domain.Entities.SupplierProduct", b =>
+        {
+            b.HasOne("BasicCommerce.Domain.Entities.Supplier", "Supplier")
+                .WithMany()
+                .HasForeignKey("SupplierId")
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired();
+
+            b.HasOne("BasicCommerce.Domain.Entities.Product", "Product")
+                .WithMany()
+                .HasForeignKey("ProductId")
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired();
+        });
+
 #pragma warning restore 612, 618
     }
 }

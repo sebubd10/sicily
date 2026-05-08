@@ -43,6 +43,7 @@ public class BasicCommerceDbContext : DbContext
     public DbSet<StockBatch> StockBatches => Set<StockBatch>();
     public DbSet<SupplierReturn> SupplierReturns => Set<SupplierReturn>();
     public DbSet<SupplierReturnItem> SupplierReturnItems => Set<SupplierReturnItem>();
+    public DbSet<SupplierProduct> SupplierProducts => Set<SupplierProduct>();
     public DbSet<GiftCard> GiftCards => Set<GiftCard>();
     public DbSet<GiftCardTransaction> GiftCardTransactions => Set<GiftCardTransaction>();
     public DbSet<TillSession> TillSessions => Set<TillSession>();

@@ -123,6 +123,15 @@ public class ReceivePurchaseOrderCommandHandler : IRequestHandler<ReceivePurchas
                     _currentUser.UserId, reference: po.OrderNumber,
                     notes: request.Notes, purchaseOrderId: po.Id);
                 await _uow.WarehouseMovements.AddAsync(movement, ct);
+
+                // Refresh catalogue with confirmed received price
+                var catalogueEntry = await _uow.SupplierProducts.GetBySupplierAndProductAsync(
+                    tenantId, po.SupplierId, productId, ct);
+                if (catalogueEntry is not null)
+                {
+                    catalogueEntry.ConfirmPrice(item.UnitCost);
+                    _uow.SupplierProducts.Update(catalogueEntry);
+                }
             }
 
             var allReceived = po.Items.All(i => i.IsFullyReceived);

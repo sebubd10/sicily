@@ -15,7 +15,7 @@ public record CreatePurchaseOrderCommand(
     DateTime? ExpectedDate,
     string? Notes,
     string Currency,
-    IEnumerable<(Guid ProductId, decimal Quantity, decimal UnitCost)> Items) : IRequest<PurchaseOrderResponse>;
+    IEnumerable<(Guid ProductId, decimal Quantity, decimal? UnitCost)> Items) : IRequest<PurchaseOrderResponse>;
 
 public class CreatePurchaseOrderCommandValidator : AbstractValidator<CreatePurchaseOrderCommand>
 {
@@ -58,11 +58,27 @@ public class CreatePurchaseOrderCommandHandler : IRequestHandler<CreatePurchaseO
         await _uow.PurchaseOrders.AddAsync(po, ct);
         await _uow.SaveChangesAsync(ct);
 
-        foreach (var (productId, quantity, unitCost) in request.Items)
+        foreach (var (productId, quantity, unitCostOverride) in request.Items)
         {
             var product = await _uow.Products.GetByIdAsync(productId, ct)
                 ?? throw new NotFoundException("Product", productId);
             if (product.TenantId != tenantId) throw new NotFoundException("Product", productId);
+
+            decimal unitCost;
+            if (unitCostOverride.HasValue && unitCostOverride.Value > 0)
+            {
+                unitCost = unitCostOverride.Value;
+            }
+            else
+            {
+                var catalogue = await _uow.SupplierProducts.GetBySupplierAndProductAsync(
+                    tenantId, request.SupplierId, productId, ct);
+                unitCost = catalogue?.UnitCost
+                    ?? throw new DomainException(
+                        $"No catalogue price found for product '{product.Name}' " +
+                        $"with this supplier. Please provide a unit cost.");
+            }
+
             po.AddItem(productId, quantity, unitCost);
         }
 
