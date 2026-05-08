@@ -25,6 +25,7 @@ internal static class ProductMapper
             p.UnitType.ToString(),
             p.UnitLabel,
             p.IsWeightBased,
+            p.IsPerishable,
             p.IsAgeRestricted,
             p.AgeRestrictionYears,
             p.IsEbtEligible,

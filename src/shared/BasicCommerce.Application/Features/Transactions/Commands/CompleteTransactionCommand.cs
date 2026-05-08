@@ -63,6 +63,27 @@ public class CompleteTransactionCommandHandler
                 reference: transaction.TransactionNumber,
                 notes: $"Sale: {item.ProductName}");
             await _uow.StockMovements.AddAsync(movement, ct);
+
+            var product = await _uow.Products.GetByIdAsync(item.ProductId, ct);
+            if (product?.IsPerishable == true)
+                await DeductBatchesFEFOAsync(tenantId, transaction.StoreId,
+                    item.ProductId, item.Quantity, ct);
+        }
+    }
+
+    private async Task DeductBatchesFEFOAsync(Guid tenantId, Guid storeId,
+        Guid productId, decimal quantity, CancellationToken ct)
+    {
+        var batches = await _uow.StockBatches.GetActiveBatchesFEFOAsync(
+            tenantId, storeId, productId, ct);
+
+        var remaining = quantity;
+        foreach (var batch in batches)
+        {
+            if (remaining <= 0) break;
+            var consumed = batch.Consume(remaining);
+            remaining -= consumed;
+            _uow.StockBatches.Update(batch);
         }
     }
 

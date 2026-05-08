@@ -8,7 +8,8 @@ public enum StockMovementType
     TransferOut = 4,
     TransferIn = 5,
     Sale = 6,
-    Return = 7
+    Return = 7,
+    ExpiryWriteOff = 8
 }
 
 public enum WarehouseMovementType

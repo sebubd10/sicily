@@ -109,4 +109,49 @@ public class InventoryController : ControllerBase
             storeId, request.ProductId, request.Threshold), ct);
         return Ok(ApiResponse<StockLevelResponse>.Ok(result));
     }
+
+    // ── Stock Batches (perishable / expiry tracking) ─────────────────────────
+
+    [HttpPost("{storeId:guid}/batches")]
+    public async Task<ActionResult<ApiResponse<StockBatchResponse>>> ReceiveBatch(
+        Guid storeId, [FromBody] ReceiveStockBatchRequest request, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new ReceiveStockBatchCommand(
+            storeId, request.ProductId, request.Quantity, request.ExpiryDate,
+            request.LotNumber, request.UnitCost, request.PurchaseOrderId,
+            request.Reference, request.Notes), ct);
+        return Ok(ApiResponse<StockBatchResponse>.Ok(result));
+    }
+
+    [HttpGet("{storeId:guid}/batches")]
+    public async Task<ActionResult<ApiResponse<StockBatchListResponse>>> GetBatches(
+        Guid storeId,
+        [FromQuery] Guid? productId,
+        [FromQuery] bool includeExpired = false,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default)
+    {
+        var result = await _mediator.Send(
+            new GetStockBatchesQuery(storeId, productId, includeExpired, page, pageSize), ct);
+        return Ok(ApiResponse<StockBatchListResponse>.Ok(result));
+    }
+
+    [HttpGet("{storeId:guid}/batches/expiring")]
+    public async Task<ActionResult<ApiResponse<IReadOnlyList<StockBatchResponse>>>> GetExpiringBatches(
+        Guid storeId,
+        [FromQuery] int withinDays = 30,
+        CancellationToken ct = default)
+    {
+        var result = await _mediator.Send(new GetExpiringBatchesQuery(storeId, withinDays), ct);
+        return Ok(ApiResponse<IReadOnlyList<StockBatchResponse>>.Ok(result));
+    }
+
+    [HttpPost("{storeId:guid}/batches/expire")]
+    public async Task<ActionResult<ApiResponse<int>>> ExpireBatches(
+        Guid storeId, [FromBody] ExpireStockBatchesRequest request, CancellationToken ct)
+    {
+        var count = await _mediator.Send(new ExpireStockBatchesCommand(storeId, request.Notes), ct);
+        return Ok(ApiResponse<int>.Ok(count));
+    }
 }

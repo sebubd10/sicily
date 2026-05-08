@@ -57,3 +57,37 @@ public record TransferStockRequest(
 public record SetLowStockThresholdRequest(
     Guid ProductId,
     decimal Threshold);
+
+public record StockBatchResponse(
+    Guid Id,
+    Guid StoreId,
+    Guid ProductId,
+    string ProductName,
+    string ProductSku,
+    string? LotNumber,
+    DateTime? ExpiryDate,
+    decimal ReceivedQuantity,
+    decimal RemainingQuantity,
+    decimal? UnitCost,
+    bool IsExpired,
+    DateTime CreatedAt);
+
+public record StockBatchListResponse(
+    IReadOnlyList<StockBatchResponse> Items,
+    int TotalCount,
+    int Page,
+    int PageSize);
+
+public record ReceiveStockBatchRequest(
+    Guid ProductId,
+    decimal Quantity,
+    DateTime? ExpiryDate = null,
+    string? LotNumber = null,
+    decimal? UnitCost = null,
+    Guid? PurchaseOrderId = null,
+    string? Reference = null,
+    string? Notes = null);
+
+public record ExpireStockBatchesRequest(
+    Guid StoreId,
+    string? Notes = null);

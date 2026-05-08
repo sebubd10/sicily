@@ -20,6 +20,7 @@ public record UpdateProductCommand(
     string UnitType,
     string? UnitLabel,
     bool IsWeightBased,
+    bool IsPerishable,
     bool IsAgeRestricted,
     int? AgeRestrictionYears,
     bool IsEbtEligible,
@@ -78,7 +79,7 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
             unitType, request.UnitLabel, request.IsWeightBased,
             request.IsEbtEligible, request.TrackInventory,
             request.ReorderLevel, request.ImageUrl, costPrice,
-            request.ManufacturerId);
+            request.ManufacturerId, request.IsPerishable);
 
         if (request.IsAgeRestricted && request.AgeRestrictionYears.HasValue)
             product.SetAgeRestriction(request.AgeRestrictionYears.Value);

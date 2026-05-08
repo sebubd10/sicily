@@ -87,6 +87,7 @@ partial class BasicCommerceDbContextModelSnapshot : ModelSnapshot
             b.Property<Guid>("CategoryId");
             b.Property<Guid>("VatRateId");
             b.Property<bool>("IsWeightBased").HasDefaultValue(false);
+            b.Property<bool>("IsPerishable").HasDefaultValue(false);
             b.Property<bool>("IsAgeRestricted").HasDefaultValue(false);
             b.Property<string>("Status").IsRequired().HasMaxLength(20).HasDefaultValue("Active");
             b.Property<DateTime>("CreatedAt");
@@ -95,6 +96,42 @@ partial class BasicCommerceDbContextModelSnapshot : ModelSnapshot
             b.HasIndex("Barcode").IsUnique();
             b.HasIndex("TenantId", "Sku").IsUnique();
             b.ToTable("Products");
+        });
+
+        modelBuilder.Entity("BasicCommerce.Domain.Entities.StockBatch", b =>
+        {
+            b.Property<Guid>("Id").ValueGeneratedOnAdd();
+            b.Property<Guid>("TenantId");
+            b.Property<Guid>("StoreId");
+            b.Property<Guid>("ProductId");
+            b.Property<string>("LotNumber").HasMaxLength(100);
+            b.Property<DateTime?>("ExpiryDate");
+            b.Property<decimal>("ReceivedQuantity").HasPrecision(18, 4);
+            b.Property<decimal>("RemainingQuantity").HasPrecision(18, 4);
+            b.Property<decimal?>("UnitCost").HasPrecision(18, 4);
+            b.Property<Guid?>("PurchaseOrderId");
+            b.Property<bool>("IsExpired").HasDefaultValue(false);
+            b.Property<string>("Status").IsRequired().HasMaxLength(20).HasDefaultValue("Active");
+            b.Property<DateTime>("CreatedAt");
+            b.Property<DateTime?>("UpdatedAt");
+            b.HasKey("Id");
+            b.HasIndex("TenantId", "StoreId", "ProductId", "IsExpired");
+            b.HasIndex("ExpiryDate");
+            b.ToTable("StockBatches");
+        });
+
+        modelBuilder.Entity("BasicCommerce.Domain.Entities.StockBatch", b =>
+        {
+            b.HasOne("BasicCommerce.Domain.Entities.Product", null)
+                .WithMany()
+                .HasForeignKey("ProductId")
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired();
+            b.HasOne("BasicCommerce.Domain.Entities.Store", null)
+                .WithMany()
+                .HasForeignKey("StoreId")
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired();
         });
 
         modelBuilder.Entity("BasicCommerce.Domain.Entities.Transaction", b =>

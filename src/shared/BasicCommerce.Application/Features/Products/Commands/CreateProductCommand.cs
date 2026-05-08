@@ -22,6 +22,7 @@ public record CreateProductCommand(
     Guid VatRateId,
     string UnitType,
     bool IsWeightBased,
+    bool IsPerishable,
     bool IsAgeRestricted,
     int? AgeRestrictionYears,
     decimal? CostPrice,
@@ -82,6 +83,9 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
 
         if (!string.IsNullOrWhiteSpace(request.Plu))
             product.SetPlu(request.Plu);
+
+        if (request.IsPerishable)
+            product.SetPerishable(true);
 
         if (request.IsAgeRestricted && request.AgeRestrictionYears.HasValue)
             product.SetAgeRestriction(request.AgeRestrictionYears.Value);

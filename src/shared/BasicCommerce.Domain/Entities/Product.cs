@@ -18,6 +18,7 @@ public class Product : TenantEntity
     public string? UnitLabel { get; private set; }
     public Guid VatRateId { get; private set; }
     public bool IsWeightBased { get; private set; }
+    public bool IsPerishable { get; private set; }
     public bool IsAgeRestricted { get; private set; }
     public int? AgeRestrictionYears { get; private set; }
     public bool IsEbtEligible { get; private set; }
@@ -75,7 +76,7 @@ public class Product : TenantEntity
         Guid categoryId, Guid vatRateId, UnitType unitType, string? unitLabel,
         bool isWeightBased, bool isEbtEligible, bool trackInventory,
         int reorderLevel, string? imageUrl, Money? costPrice = null,
-        Guid? manufacturerId = null)
+        Guid? manufacturerId = null, bool isPerishable = false)
     {
         Name = name;
         NameBn = nameBn;
@@ -85,6 +86,7 @@ public class Product : TenantEntity
         UnitType = unitType;
         UnitLabel = unitLabel;
         IsWeightBased = isWeightBased;
+        IsPerishable = isPerishable;
         IsEbtEligible = isEbtEligible;
         TrackInventory = trackInventory;
         ReorderLevel = reorderLevel;
@@ -116,6 +118,7 @@ public class Product : TenantEntity
 
     public void SetPlu(string plu) => Plu = plu;
     public void SetManufacturer(Guid? manufacturerId) { ManufacturerId = manufacturerId; UpdatedAt = DateTime.UtcNow; }
+    public void SetPerishable(bool isPerishable) { IsPerishable = isPerishable; UpdatedAt = DateTime.UtcNow; }
 
     public void Deactivate()
     {
