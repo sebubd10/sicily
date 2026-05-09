@@ -20,7 +20,7 @@ public class UserTypeConfiguration : IEntityTypeConfiguration<UserType>
 
         b.HasMany(x => x.MenuAccess)
             .WithMany()
-            .UsingEntity("UserTypeSubMenuAccess",
+            .UsingEntity<Dictionary<string, object>>("UserTypeSubMenuAccess",
                 j => j.HasOne<AppSubMenu>().WithMany().HasForeignKey("SubMenuId")
                        .OnDelete(DeleteBehavior.Cascade),
                 j => j.HasOne<UserType>().WithMany().HasForeignKey("UserTypeId")
@@ -28,7 +28,7 @@ public class UserTypeConfiguration : IEntityTypeConfiguration<UserType>
 
         b.HasMany(x => x.Permissions)
             .WithMany()
-            .UsingEntity("UserTypeApiPermission",
+            .UsingEntity<Dictionary<string, object>>("UserTypeApiPermission",
                 j => j.HasOne<ApiPermission>().WithMany().HasForeignKey("ApiPermissionId")
                        .OnDelete(DeleteBehavior.Cascade),
                 j => j.HasOne<UserType>().WithMany().HasForeignKey("UserTypeId")
