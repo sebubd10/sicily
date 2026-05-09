@@ -20,6 +20,11 @@ export async function getCategories(params: CategoryListParams): Promise<Paginat
   return data.data!;
 }
 
+export async function getCategoryById(id: string): Promise<Category> {
+  const { data } = await api.get<ApiResponse<Category>>(`/categories/${id}`);
+  return data.data!;
+}
+
 export async function createCategory(form: CategoryFormData): Promise<Category> {
   const { data } = await api.post<ApiResponse<Category>>('/categories', {
     name: form.name,

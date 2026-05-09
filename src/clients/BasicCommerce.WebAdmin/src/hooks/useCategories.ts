@@ -23,6 +23,16 @@ export function useAllActiveCategories() {
   });
 }
 
+/** Fetch a single category by ID — only runs when id is non-null. */
+export function useCategoryDetail(id: string | null) {
+  return useQuery({
+    queryKey: [...KEY, 'detail', id],
+    queryFn: () => categoriesApi.getCategoryById(id!),
+    enabled: !!id,
+    staleTime: 0,        // always re-fetch when opening the edit modal
+  });
+}
+
 export function useCreateCategory() {
   const qc = useQueryClient();
   return useMutation({

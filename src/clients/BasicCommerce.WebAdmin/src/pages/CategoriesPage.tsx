@@ -8,6 +8,7 @@ import { Pagination } from '../components/ui/Pagination';
 import {
   useCategories,
   useAllActiveCategories,
+  useCategoryDetail,
   useCreateCategory,
   useUpdateCategory,
   useActivateCategory,
@@ -31,9 +32,12 @@ export default function CategoriesPage() {
   const [pageSize, setPageSize]         = useState(10);
 
   // ── Modal / confirm state ─────────────────────────────────────────────────────
-  const [modalOpen, setModalOpen]       = useState(false);
-  const [editCategory, setEditCategory] = useState<Category | null>(null);
-  const [confirm, setConfirm]           = useState<ConfirmState>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editId, setEditId]       = useState<string | null>(null);  // null = add mode
+  const [confirm, setConfirm]     = useState<ConfirmState>(null);
+
+  // Fetch full detail when an edit ID is set; opens the modal once data arrives
+  const { data: editCategory, isFetching: isFetchingEdit } = useCategoryDetail(editId);
 
   // ── Server queries ────────────────────────────────────────────────────────────
   const { data, isLoading, isError, isFetching } = useCategories({
@@ -70,12 +74,12 @@ export default function CategoriesPage() {
 
   // ── Handlers ──────────────────────────────────────────────────────────────────
   function openAdd() {
-    setEditCategory(null);
+    setEditId(null);
     setModalOpen(true);
   }
 
-  function openEdit(cat: Category) {
-    setEditCategory(cat);
+  function openEdit(id: string) {
+    setEditId(id);
     setModalOpen(true);
   }
 
@@ -90,12 +94,13 @@ export default function CategoriesPage() {
   }
 
   async function handleSave(form: CategoryFormData) {
-    if (editCategory) {
-      await updateMutation.mutateAsync({ id: editCategory.id, form });
+    if (editId) {
+      await updateMutation.mutateAsync({ id: editId, form });
     } else {
       await createMutation.mutateAsync(form);
     }
     setModalOpen(false);
+    setEditId(null);
   }
 
   async function executeConfirm() {
@@ -279,11 +284,13 @@ export default function CategoriesPage() {
                           <div className="flex items-center gap-1">
                             <button
                               title="Edit"
-                              onClick={() => openEdit(cat)}
-                              disabled={isMutating}
+                              onClick={() => openEdit(cat.id)}
+                              disabled={isMutating || isFetchingEdit}
                               className="p-1.5 rounded-lg text-gray-400 hover:text-primary-700 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors disabled:opacity-40"
                             >
-                              <Pencil className="w-3.5 h-3.5" />
+                              {isFetchingEdit && editId === cat.id
+                                ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                : <Pencil className="w-3.5 h-3.5" />}
                             </button>
                             <button
                               title={cat.status === 'Active' ? 'Deactivate' : 'Activate'}
@@ -332,11 +339,11 @@ export default function CategoriesPage() {
 
       {/* Add / Edit Modal */}
       <CategoryModal
-        open={modalOpen}
-        category={editCategory}
+        open={modalOpen && (!editId || !!editCategory)}
+        category={editCategory ?? null}
         allCategories={allCategories}
         onSave={handleSave}
-        onClose={() => setModalOpen(false)}
+        onClose={() => { setModalOpen(false); setEditId(null); }}
         isSaving={createMutation.isPending || updateMutation.isPending}
       />
 
