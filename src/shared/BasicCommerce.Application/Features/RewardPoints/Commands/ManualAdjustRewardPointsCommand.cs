@@ -1,3 +1,4 @@
+using BasicCommerce.Application.Features.RewardPoints.Queries;
 using BasicCommerce.Application.Interfaces;
 using BasicCommerce.Contracts.RewardPoints;
 using BasicCommerce.Domain.Entities;

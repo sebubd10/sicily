@@ -1,3 +1,4 @@
+using BasicCommerce.Application.Features.Customers.Queries;
 using BasicCommerce.Application.Interfaces;
 using BasicCommerce.Contracts.Customers;
 using BasicCommerce.Domain.Exceptions;

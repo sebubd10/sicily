@@ -1,3 +1,4 @@
+using BasicCommerce.Application.Features.Transactions.Commands;
 using BasicCommerce.Contracts.Transactions;
 using BasicCommerce.Domain.Exceptions;
 using BasicCommerce.Domain.Interfaces;

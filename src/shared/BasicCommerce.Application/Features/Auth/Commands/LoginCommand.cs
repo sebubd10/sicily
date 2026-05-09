@@ -1,5 +1,6 @@
 using BasicCommerce.Application.Interfaces;
 using BasicCommerce.Contracts.Auth;
+using BasicCommerce.Domain.Entities;
 using BasicCommerce.Domain.Enums;
 using BasicCommerce.Domain.Exceptions;
 using BasicCommerce.Domain.Interfaces;
