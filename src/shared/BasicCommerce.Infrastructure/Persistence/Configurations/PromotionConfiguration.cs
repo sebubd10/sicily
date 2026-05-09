@@ -27,6 +27,6 @@ public class PromotionConfiguration : IEntityTypeConfiguration<Promotion>
         b.HasIndex(x => new { x.TenantId, x.PromotionStatus });
         b.HasIndex(x => new { x.TenantId, x.CouponCode })
             .IsUnique()
-            .HasFilter("\"CouponCode\" IS NOT NULL");
+            .HasFilter("[CouponCode] IS NOT NULL");
     }
 }

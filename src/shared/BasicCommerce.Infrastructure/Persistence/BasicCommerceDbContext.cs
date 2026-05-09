@@ -80,7 +80,8 @@ public class BasicCommerceDbContext : DbContext
                 .Property<EntityStatus>(nameof(BaseEntity.Status))
                 .HasConversion<string>()
                 .HasMaxLength(20)
-                .HasDefaultValue(EntityStatus.Active);
+                .HasDefaultValue(EntityStatus.Active)
+                .HasSentinel((EntityStatus)0);
         }
     }
 

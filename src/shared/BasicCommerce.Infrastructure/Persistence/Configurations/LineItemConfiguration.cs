@@ -16,6 +16,7 @@ public class LineItemConfiguration : IEntityTypeConfiguration<LineItem>
         builder.Property(l => l.ProductSku).HasMaxLength(50).IsRequired();
         builder.Property(l => l.Quantity).HasPrecision(18, 4);
         builder.Property(l => l.UnitPrice).HasPrecision(18, 4);
+        builder.Property(l => l.TaxRate).HasPrecision(5, 4);
         builder.Property(l => l.TaxAmount).HasPrecision(18, 4);
         builder.Property(l => l.DiscountAmount).HasPrecision(18, 4);
         builder.Property(l => l.LineTotal).HasPrecision(18, 4);
