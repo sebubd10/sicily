@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { Search, Plus, Pencil, PowerOff, Layers, Trash2, Power, Loader2, AlertCircle } from 'lucide-react';
+import { Search, Plus, Pencil, PowerOff, Layers, Trash2, Power, Loader2, AlertCircle, Download } from 'lucide-react';
+import { exportCategoriesPdf } from '../api/categoriesApi';
 import { cn } from '../lib/utils';
 import type { Category, CategoryFormData } from '../types/category';
 import { CategoryModal } from '../components/categories/CategoryModal';
@@ -135,6 +136,21 @@ export default function CategoriesPage() {
     };
   })();
 
+  // ── PDF export ───────────────────────────────────────────────────────────────
+  const [isExporting, setIsExporting] = useState(false);
+
+  async function handleExportPdf() {
+    setIsExporting(true);
+    try {
+      await exportCategoriesPdf({
+        search: search.trim() || undefined,
+        includeInactive: showInactive,
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  }
+
   const rows     = data?.items ?? [];
   const total    = data?.totalCount ?? 0;
   const totPages = data?.totalPages ?? 1;
@@ -152,12 +168,25 @@ export default function CategoriesPage() {
             Manage product category hierarchy
           </p>
         </div>
-        <button
-          onClick={openAdd}
-          className="flex items-center gap-2 px-4 py-2 bg-primary-800 hover:bg-primary-900 text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
-        >
-          <Plus className="w-4 h-4" /> Add Category
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleExportPdf}
+            disabled={isExporting}
+            title={search || showInactive ? 'Export current filter as PDF' : 'Export all categories as PDF'}
+            className="flex items-center gap-2 px-4 py-2 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+          >
+            {isExporting
+              ? <Loader2 className="w-4 h-4 animate-spin" />
+              : <Download className="w-4 h-4" />}
+            {isExporting ? 'Generating…' : 'Export PDF'}
+          </button>
+          <button
+            onClick={openAdd}
+            className="flex items-center gap-2 px-4 py-2 bg-primary-800 hover:bg-primary-900 text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
+          >
+            <Plus className="w-4 h-4" /> Add Category
+          </button>
+        </div>
       </div>
 
       {/* Summary chips */}

@@ -8,14 +8,19 @@ namespace BasicCommerce.Infrastructure.Services.Reports;
 
 public sealed class CategoryReportService : ICategoryReportService
 {
-    private const string Accent = "#1565C0";
+    private const string Accent      = "#1565C0";
     private const string AccentLight = "#E3F2FD";
     private const string AccentBorder = "#BBDEFB";
+    private const string FilterBg   = "#FFF8E1";
+    private const string FilterBorder = "#FFE082";
 
     static CategoryReportService()
         => QuestPDF.Settings.License = LicenseType.Community;
 
-    public byte[] Generate(IEnumerable<CategoryResponse> categories)
+    public byte[] Generate(
+        IEnumerable<CategoryResponse> categories,
+        string? search = null,
+        bool includeInactive = false)
     {
         var rows = categories
             .OrderBy(c => c.ParentCategoryId.HasValue)
@@ -28,6 +33,8 @@ public sealed class CategoryReportService : ICategoryReportService
         var inactive = total - active;
         var root     = rows.Count(r => !r.ParentCategoryId.HasValue);
         var sub      = total - root;
+
+        var hasFilters = !string.IsNullOrWhiteSpace(search) || includeInactive;
 
         return Document.Create(doc => doc.Page(page =>
         {
@@ -52,11 +59,36 @@ public sealed class CategoryReportService : ICategoryReportService
                     {
                         c.Item().Text($"Generated: {DateTime.Now:dd MMM yyyy  HH:mm}")
                             .FontSize(8.5f).FontColor(Colors.Grey.Darken1);
-                        c.Item().PaddingTop(2)
-                            .Text(rows.Count == 0 ? "No categories found" : string.Empty)
-                            .FontSize(8).FontColor(Colors.Red.Darken2);
+                        if (rows.Count == 0)
+                            c.Item().PaddingTop(2)
+                                .Text("No categories found")
+                                .FontSize(8).FontColor(Colors.Red.Darken2);
                     });
                 });
+
+                // Active filters bar
+                if (hasFilters)
+                {
+                    col.Item().PaddingTop(6)
+                        .Background(FilterBg)
+                        .Border(0.5f).BorderColor(FilterBorder)
+                        .Padding(6)
+                        .Row(row =>
+                        {
+                            row.AutoItem().Text("Filters applied: ")
+                                .FontSize(8).SemiBold().FontColor(Colors.Orange.Darken3);
+
+                            if (!string.IsNullOrWhiteSpace(search))
+                                row.AutoItem().PaddingLeft(4)
+                                    .Text($"Search = \"{search}\"")
+                                    .FontSize(8).FontColor(Colors.Orange.Darken3);
+
+                            if (includeInactive)
+                                row.AutoItem().PaddingLeft(8)
+                                    .Text("Includes inactive")
+                                    .FontSize(8).FontColor(Colors.Orange.Darken3);
+                        });
+                }
 
                 col.Item().PaddingTop(6).LineHorizontal(1.5f).LineColor(Accent);
             });
@@ -81,7 +113,7 @@ public sealed class CategoryReportService : ICategoryReportService
                 if (rows.Count == 0)
                 {
                     col.Item().PaddingTop(40).AlignCenter()
-                        .Text("No categories to display.")
+                        .Text("No categories match the applied filters.")
                         .FontSize(12).FontColor(Colors.Grey.Darken1);
                     return;
                 }
@@ -100,7 +132,6 @@ public sealed class CategoryReportService : ICategoryReportService
                         c.ConstantColumn(52);   // Status
                     });
 
-                    // Table header
                     table.Header(h =>
                     {
                         void HCell(string text) =>
@@ -116,7 +147,6 @@ public sealed class CategoryReportService : ICategoryReportService
                         HCell("Status");
                     });
 
-                    // Data rows
                     for (var i = 0; i < rows.Count; i++)
                     {
                         var r  = rows[i];

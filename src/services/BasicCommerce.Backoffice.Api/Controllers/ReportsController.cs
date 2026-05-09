@@ -77,9 +77,10 @@ public class ReportsController : ControllerBase
     [HasPermission(Reports.CategoryReport)]
     public async Task<IActionResult> CategoryReportPdf(
         [FromQuery] bool includeInactive = false,
+        [FromQuery] string? search = null,
         CancellationToken ct = default)
     {
-        var pdf = await _mediator.Send(new CategoryReportQuery(includeInactive), ct);
+        var pdf = await _mediator.Send(new CategoryReportQuery(includeInactive, search), ct);
         var filename = $"categories_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
         return File(pdf, "application/pdf", filename);
     }

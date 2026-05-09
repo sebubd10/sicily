@@ -57,3 +57,25 @@ export async function deactivateCategory(id: string): Promise<void> {
 export async function deleteCategory(id: string): Promise<void> {
   await api.delete(`/categories/${id}`);
 }
+
+export async function exportCategoriesPdf(params: {
+  search?: string;
+  includeInactive?: boolean;
+}): Promise<void> {
+  const response = await api.get('/reports/categories/pdf', {
+    params: {
+      search: params.search || undefined,
+      includeInactive: params.includeInactive ?? false,
+    },
+    responseType: 'blob',
+  });
+
+  const url = URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+  const a   = document.createElement('a');
+  a.href     = url;
+  a.download = `categories_${new Date().toISOString().slice(0, 10)}.pdf`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}

@@ -6,7 +6,9 @@ using MediatR;
 
 namespace BasicCommerce.Application.Features.Reports;
 
-public record CategoryReportQuery(bool IncludeInactive = false) : IRequest<byte[]>;
+public record CategoryReportQuery(
+    bool IncludeInactive = false,
+    string? Search = null) : IRequest<byte[]>;
 
 public class CategoryReportQueryHandler : IRequestHandler<CategoryReportQuery, byte[]>
 {
@@ -27,20 +29,30 @@ public class CategoryReportQueryHandler : IRequestHandler<CategoryReportQuery, b
     public async Task<byte[]> Handle(CategoryReportQuery request, CancellationToken ct)
     {
         var tenantId = _currentUser.TenantId;
-        var all = await _uow.Categories.GetAllForTenantAsync(tenantId, ct);
+        var all = (await _uow.Categories.GetAllForTenantAsync(tenantId, ct)).ToList();
+
+        IEnumerable<BasicCommerce.Domain.Entities.Category> filtered = all;
 
         if (!request.IncludeInactive)
-            all = all.Where(c => c.Status == EntityStatus.Active);
+            filtered = filtered.Where(c => c.Status == EntityStatus.Active);
 
-        var list = all.ToList();
+        if (!string.IsNullOrWhiteSpace(request.Search))
+        {
+            var q = request.Search.Trim().ToLowerInvariant();
+            filtered = filtered.Where(c =>
+                c.Name.ToLowerInvariant().Contains(q) ||
+                (c.NameBn != null && c.NameBn.Contains(request.Search.Trim())));
+        }
 
-        var parentNames = list
+        var list = filtered.ToList();
+
+        var parentNames = all
             .Where(c => c.ParentCategoryId.HasValue)
             .Select(c => c.ParentCategoryId!.Value)
             .Distinct()
-            .ToDictionary(id => id, id => list.FirstOrDefault(c => c.Id == id)?.Name);
+            .ToDictionary(id => id, id => all.FirstOrDefault(c => c.Id == id)?.Name);
 
-        var childCounts = list
+        var childCounts = all
             .Where(c => c.ParentCategoryId.HasValue)
             .GroupBy(c => c.ParentCategoryId!.Value)
             .ToDictionary(g => g.Key, g => g.Count());
@@ -56,6 +68,6 @@ public class CategoryReportQueryHandler : IRequestHandler<CategoryReportQuery, b
             c.Status.ToString(),
             childCounts.GetValueOrDefault(c.Id)));
 
-        return _reportService.Generate(rows);
+        return _reportService.Generate(rows, request.Search, request.IncludeInactive);
     }
 }
