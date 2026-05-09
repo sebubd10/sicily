@@ -8,7 +8,10 @@ public record UserListResponse(
     string Role,
     string? StoreName,
     string Status,
-    DateTime? LastLoginAt);
+    DateTime? LastLoginAt,
+    Guid? UserTypeId = null,
+    string? UserTypeName = null,
+    bool IsLocked = false);
 
 public record CreateUserRequest(
     string FirstName,

@@ -26,11 +26,14 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<IEnumerable<UserListResponse>>>> GetAll(
-        [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
+    public async Task<ActionResult<ApiResponse<PaginatedResponse<UserListResponse>>>> GetAll(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] string? search = null,
+        CancellationToken ct = default)
     {
-        var result = await _mediator.Send(new GetUsersQuery(page, pageSize), ct);
-        return Ok(ApiResponse<IEnumerable<UserListResponse>>.Ok(result));
+        var result = await _mediator.Send(new GetUsersQuery(page, pageSize, search), ct);
+        return Ok(ApiResponse<PaginatedResponse<UserListResponse>>.Ok(result));
     }
 
     [HttpPost]
@@ -47,6 +50,14 @@ public class UsersController : ControllerBase
             request.StoreId,
             request.PhoneNumber), ct);
         return CreatedAtAction(null, ApiResponse<UserListResponse>.Ok(result));
+    }
+
+    [HttpPut("{id:guid}/activate")]
+    [Authorize(Policy = "ChainAdminOnly")]
+    public async Task<ActionResult<ApiResponse<object>>> Activate(Guid id, CancellationToken ct)
+    {
+        await _mediator.Send(new ActivateUserCommand(id), ct);
+        return Ok(ApiResponse<object>.Ok(null!));
     }
 
     [HttpPut("{id:guid}/deactivate")]
