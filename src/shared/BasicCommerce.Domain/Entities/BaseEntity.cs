@@ -2,7 +2,7 @@ using BasicCommerce.Domain.Enums;
 
 namespace BasicCommerce.Domain.Entities;
 
-public abstract class BaseEntity
+public class BaseEntity
 {
     public Guid Id { get; protected set; } = Guid.NewGuid();
     public DateTime CreatedAt { get; protected set; } = DateTime.UtcNow;
@@ -24,7 +24,7 @@ public abstract class BaseEntity
     }
 }
 
-public abstract class TenantEntity : BaseEntity
+public class TenantEntity : BaseEntity
 {
     public Guid TenantId { get; protected set; }
 }
