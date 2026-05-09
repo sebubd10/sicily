@@ -12,9 +12,9 @@ public class BasicCommerceDbContextFactory : IDesignTimeDbContextFactory<BasicCo
 {
     public BasicCommerceDbContext CreateDbContext(string[] args)
     {
-        // Walk up from Infrastructure to find appsettings.json in Auth.Api
+        // Walk up from Infrastructure to find appsettings.json in Backoffice.Api
         var basePath = Path.Combine(Directory.GetCurrentDirectory(),
-            "..", "..", "..", "services", "BasicCommerce.Auth.Api");
+            "..", "..", "..", "services", "BasicCommerce.Backoffice.Api");
 
         if (!Directory.Exists(basePath))
             basePath = Directory.GetCurrentDirectory();
@@ -26,9 +26,9 @@ public class BasicCommerceDbContextFactory : IDesignTimeDbContextFactory<BasicCo
             .AddEnvironmentVariables()
             .Build();
 
-        var provider = config["Database:Provider"] ?? "PostgreSql";
+        var provider = config["Database:Provider"] ?? "SqlServer";
         var connectionString = config["Database:ConnectionString"]
-            ?? "Host=localhost;Database=basiccommerce;Username=postgres;Password=postgres";
+            ?? "Server=localhost;Database=BasicCommerce;Trusted_Connection=True;TrustServerCertificate=True;";
 
         var optionsBuilder = new DbContextOptionsBuilder<BasicCommerceDbContext>();
 
