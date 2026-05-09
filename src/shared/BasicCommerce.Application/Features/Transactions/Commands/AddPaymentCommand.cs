@@ -101,7 +101,7 @@ public class AddPaymentCommandHandler : IRequestHandler<AddPaymentCommand, Trans
         if (settings.Status != EntityStatus.Active)
             throw new DomainException("Reward points programme is not enabled.");
 
-        var storeId = settings.PointsAccumulatedForAllStores ? null : transaction.StoreId;
+        var storeId = settings.PointsAccumulatedForAllStores ? (Guid?)null : transaction.StoreId;
 
         var account = await _uow.RewardPointsAccounts.GetByCustomerAsync(
             request.TenantId, transaction.CustomerId.Value, storeId, ct)

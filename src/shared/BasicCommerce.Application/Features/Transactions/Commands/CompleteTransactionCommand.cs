@@ -98,7 +98,7 @@ public class CompleteTransactionCommandHandler
         var points = settings.CalculatePurchasePoints(transaction.Total);
         if (points <= 0) return;
 
-        var storeId = settings.PointsAccumulatedForAllStores ? null : transaction.StoreId;
+        var storeId = settings.PointsAccumulatedForAllStores ? (Guid?)null : transaction.StoreId;
 
         var account = await _uow.RewardPointsAccounts.GetByCustomerAsync(
             tenantId, transaction.CustomerId.Value, storeId, ct);
