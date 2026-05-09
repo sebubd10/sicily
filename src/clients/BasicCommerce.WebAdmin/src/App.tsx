@@ -6,6 +6,9 @@ import LoginPage from './pages/auth/LoginPage';
 import OAuthCallbackPage from './pages/auth/OAuthCallbackPage';
 import DashboardPage from './pages/DashboardPage';
 import CategoriesPage from './pages/CategoriesPage';
+import UsersPage from './pages/UsersPage';
+import UserTypesPage from './pages/UserTypesPage';
+import PermissionsPage from './pages/PermissionsPage';
 import PlaceholderPage from './pages/PlaceholderPage';
 import { useThemeStore } from './store/themeStore';
 
@@ -63,10 +66,10 @@ export default function App() {
             <Route path="reports/categories" element={<PlaceholderPage title="Category Report (PDF)" />} />
 
             {/* Settings */}
-            <Route path="settings/users" element={<PlaceholderPage title="Users" />} />
-            <Route path="settings/user-types" element={<PlaceholderPage title="User Types" />} />
+            <Route path="settings/users" element={<UsersPage />} />
+            <Route path="settings/user-types" element={<UserTypesPage />} />
             <Route path="settings/menus" element={<PlaceholderPage title="Menu Management" />} />
-            <Route path="settings/permissions" element={<PlaceholderPage title="API Permissions" />} />
+            <Route path="settings/permissions" element={<PermissionsPage />} />
 
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
