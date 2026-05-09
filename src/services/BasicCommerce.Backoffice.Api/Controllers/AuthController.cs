@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Authentication.MicrosoftAccount;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
-namespace BasicCommerce.Auth.Api.Controllers;
+namespace BasicCommerce.Backoffice.Api.Controllers;
 
 [ApiController]
 [Route("auth")]
@@ -44,7 +44,6 @@ public class AuthController : ControllerBase
 
     // ── Google OAuth ──────────────────────────────────────────────────────────
 
-    /// <summary>Initiates Google OAuth. Pass tenantSlug for admin users; omit for customers.</summary>
     [HttpGet("google")]
     public IActionResult GoogleLogin([FromQuery] string? tenantSlug = null)
     {
@@ -72,15 +71,13 @@ public class AuthController : ControllerBase
         var firstName  = result.Principal.FindFirst(System.Security.Claims.ClaimTypes.GivenName)?.Value ?? string.Empty;
         var lastName   = result.Principal.FindFirst(System.Security.Claims.ClaimTypes.Surname)?.Value ?? string.Empty;
 
-        var authResult = await _mediator.Send(
+        var auth = await _mediator.Send(
             new ExternalLoginCommand("Google", externalId, email, firstName, lastName, tenantSlug), ct);
-
-        return Redirect(BuildSuccessRedirect(authResult));
+        return Redirect(BuildSuccessRedirect(auth));
     }
 
     // ── Microsoft OAuth ───────────────────────────────────────────────────────
 
-    /// <summary>Initiates Microsoft OAuth. Pass tenantSlug for admin users; omit for customers.</summary>
     [HttpGet("microsoft")]
     public IActionResult MicrosoftLogin([FromQuery] string? tenantSlug = null)
     {
@@ -108,10 +105,9 @@ public class AuthController : ControllerBase
         var firstName  = result.Principal.FindFirst(System.Security.Claims.ClaimTypes.GivenName)?.Value ?? string.Empty;
         var lastName   = result.Principal.FindFirst(System.Security.Claims.ClaimTypes.Surname)?.Value ?? string.Empty;
 
-        var authResult = await _mediator.Send(
+        var auth = await _mediator.Send(
             new ExternalLoginCommand("Microsoft", externalId, email, firstName, lastName, tenantSlug), ct);
-
-        return Redirect(BuildSuccessRedirect(authResult));
+        return Redirect(BuildSuccessRedirect(auth));
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

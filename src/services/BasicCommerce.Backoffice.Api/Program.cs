@@ -1,20 +1,23 @@
-using BasicCommerce.Infrastructure.Persistence;
-using BasicCommerce.Infrastructure.Middleware;
-using System.Text;
 using BasicCommerce.Application.Common.Behaviors;
 using BasicCommerce.Application.Interfaces;
 using BasicCommerce.Infrastructure;
+using BasicCommerce.Infrastructure.Middleware;
+using BasicCommerce.Infrastructure.Persistence;
 using BasicCommerce.Infrastructure.Services;
 using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.MicrosoftAccount;
 using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+
 builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssembly(
         typeof(BasicCommerce.Application.Features.Auth.Commands.LoginCommand).Assembly));
@@ -25,29 +28,42 @@ builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavi
 
 var jwtKey = builder.Configuration["Jwt:SecretKey"]!;
 builder.Services
-    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme    = JwtBearerDefaults.AuthenticationScheme;
+    })
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
-            ValidateIssuer = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidateAudience = true,
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            ClockSkew = TimeSpan.Zero
+            IssuerSigningKey         = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+            ValidateIssuer           = true,
+            ValidIssuer              = builder.Configuration["Jwt:Issuer"],
+            ValidateAudience         = true,
+            ValidAudience            = builder.Configuration["Jwt:Audience"],
+            ClockSkew                = TimeSpan.Zero
         };
+    })
+    .AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
+    {
+        options.ClientId     = builder.Configuration["OAuth:Google:ClientId"]!;
+        options.ClientSecret = builder.Configuration["OAuth:Google:ClientSecret"]!;
+        options.CallbackPath = "/auth/google/callback";
+    })
+    .AddMicrosoftAccount(MicrosoftAccountDefaults.AuthenticationScheme, options =>
+    {
+        options.ClientId     = builder.Configuration["OAuth:Microsoft:ClientId"]!;
+        options.ClientSecret = builder.Configuration["OAuth:Microsoft:ClientSecret"]!;
+        options.CallbackPath = "/auth/microsoft/callback";
     });
 
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("ChainAdminOnly", policy =>
-        policy.RequireClaim("role", "ChainAdmin", "SystemAdmin"));
-    options.AddPolicy("StoreManagerAndAbove", policy =>
-        policy.RequireClaim("role", "StoreManager", "ChainAdmin", "SystemAdmin"));
-    options.AddPolicy("SupervisorAndAbove", policy =>
-        policy.RequireClaim("role", "Supervisor", "StoreManager", "ChainAdmin", "SystemAdmin"));
+    options.AddPolicy("ChainAdminOnly",       p => p.RequireClaim("role", "ChainAdmin", "SystemAdmin"));
+    options.AddPolicy("StoreManagerAndAbove", p => p.RequireClaim("role", "StoreManager", "ChainAdmin", "SystemAdmin"));
+    options.AddPolicy("SupervisorAndAbove",   p => p.RequireClaim("role", "Supervisor", "StoreManager", "ChainAdmin", "SystemAdmin"));
 });
 
 builder.Services.AddCors(options =>
@@ -62,7 +78,23 @@ builder.Services.AddCors(options =>
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
-    c.SwaggerDoc("v1", new() { Title = "BasicCommerce Backoffice API", Version = "v1" }));
+{
+    c.SwaggerDoc("v1", new() { Title = "BasicCommerce Backoffice API", Version = "v1" });
+    c.AddSecurityDefinition("Bearer", new()
+    {
+        Name         = "Authorization",
+        Type         = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Scheme       = "bearer",
+        BearerFormat = "JWT"
+    });
+    c.AddSecurityRequirement(new()
+    {
+        {
+            new() { Reference = new() { Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme, Id = "Bearer" } },
+            []
+        }
+    });
+});
 
 var app = builder.Build();
 
