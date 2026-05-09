@@ -1,6 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import AppLayout from './components/layout/AppLayout';
+import ProtectedRoute from './components/auth/ProtectedRoute';
+import LoginPage from './pages/auth/LoginPage';
+import OAuthCallbackPage from './pages/auth/OAuthCallbackPage';
 import DashboardPage from './pages/DashboardPage';
 import CategoriesPage from './pages/CategoriesPage';
 import PlaceholderPage from './pages/PlaceholderPage';
@@ -16,50 +19,57 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route element={<AppLayout />}>
-          <Route index element={<DashboardPage />} />
+        {/* Public routes */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/auth/callback" element={<OAuthCallbackPage />} />
 
-          {/* Products */}
-          <Route path="products" element={<PlaceholderPage title="All Products" />} />
-          <Route path="products/categories" element={<CategoriesPage />} />
-          <Route path="products/manufacturers" element={<PlaceholderPage title="Manufacturers" />} />
-          <Route path="products/tags" element={<PlaceholderPage title="Product Tags" />} />
+        {/* Protected routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route element={<AppLayout />}>
+            <Route index element={<DashboardPage />} />
 
-          {/* Inventory */}
-          <Route path="inventory/stock" element={<PlaceholderPage title="Stock Levels" />} />
-          <Route path="inventory/movements" element={<PlaceholderPage title="Stock Movements" />} />
-          <Route path="inventory/warehouses" element={<PlaceholderPage title="Warehouses" />} />
+            {/* Products */}
+            <Route path="products" element={<PlaceholderPage title="All Products" />} />
+            <Route path="products/categories" element={<CategoriesPage />} />
+            <Route path="products/manufacturers" element={<PlaceholderPage title="Manufacturers" />} />
+            <Route path="products/tags" element={<PlaceholderPage title="Product Tags" />} />
 
-          {/* Purchasing */}
-          <Route path="purchasing/orders" element={<PlaceholderPage title="Purchase Orders" />} />
-          <Route path="purchasing/suppliers" element={<PlaceholderPage title="Suppliers" />} />
-          <Route path="purchasing/returns" element={<PlaceholderPage title="Supplier Returns" />} />
+            {/* Inventory */}
+            <Route path="inventory/stock" element={<PlaceholderPage title="Stock Levels" />} />
+            <Route path="inventory/movements" element={<PlaceholderPage title="Stock Movements" />} />
+            <Route path="inventory/warehouses" element={<PlaceholderPage title="Warehouses" />} />
 
-          {/* Sales */}
-          <Route path="sales/transactions" element={<PlaceholderPage title="Transactions" />} />
-          <Route path="sales/till-sessions" element={<PlaceholderPage title="Till Sessions" />} />
+            {/* Purchasing */}
+            <Route path="purchasing/orders" element={<PlaceholderPage title="Purchase Orders" />} />
+            <Route path="purchasing/suppliers" element={<PlaceholderPage title="Suppliers" />} />
+            <Route path="purchasing/returns" element={<PlaceholderPage title="Supplier Returns" />} />
 
-          {/* Customers */}
-          <Route path="customers" element={<PlaceholderPage title="All Customers" />} />
-          <Route path="customers/credit" element={<PlaceholderPage title="Credit Accounts" />} />
-          <Route path="customers/rewards" element={<PlaceholderPage title="Reward Points" />} />
+            {/* Sales */}
+            <Route path="sales/transactions" element={<PlaceholderPage title="Transactions" />} />
+            <Route path="sales/till-sessions" element={<PlaceholderPage title="Till Sessions" />} />
 
-          {/* Promotions */}
-          <Route path="promotions" element={<PlaceholderPage title="Promotions" />} />
-          <Route path="promotions/gift-cards" element={<PlaceholderPage title="Gift Cards" />} />
+            {/* Customers */}
+            <Route path="customers" element={<PlaceholderPage title="All Customers" />} />
+            <Route path="customers/credit" element={<PlaceholderPage title="Credit Accounts" />} />
+            <Route path="customers/rewards" element={<PlaceholderPage title="Reward Points" />} />
 
-          {/* Reports */}
-          <Route path="reports/daily-sales" element={<PlaceholderPage title="Daily Sales Report" />} />
-          <Route path="reports/stock" element={<PlaceholderPage title="Stock Report" />} />
-          <Route path="reports/categories" element={<PlaceholderPage title="Category Report (PDF)" />} />
+            {/* Promotions */}
+            <Route path="promotions" element={<PlaceholderPage title="Promotions" />} />
+            <Route path="promotions/gift-cards" element={<PlaceholderPage title="Gift Cards" />} />
 
-          {/* Settings */}
-          <Route path="settings/users" element={<PlaceholderPage title="Users" />} />
-          <Route path="settings/user-types" element={<PlaceholderPage title="User Types" />} />
-          <Route path="settings/menus" element={<PlaceholderPage title="Menu Management" />} />
-          <Route path="settings/permissions" element={<PlaceholderPage title="API Permissions" />} />
+            {/* Reports */}
+            <Route path="reports/daily-sales" element={<PlaceholderPage title="Daily Sales Report" />} />
+            <Route path="reports/stock" element={<PlaceholderPage title="Stock Report" />} />
+            <Route path="reports/categories" element={<PlaceholderPage title="Category Report (PDF)" />} />
 
-          <Route path="*" element={<Navigate to="/" replace />} />
+            {/* Settings */}
+            <Route path="settings/users" element={<PlaceholderPage title="Users" />} />
+            <Route path="settings/user-types" element={<PlaceholderPage title="User Types" />} />
+            <Route path="settings/menus" element={<PlaceholderPage title="Menu Management" />} />
+            <Route path="settings/permissions" element={<PlaceholderPage title="API Permissions" />} />
+
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>

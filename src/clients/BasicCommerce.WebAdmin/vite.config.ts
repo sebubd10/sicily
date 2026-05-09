@@ -6,8 +6,15 @@ export default defineConfig({
   server: {
     port: 3000,
     proxy: {
+      // Auth API (login, refresh, OAuth)
+      '/auth': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+        secure: false,
+      },
+      // Backoffice API (all protected resources)
       '/api': {
-        target: 'https://localhost:5001',
+        target: 'http://localhost:5001',
         changeOrigin: true,
         secure: false,
       },

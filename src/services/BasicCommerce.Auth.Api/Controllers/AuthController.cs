@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.MicrosoftAccount;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace BasicCommerce.Auth.Api.Controllers;
 
@@ -14,8 +15,13 @@ namespace BasicCommerce.Auth.Api.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly IConfiguration _config;
 
-    public AuthController(IMediator mediator) => _mediator = mediator;
+    public AuthController(IMediator mediator, IConfiguration config)
+    {
+        _mediator = mediator;
+        _config   = config;
+    }
 
     [HttpPost("login")]
     public async Task<ActionResult<ApiResponse<AuthResponse>>> Login(
@@ -55,7 +61,7 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> GoogleCallback(CancellationToken ct)
     {
         var result = await HttpContext.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
-        if (!result.Succeeded) return BadRequest("Google authentication failed.");
+        if (!result.Succeeded) return Redirect(BuildErrorRedirect("Google authentication failed."));
 
         var tenantSlug = result.Properties?.Items.TryGetValue("tenantSlug", out var slug) == true
             ? (string.IsNullOrWhiteSpace(slug) ? null : slug)
@@ -68,7 +74,8 @@ public class AuthController : ControllerBase
 
         var authResult = await _mediator.Send(
             new ExternalLoginCommand("Google", externalId, email, firstName, lastName, tenantSlug), ct);
-        return Ok(ApiResponse<AuthResponse>.Ok(authResult));
+
+        return Redirect(BuildSuccessRedirect(authResult));
     }
 
     // ── Microsoft OAuth ───────────────────────────────────────────────────────
@@ -90,7 +97,7 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> MicrosoftCallback(CancellationToken ct)
     {
         var result = await HttpContext.AuthenticateAsync(MicrosoftAccountDefaults.AuthenticationScheme);
-        if (!result.Succeeded) return BadRequest("Microsoft authentication failed.");
+        if (!result.Succeeded) return Redirect(BuildErrorRedirect("Microsoft authentication failed."));
 
         var tenantSlug = result.Properties?.Items.TryGetValue("tenantSlug", out var slug) == true
             ? (string.IsNullOrWhiteSpace(slug) ? null : slug)
@@ -103,6 +110,26 @@ public class AuthController : ControllerBase
 
         var authResult = await _mediator.Send(
             new ExternalLoginCommand("Microsoft", externalId, email, firstName, lastName, tenantSlug), ct);
-        return Ok(ApiResponse<AuthResponse>.Ok(authResult));
+
+        return Redirect(BuildSuccessRedirect(authResult));
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private string BuildSuccessRedirect(AuthResponse auth)
+    {
+        var frontendUrl = _config["FrontendUrl"] ?? "http://localhost:3000";
+        var user = Uri.EscapeDataString(JsonSerializer.Serialize(auth.User));
+        return $"{frontendUrl}/auth/callback" +
+               $"?accessToken={Uri.EscapeDataString(auth.AccessToken)}" +
+               $"&refreshToken={Uri.EscapeDataString(auth.RefreshToken)}" +
+               $"&expiresAt={Uri.EscapeDataString(auth.ExpiresAt.ToString("O"))}" +
+               $"&user={user}";
+    }
+
+    private string BuildErrorRedirect(string message)
+    {
+        var frontendUrl = _config["FrontendUrl"] ?? "http://localhost:3000";
+        return $"{frontendUrl}/login?error={Uri.EscapeDataString(message)}";
     }
 }
