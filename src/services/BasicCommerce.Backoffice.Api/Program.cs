@@ -71,6 +71,7 @@ if (!string.IsNullOrWhiteSpace(microsoftClientId))
 
 builder.Services.AddAuthorization(options =>
 {
+    options.AddPolicy("AllAuthenticated",     p => p.RequireAuthenticatedUser());
     options.AddPolicy("ChainAdminOnly",       p => p.RequireClaim("role", "ChainAdmin", "SystemAdmin"));
     options.AddPolicy("StoreManagerAndAbove", p => p.RequireClaim("role", "StoreManager", "ChainAdmin", "SystemAdmin"));
     options.AddPolicy("SupervisorAndAbove",   p => p.RequireClaim("role", "Supervisor", "StoreManager", "ChainAdmin", "SystemAdmin"));

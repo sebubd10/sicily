@@ -19,7 +19,7 @@ public class CreateCategoryCommandValidator : AbstractValidator<CreateCategoryCo
     public CreateCategoryCommandValidator()
     {
         RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
-        RuleFor(x => x.NameBn).NotEmpty().MaximumLength(100);
+        RuleFor(x => x.NameBn).MaximumLength(100);
     }
 }
 

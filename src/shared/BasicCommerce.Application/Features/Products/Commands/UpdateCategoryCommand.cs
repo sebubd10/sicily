@@ -21,7 +21,7 @@ public class UpdateCategoryCommandValidator : AbstractValidator<UpdateCategoryCo
     {
         RuleFor(x => x.CategoryId).NotEmpty();
         RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
-        RuleFor(x => x.NameBn).NotEmpty().MaximumLength(100);
+        RuleFor(x => x.NameBn).MaximumLength(100);
         RuleFor(x => x.SortOrder).GreaterThanOrEqualTo(0);
     }
 }

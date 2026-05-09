@@ -21,7 +21,6 @@ public class Category : TenantEntity
         Guid? parentCategoryId = null, string? description = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
-        ArgumentException.ThrowIfNullOrWhiteSpace(nameBn);
 
         return new Category
         {
