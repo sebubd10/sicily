@@ -6,18 +6,12 @@ export default defineConfig({
   server: {
     port: 3000,
     proxy: {
-      // Auth API (login, refresh, OAuth)
-      '/auth': {
-        target: 'http://localhost:5000',
-        changeOrigin: true,
-        secure: false,
-      },
-      // Backoffice API (all protected resources)
-      '/api': {
-        target: 'http://localhost:5001',
-        changeOrigin: true,
-        secure: false,
-      },
+      // Only proxy AJAX calls to the Auth API — NOT /auth/callback (that is a React route)
+      '/auth/login':     { target: 'http://localhost:5000', changeOrigin: true, secure: false },
+      '/auth/refresh':   { target: 'http://localhost:5000', changeOrigin: true, secure: false },
+
+      // Backoffice API — all protected resource calls
+      '/api': { target: 'http://localhost:5001', changeOrigin: true, secure: false },
     },
   },
 });
