@@ -32,7 +32,7 @@ public class VatRateConfiguration : IEntityTypeConfiguration<VatRate>
 
         b.Property(v => v.Name).HasMaxLength(100).IsRequired();
         b.Property(v => v.Code).HasMaxLength(20).IsRequired();
-        b.Property(v => v.Rate).HasPrecision(5, 4);
+        b.Property(v => v.Rate).HasPrecision(6, 4);
         b.Property(v => v.IsDefault).HasDefaultValue(false);
     }
 }
