@@ -15,9 +15,9 @@ public class ProductTagConfiguration : IEntityTypeConfiguration<ProductTag>
         builder.HasMany(t => t.Products)
             .WithMany(p => p.Tags)
             .UsingEntity<Dictionary<string, object>>("ProductTagAssignments",
-                l => l.HasOne(typeof(Product)).WithMany()
+                l => l.HasOne<Product>().WithMany()
                     .HasForeignKey("ProductId").OnDelete(DeleteBehavior.Cascade),
-                r => r.HasOne(typeof(ProductTag)).WithMany()
+                r => r.HasOne<ProductTag>().WithMany()
                     .HasForeignKey("ProductTagId").OnDelete(DeleteBehavior.Cascade),
                 j =>
                 {
