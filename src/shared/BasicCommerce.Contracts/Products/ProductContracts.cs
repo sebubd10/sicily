@@ -108,4 +108,5 @@ public record UpdateCategoryRequest(
     string Name,
     string NameBn,
     string? Description,
-    int SortOrder);
+    int SortOrder,
+    Guid? ParentCategoryId = null);

@@ -12,7 +12,8 @@ public record UpdateCategoryCommand(
     string Name,
     string NameBn,
     string? Description,
-    int SortOrder) : IRequest<CategoryResponse>;
+    int SortOrder,
+    Guid? ParentCategoryId = null) : IRequest<CategoryResponse>;
 
 public class UpdateCategoryCommandValidator : AbstractValidator<UpdateCategoryCommand>
 {
@@ -48,7 +49,7 @@ public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryComman
         if (await _uow.Categories.NameExistsAsync(tenantId, request.Name, request.CategoryId, ct))
             throw new DomainException($"Category name '{request.Name}' is already in use.");
 
-        category.Update(request.Name, request.NameBn, request.Description, request.SortOrder);
+        category.Update(request.Name, request.NameBn, request.Description, request.SortOrder, request.ParentCategoryId);
         await _uow.SaveChangesAsync(ct);
 
         var children = await _uow.Categories.GetChildrenAsync(tenantId, category.Id, ct);

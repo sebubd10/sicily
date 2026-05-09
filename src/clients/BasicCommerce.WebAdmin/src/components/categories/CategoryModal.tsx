@@ -7,19 +7,25 @@ import type { Category, CategoryFormData } from '../../types/category';
 type Props = {
   open: boolean;
   category: Category | null;
-  categories: Category[];
+  allCategories: Category[];
   onSave: (data: CategoryFormData) => void;
   onClose: () => void;
+  isSaving?: boolean;
 };
 
-const EMPTY: CategoryFormData = { name: '', nameBn: '', parentId: '', sort: 1 };
+const EMPTY: CategoryFormData = {
+  name: '',
+  nameBn: '',
+  description: '',
+  parentCategoryId: '',
+  sortOrder: 1,
+};
 
-export function CategoryModal({ open, category, categories, onSave, onClose }: Props) {
+export function CategoryModal({ open, category, allCategories, onSave, onClose, isSaving }: Props) {
   const isEdit = category !== null;
   const [form, setForm] = useState<CategoryFormData>(EMPTY);
-  const [errors, setErrors] = useState<Partial<CategoryFormData>>({});
+  const [errors, setErrors] = useState<Partial<Record<keyof CategoryFormData, string>>>({});
 
-  // Sync form whenever the modal opens or the category changes
   useEffect(() => {
     if (open) {
       setErrors({});
@@ -28,17 +34,21 @@ export function CategoryModal({ open, category, categories, onSave, onClose }: P
           ? {
               name: category.name,
               nameBn: category.nameBn,
-              parentId: category.parent ?? '',
-              sort: category.sort,
+              description: category.description ?? '',
+              parentCategoryId: category.parentCategoryId ?? '',
+              sortOrder: category.sortOrder,
             }
-          : { ...EMPTY, sort: Math.max(0, ...categories.map((c) => c.sort)) + 1 },
+          : {
+              ...EMPTY,
+              sortOrder: Math.max(0, ...allCategories.map((c) => c.sortOrder)) + 1,
+            },
       );
     }
   }, [open, category]);
 
-  // Root categories only (exclude self when editing)
-  const parentOptions = categories.filter(
-    (c) => !c.parent && c.id !== category?.id,
+  // Root categories only; exclude self when editing
+  const parentOptions = allCategories.filter(
+    (c) => !c.parentCategoryId && c.id !== category?.id,
   );
 
   function set<K extends keyof CategoryFormData>(key: K, value: CategoryFormData[K]) {
@@ -49,8 +59,8 @@ export function CategoryModal({ open, category, categories, onSave, onClose }: P
   function validate(): boolean {
     const e: Partial<Record<keyof CategoryFormData, string>> = {};
     if (!form.name.trim()) e.name = 'Name (English) is required.';
-    if (form.sort < 1) e.sort = 'Sort order must be at least 1.';
-    setErrors(e as Partial<CategoryFormData>);
+    if (form.sortOrder < 1) e.sortOrder = 'Sort order must be at least 1.';
+    setErrors(e);
     return Object.keys(e).length === 0;
   }
 
@@ -70,7 +80,7 @@ export function CategoryModal({ open, category, categories, onSave, onClose }: P
     );
 
   return (
-    <Dialog.Root open={open} onOpenChange={(o) => !o && onClose()}>
+    <Dialog.Root open={open} onOpenChange={(o) => !o && !isSaving && onClose()}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
         <Dialog.Content
@@ -92,7 +102,10 @@ export function CategoryModal({ open, category, categories, onSave, onClose }: P
               <Layers className="w-5 h-5 text-primary-700" />
               {isEdit ? 'Edit Category' : 'Add Category'}
             </Dialog.Title>
-            <Dialog.Close className="rounded-lg p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
+            <Dialog.Close
+              disabled={isSaving}
+              className="rounded-lg p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 disabled:opacity-40"
+            >
               <X className="w-4 h-4" />
             </Dialog.Close>
           </div>
@@ -112,11 +125,9 @@ export function CategoryModal({ open, category, categories, onSave, onClose }: P
                   value={form.name}
                   onChange={(e) => set('name', e.target.value)}
                   placeholder="e.g. Dairy & Eggs"
-                  className={inputCls(errors.name as string | undefined)}
+                  className={inputCls(errors.name)}
                 />
-                {errors.name && (
-                  <p className="mt-1 text-xs text-red-500">{errors.name}</p>
-                )}
+                {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name}</p>}
               </div>
 
               {/* Name (Bengali) */}
@@ -134,6 +145,20 @@ export function CategoryModal({ open, category, categories, onSave, onClose }: P
                 />
               </div>
 
+              {/* Description */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Description
+                </label>
+                <input
+                  type="text"
+                  value={form.description}
+                  onChange={(e) => set('description', e.target.value)}
+                  placeholder="Optional short description"
+                  className={inputCls()}
+                />
+              </div>
+
               {/* Parent Category */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -141,8 +166,8 @@ export function CategoryModal({ open, category, categories, onSave, onClose }: P
                   <span className="text-xs text-gray-400 ml-1">(leave empty for root)</span>
                 </label>
                 <select
-                  value={form.parentId}
-                  onChange={(e) => set('parentId', e.target.value)}
+                  value={form.parentCategoryId}
+                  onChange={(e) => set('parentCategoryId', e.target.value)}
                   className={cn(inputCls(), 'cursor-pointer')}
                 >
                   <option value="">— None (root category) —</option>
@@ -162,16 +187,12 @@ export function CategoryModal({ open, category, categories, onSave, onClose }: P
                 <input
                   type="number"
                   min={1}
-                  value={form.sort}
-                  onChange={(e) => set('sort', Math.max(1, Number(e.target.value)))}
-                  className={cn(inputCls(errors.sort as string | undefined), 'w-28')}
+                  value={form.sortOrder}
+                  onChange={(e) => set('sortOrder', Math.max(1, Number(e.target.value)))}
+                  className={cn(inputCls(errors.sortOrder), 'w-28')}
                 />
-                {errors.sort && (
-                  <p className="mt-1 text-xs text-red-500">{errors.sort}</p>
-                )}
-                <p className="mt-1 text-xs text-gray-400">
-                  Lower numbers appear first in listings.
-                </p>
+                {errors.sortOrder && <p className="mt-1 text-xs text-red-500">{errors.sortOrder}</p>}
+                <p className="mt-1 text-xs text-gray-400">Lower numbers appear first in listings.</p>
               </div>
             </div>
 
@@ -179,15 +200,17 @@ export function CategoryModal({ open, category, categories, onSave, onClose }: P
             <div className="flex justify-end gap-3 border-t border-gray-200 dark:border-gray-700 px-6 py-4">
               <Dialog.Close
                 type="button"
-                className="px-4 py-2 text-sm font-medium rounded-lg border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                disabled={isSaving}
+                className="px-4 py-2 text-sm font-medium rounded-lg border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
               >
                 Cancel
               </Dialog.Close>
               <button
                 type="submit"
-                className="px-5 py-2 text-sm font-medium rounded-lg bg-primary-800 hover:bg-primary-900 text-white shadow-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                disabled={isSaving}
+                className="px-5 py-2 text-sm font-medium rounded-lg bg-primary-800 hover:bg-primary-900 text-white shadow-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {isEdit ? 'Save Changes' : 'Add Category'}
+                {isSaving ? 'Saving…' : isEdit ? 'Save Changes' : 'Add Category'}
               </button>
             </div>
           </form>

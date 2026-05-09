@@ -1,4 +1,5 @@
 using BasicCommerce.Application.Interfaces;
+using BasicCommerce.Contracts.Common;
 using BasicCommerce.Contracts.Products;
 using BasicCommerce.Domain.Enums;
 using BasicCommerce.Domain.Interfaces;
@@ -6,11 +7,15 @@ using MediatR;
 
 namespace BasicCommerce.Application.Features.Products.Queries;
 
-public record GetCategoriesQuery(bool IncludeInactive = false) : IRequest<IEnumerable<CategoryResponse>>;
+public record GetCategoriesQuery(
+    bool IncludeInactive = false,
+    int PageNumber = 1,
+    int PageSize = 20,
+    string? Search = null) : IRequest<PaginatedResponse<CategoryResponse>>;
 
 public record GetCategoryQuery(Guid CategoryId) : IRequest<CategoryResponse>;
 
-public class GetCategoriesQueryHandler : IRequestHandler<GetCategoriesQuery, IEnumerable<CategoryResponse>>
+public class GetCategoriesQueryHandler : IRequestHandler<GetCategoriesQuery, PaginatedResponse<CategoryResponse>>
 {
     private readonly IUnitOfWork _uow;
     private readonly ICurrentUserService _currentUser;
@@ -21,38 +26,57 @@ public class GetCategoriesQueryHandler : IRequestHandler<GetCategoriesQuery, IEn
         _currentUser = currentUser;
     }
 
-    public async Task<IEnumerable<CategoryResponse>> Handle(GetCategoriesQuery request, CancellationToken ct)
+    public async Task<PaginatedResponse<CategoryResponse>> Handle(GetCategoriesQuery request, CancellationToken ct)
     {
         var tenantId = _currentUser.TenantId;
-        var all = await _uow.Categories.GetAllForTenantAsync(tenantId, ct);
+        var all = (await _uow.Categories.GetAllForTenantAsync(tenantId, ct)).ToList();
+
+        IEnumerable<BasicCommerce.Domain.Entities.Category> filtered = all;
 
         if (!request.IncludeInactive)
-            all = all.Where(c => c.Status == EntityStatus.Active);
+            filtered = filtered.Where(c => c.Status == EntityStatus.Active);
 
-        var list = all.ToList();
-        var parentNames = list
+        if (!string.IsNullOrWhiteSpace(request.Search))
+        {
+            var q = request.Search.Trim().ToLowerInvariant();
+            filtered = filtered.Where(c =>
+                c.Name.ToLowerInvariant().Contains(q) ||
+                (c.NameBn != null && c.NameBn.Contains(request.Search.Trim())));
+        }
+
+        var list = filtered.OrderBy(c => c.SortOrder).ThenBy(c => c.Name).ToList();
+        var totalCount = list.Count;
+
+        // Build lookup maps from the full set so parent names and child counts are correct
+        var parentNames = all
             .Where(c => c.ParentCategoryId.HasValue)
             .Select(c => c.ParentCategoryId!.Value)
             .Distinct()
-            .ToDictionary(id => id, id => list.FirstOrDefault(c => c.Id == id)?.Name);
+            .ToDictionary(id => id, id => all.FirstOrDefault(c => c.Id == id)?.Name);
 
-        var childCounts = list
+        var childCounts = all
             .Where(c => c.ParentCategoryId.HasValue)
             .GroupBy(c => c.ParentCategoryId!.Value)
             .ToDictionary(g => g.Key, g => g.Count());
 
-        return list.Select(c => new CategoryResponse(
-            c.Id,
-            c.Name,
-            c.NameBn,
-            c.Description,
-            c.ParentCategoryId,
-            c.ParentCategoryId.HasValue
-                ? parentNames.GetValueOrDefault(c.ParentCategoryId.Value)
-                : null,
-            c.SortOrder,
-            c.Status.ToString(),
-            childCounts.GetValueOrDefault(c.Id)));
+        var pageSize   = Math.Max(1, Math.Min(request.PageSize, 200));
+        var pageNumber = Math.Max(1, request.PageNumber);
+
+        var items = list
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .Select(c => new CategoryResponse(
+                c.Id,
+                c.Name,
+                c.NameBn,
+                c.Description,
+                c.ParentCategoryId,
+                c.ParentCategoryId.HasValue ? parentNames.GetValueOrDefault(c.ParentCategoryId.Value) : null,
+                c.SortOrder,
+                c.Status.ToString(),
+                childCounts.GetValueOrDefault(c.Id)));
+
+        return new PaginatedResponse<CategoryResponse>(items, totalCount, pageNumber, pageSize);
     }
 }
 

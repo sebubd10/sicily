@@ -33,12 +33,19 @@ public class Category : TenantEntity
         };
     }
 
-    public void Update(string name, string nameBn, string? description, int sortOrder)
+    public void Update(string name, string nameBn, string? description, int sortOrder, Guid? parentCategoryId = null)
     {
         Name = name;
         NameBn = nameBn;
         Description = description;
         SortOrder = sortOrder;
+        ParentCategoryId = parentCategoryId;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void Activate()
+    {
+        Status = EntityStatus.Active;
         UpdatedAt = DateTime.UtcNow;
     }
 
