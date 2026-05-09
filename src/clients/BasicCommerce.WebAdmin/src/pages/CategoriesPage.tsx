@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Plus, Pencil, PowerOff, ChevronDown, Layers } from 'lucide-react';
+import { Search, Plus, Pencil, PowerOff, Layers } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 // ── Mock data ──────────────────────────────────────────────────────────────────

@@ -1,12 +1,12 @@
 import {
-  LayoutDashboard, Package, Layers, Factory, Tag,
-  Warehouse, ArrowLeftRight, Building2,
-  ShoppingCart, Truck, RotateCcw,
-  Receipt, MonitorSmartphone,
-  Users, CreditCard, Star,
-  Ticket, Gift,
-  BarChart2, TrendingUp, ClipboardList, FileText,
-  Settings, Shield, Menu, KeyRound,
+  LayoutDashboard, Package,
+  Warehouse,
+  ShoppingCart,
+  Receipt,
+  Users,
+  Ticket,
+  BarChart2,
+  Settings,
   type LucideIcon,
 } from 'lucide-react';
 

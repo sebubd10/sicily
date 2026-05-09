@@ -27,7 +27,7 @@ builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBeh
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
 
 var jwtKey = builder.Configuration["Jwt:SecretKey"]!;
-builder.Services
+var authBuilder = builder.Services
     .AddAuthentication(options =>
     {
         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -45,19 +45,29 @@ builder.Services
             ValidAudience            = builder.Configuration["Jwt:Audience"],
             ClockSkew                = TimeSpan.Zero
         };
-    })
-    .AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
+    });
+
+var googleClientId = builder.Configuration["OAuth:Google:ClientId"];
+if (!string.IsNullOrWhiteSpace(googleClientId))
+{
+    authBuilder.AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
     {
-        options.ClientId     = builder.Configuration["OAuth:Google:ClientId"]!;
+        options.ClientId     = googleClientId;
         options.ClientSecret = builder.Configuration["OAuth:Google:ClientSecret"]!;
         options.CallbackPath = "/auth/google/callback";
-    })
-    .AddMicrosoftAccount(MicrosoftAccountDefaults.AuthenticationScheme, options =>
+    });
+}
+
+var microsoftClientId = builder.Configuration["OAuth:Microsoft:ClientId"];
+if (!string.IsNullOrWhiteSpace(microsoftClientId))
+{
+    authBuilder.AddMicrosoftAccount(MicrosoftAccountDefaults.AuthenticationScheme, options =>
     {
-        options.ClientId     = builder.Configuration["OAuth:Microsoft:ClientId"]!;
+        options.ClientId     = microsoftClientId;
         options.ClientSecret = builder.Configuration["OAuth:Microsoft:ClientSecret"]!;
         options.CallbackPath = "/auth/microsoft/callback";
     });
+}
 
 builder.Services.AddAuthorization(options =>
 {
