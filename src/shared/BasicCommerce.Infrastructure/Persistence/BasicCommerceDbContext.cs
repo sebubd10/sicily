@@ -78,8 +78,6 @@ public class BasicCommerceDbContext : DbContext
 
             builder.Entity(entityType.ClrType)
                 .Property<EntityStatus>(nameof(BaseEntity.Status))
-                .HasConversion<string>()
-                .HasMaxLength(20)
                 .HasDefaultValue(EntityStatus.Active)
                 .HasSentinel((EntityStatus)0);
         }
