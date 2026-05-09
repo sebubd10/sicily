@@ -147,7 +147,7 @@ public class LabelsController : ControllerBase
 
         var result = await _mediator.Send(new RenderSingleLabelQuery(
             templateId, request.ProductId,
-            storeId: null,
+            StoreId: null,
             fmt, request.OverridePrice, request.CustomText,
             request.LotNumber, request.ExpiryDate, request.WeightKg,
             Math.Max(1, request.Copies)), ct);
