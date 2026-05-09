@@ -35,6 +35,7 @@ var authBuilder = builder.Services
     })
     .AddJwtBearer(options =>
     {
+        options.MapInboundClaims = false;   // keep "role" as "role", not the long ClaimTypes.Role URI
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
