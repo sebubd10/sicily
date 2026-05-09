@@ -45,7 +45,7 @@ public class PurchaseOrdersController : ControllerBase
         [FromBody] CreatePurchaseOrderRequest request, CancellationToken ct)
     {
         var items = request.Items?.Select(i => (i.ProductId, i.Quantity, i.UnitCost))
-            ?? Enumerable.Empty<(Guid, decimal, decimal)>();
+            ?? Enumerable.Empty<(Guid, decimal, decimal?)>();
         var result = await _mediator.Send(new CreatePurchaseOrderCommand(
             request.SupplierId, request.WarehouseId, request.OrderDate,
             request.ExpectedDate, request.Notes, request.Currency, items), ct);
