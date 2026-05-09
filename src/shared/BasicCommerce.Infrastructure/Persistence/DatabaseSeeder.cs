@@ -148,8 +148,8 @@ public class DatabaseSeeder
     private async Task SeedMenusAndPermissionsAsync(CancellationToken ct)
     {
         // ── Api Permissions ────────────────────────────────────────────────────
-        var existingCodes = await _db.Set<ApiPermission>()
-            .Select(p => p.Code).ToHashSetAsync(ct);
+        var existingCodes = (await _db.Set<ApiPermission>()
+            .Select(p => p.Code).ToListAsync(ct)).ToHashSet();
 
         var toAdd = PermissionCodes.All
             .Where(p => !existingCodes.Contains(p.Code))
