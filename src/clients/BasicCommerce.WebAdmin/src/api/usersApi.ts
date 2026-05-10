@@ -42,3 +42,19 @@ export async function unlockUser(id: string): Promise<void> {
 export async function assignUserType(id: string, userTypeId: string | null): Promise<void> {
   await api.put(`/users/${id}/user-type`, { userTypeId: userTypeId || null });
 }
+
+export async function exportUsersPdf(params: { search?: string }): Promise<void> {
+  const response = await api.get('/reports/users/pdf', {
+    params: { search: params.search || undefined },
+    responseType: 'blob',
+  });
+
+  const url = URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+  const a   = document.createElement('a');
+  a.href     = url;
+  a.download = `users_${new Date().toISOString().slice(0, 10)}.pdf`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}

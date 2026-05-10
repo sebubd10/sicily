@@ -35,6 +35,7 @@ public static class DependencyInjection
         services.AddScoped<ILabelRenderService, LabelRenderService>();
         services.AddScoped<IPermissionService, PermissionService>();
         services.AddScoped<ICategoryReportService, CategoryReportService>();
+        services.AddScoped<IUserReportService, UserReportService>();
         services.AddMemoryCache();
 
         services.AddScoped<IJwtService, JwtService>();

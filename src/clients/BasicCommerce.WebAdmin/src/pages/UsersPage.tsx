@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import {
   Users, Search, Plus, Power, PowerOff, LockOpen, Tag,
-  AlertCircle, Loader2,
+  AlertCircle, Loader2, Download,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import type { User } from '../types/user';
+import { exportUsersPdf } from '../api/usersApi';
 import { CreateUserModal } from '../components/users/CreateUserModal';
 import { AssignUserTypeModal } from '../components/users/AssignUserTypeModal';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
@@ -43,6 +44,7 @@ export default function UsersPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [assignUser, setAssignUser] = useState<User | null>(null);
   const [confirm, setConfirm]       = useState<ConfirmState>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   const { data, isLoading, isError, isFetching } = useUsers({
     page,
@@ -68,6 +70,15 @@ export default function UsersPage() {
   const rows     = data?.items ?? [];
   const total    = data?.totalCount ?? 0;
   const totPages = data?.totalPages ?? 1;
+
+  async function handleExportPdf() {
+    setIsExporting(true);
+    try {
+      await exportUsersPdf({ search: search.trim() || undefined });
+    } finally {
+      setIsExporting(false);
+    }
+  }
 
   async function handleCreate(form: Parameters<typeof createMutation.mutateAsync>[0]) {
     await createMutation.mutateAsync(form);
@@ -123,12 +134,25 @@ export default function UsersPage() {
             Manage staff accounts and role assignments
           </p>
         </div>
-        <button
-          onClick={() => setCreateOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-primary-800 hover:bg-primary-900 text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
-        >
-          <Plus className="w-4 h-4" /> Add User
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleExportPdf}
+            disabled={isExporting}
+            title={search ? 'Export current search as PDF' : 'Export all users as PDF'}
+            className="flex items-center gap-2 px-4 py-2 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+          >
+            {isExporting
+              ? <Loader2 className="w-4 h-4 animate-spin" />
+              : <Download className="w-4 h-4" />}
+            {isExporting ? 'Generating…' : 'Export PDF'}
+          </button>
+          <button
+            onClick={() => setCreateOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-primary-800 hover:bg-primary-900 text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
+          >
+            <Plus className="w-4 h-4" /> Add User
+          </button>
+        </div>
       </div>
 
       {/* Summary chips */}

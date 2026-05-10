@@ -84,4 +84,16 @@ public class ReportsController : ControllerBase
         var filename = $"categories_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
         return File(pdf, "application/pdf", filename);
     }
+
+    /// <summary>Downloads a PDF report listing all users and their user types for the current tenant.</summary>
+    [HttpGet("users/pdf")]
+    [HasPermission(Reports.UserReport)]
+    public async Task<IActionResult> UserReportPdf(
+        [FromQuery] string? search = null,
+        CancellationToken ct = default)
+    {
+        var pdf = await _mediator.Send(new UserReportQuery(search), ct);
+        var filename = $"users_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
+        return File(pdf, "application/pdf", filename);
+    }
 }

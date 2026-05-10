@@ -80,6 +80,7 @@ public static class PermissionCodes
         public const string StockReport     = "reports:stock";
         public const string ZReport         = "reports:z";
         public const string CategoryReport  = "reports:categories";
+        public const string UserReport      = "reports:users";
     }
 
     public static class Users     { public const string Read = "users:read"; public const string Create = "users:create"; public const string Manage = "users:manage"; }
@@ -151,6 +152,7 @@ public static class PermissionCodes
         (Reports.StockReport,            "Stock Report",                 "Reports"),
         (Reports.ZReport,                "Z-Report",                     "Reports"),
         (Reports.CategoryReport,         "Category Report (PDF)",        "Reports"),
+        (Reports.UserReport,             "User Report (PDF)",            "Reports"),
 
         (Users.Read,                     "View Users",                   "Settings"),
         (Users.Create,                   "Create Users",                 "Settings"),
