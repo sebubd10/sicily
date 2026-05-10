@@ -137,6 +137,20 @@ public class DatabaseSeeder
             await _db.Set<ApiPermission>().AddRangeAsync(toAdd, ct);
             await _db.SaveChangesAsync(ct);
             _logger.LogInformation("Seeded {Count} new API permissions.", toAdd.Count);
+
+            // Keep Chain Admin system user type in sync — it must always have every permission.
+            var allPerms = await _db.Set<ApiPermission>().ToListAsync(ct);
+            var chainAdmin = await _db.Set<UserType>()
+                .Include(ut => ut.Permissions)
+                .FirstOrDefaultAsync(ut => ut.IsSystem && ut.Name == "Chain Admin", ct);
+
+            if (chainAdmin is not null)
+            {
+                chainAdmin.SetPermissions(allPerms);
+                await _db.SaveChangesAsync(ct);
+                _logger.LogInformation(
+                    "Synced Chain Admin permissions — {Count} total.", allPerms.Count);
+            }
         }
 
         if (!await _db.Set<AppMenu>().AnyAsync(ct))
