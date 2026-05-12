@@ -7,7 +7,11 @@ public record WarehouseResponse(
     string? Phone,
     string? Email,
     string AddressLine1,
+    string? AddressLine2,
     string City,
+    string District,
+    string PostalCode,
+    string Country,
     bool IsDefault,
     string Status);
 

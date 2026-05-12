@@ -7,7 +7,9 @@ internal static class WarehouseMapper
 {
     internal static WarehouseResponse ToResponse(Warehouse w) =>
         new(w.Id, w.Name, w.Code, w.Phone, w.Email,
-            w.Address.Line1, w.Address.City, w.IsDefault, w.Status.ToString());
+            w.Address.Line1, w.Address.Line2, w.Address.City,
+            w.Address.District, w.Address.PostalCode, w.Address.Country,
+            w.IsDefault, w.Status.ToString());
 
     internal static WarehouseStockLevelResponse ToStockResponse(WarehouseStockLevel s, string warehouseName) =>
         new(s.WarehouseId, warehouseName, s.ProductId,

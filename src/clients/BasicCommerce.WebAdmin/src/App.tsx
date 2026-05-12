@@ -9,6 +9,7 @@ import CategoriesPage from './pages/CategoriesPage';
 import UsersPage from './pages/UsersPage';
 import UserTypesPage from './pages/UserTypesPage';
 import PermissionsPage from './pages/PermissionsPage';
+import WarehousesPage from './pages/WarehousesPage';
 import PlaceholderPage from './pages/PlaceholderPage';
 import { useThemeStore } from './store/themeStore';
 
@@ -40,7 +41,7 @@ export default function App() {
             {/* Inventory */}
             <Route path="inventory/stock" element={<PlaceholderPage title="Stock Levels" />} />
             <Route path="inventory/movements" element={<PlaceholderPage title="Stock Movements" />} />
-            <Route path="inventory/warehouses" element={<PlaceholderPage title="Warehouses" />} />
+            <Route path="inventory/warehouses" element={<WarehousesPage />} />
 
             {/* Purchasing */}
             <Route path="purchasing/orders" element={<PlaceholderPage title="Purchase Orders" />} />
