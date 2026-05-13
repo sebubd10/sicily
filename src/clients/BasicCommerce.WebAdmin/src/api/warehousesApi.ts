@@ -5,6 +5,7 @@ import type {
   WarehouseStockLevel,
   WarehouseMovement,
   Store,
+  District,
 } from '../types/warehouse';
 
 type ApiResponse<T> = { success: boolean; data: T; message?: string };
@@ -93,5 +94,10 @@ export async function transferToStore(
 
 export async function getStores(): Promise<Store[]> {
   const { data } = await api.get<ApiResponse<Store[]>>('/stores');
+  return data.data!;
+}
+
+export async function getDistricts(): Promise<District[]> {
+  const { data } = await api.get<ApiResponse<District[]>>('/warehouses/districts');
   return data.data!;
 }

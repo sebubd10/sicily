@@ -11,6 +11,7 @@ import { WarehouseMovementsModal } from '../components/warehouses/WarehouseMovem
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import {
   useWarehouses,
+  useWarehouseDetail,
   useStores,
   useCreateWarehouse,
   useUpdateWarehouse,
@@ -27,8 +28,10 @@ export default function WarehousesPage() {
   const [search, setSearch]         = useState('');
   const [showInactive, setShowInactive] = useState(false);
 
-  const [modalOpen, setModalOpen]   = useState(false);
-  const [editWarehouse, setEditWarehouse] = useState<Warehouse | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editId, setEditId]       = useState<string | null>(null);
+
+  const { data: editWarehouse, isFetching: isFetchingEdit } = useWarehouseDetail(editId);
 
   const [stockWarehouse, setStockWarehouse]           = useState<Warehouse | null>(null);
   const [movementsWarehouse, setMovementsWarehouse]   = useState<Warehouse | null>(null);
@@ -71,12 +74,12 @@ export default function WarehousesPage() {
   }), [warehouses]);
 
   function openAdd() {
-    setEditWarehouse(null);
+    setEditId(null);
     setModalOpen(true);
   }
 
   function openEdit(w: Warehouse) {
-    setEditWarehouse(w);
+    setEditId(w.id);
     setModalOpen(true);
   }
 
@@ -89,13 +92,13 @@ export default function WarehousesPage() {
   }
 
   async function handleSave(form: WarehouseFormData) {
-    if (editWarehouse) {
-      await updateMutation.mutateAsync({ id: editWarehouse.id, form });
+    if (editId) {
+      await updateMutation.mutateAsync({ id: editId, form });
     } else {
       await createMutation.mutateAsync(form);
     }
     setModalOpen(false);
-    setEditWarehouse(null);
+    setEditId(null);
   }
 
   async function executeConfirm() {
@@ -284,10 +287,12 @@ export default function WarehousesPage() {
                           <button
                             title="Edit"
                             onClick={() => openEdit(w)}
-                            disabled={isMutating}
+                            disabled={isMutating || isFetchingEdit}
                             className="p-1.5 rounded-lg text-gray-400 hover:text-primary-700 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors disabled:opacity-40"
                           >
-                            <Pencil className="w-3.5 h-3.5" />
+                            {isFetchingEdit && editId === w.id
+                              ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              : <Pencil className="w-3.5 h-3.5" />}
                           </button>
                           <button
                             title={w.status === 'Active' ? 'Deactivate' : 'Activate'}
@@ -317,10 +322,10 @@ export default function WarehousesPage() {
 
       {/* Create / Edit Modal */}
       <WarehouseModal
-        open={modalOpen}
-        warehouse={editWarehouse}
+        open={modalOpen && (!editId || !!editWarehouse)}
+        warehouse={editWarehouse ?? null}
         onSave={handleSave}
-        onClose={() => { setModalOpen(false); setEditWarehouse(null); }}
+        onClose={() => { setModalOpen(false); setEditId(null); }}
         isSaving={createMutation.isPending || updateMutation.isPending}
       />
 

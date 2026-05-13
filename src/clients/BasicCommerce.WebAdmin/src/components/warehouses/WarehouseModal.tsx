@@ -3,6 +3,7 @@ import * as Dialog from '@radix-ui/react-dialog';
 import { Warehouse, X } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import type { Warehouse as WarehouseType, WarehouseFormData } from '../../types/warehouse';
+import { useDistricts } from '../../hooks/useWarehouses';
 
 type Props = {
   open: boolean;
@@ -30,6 +31,8 @@ export function WarehouseModal({ open, warehouse, onSave, onClose, isSaving }: P
   const isEdit = warehouse !== null;
   const [form, setForm] = useState<WarehouseFormData>(EMPTY);
   const [errors, setErrors] = useState<Partial<Record<keyof WarehouseFormData, string>>>({});
+
+  const { data: districts = [] } = useDistricts();
 
   useEffect(() => {
     if (open) {
@@ -65,7 +68,7 @@ export function WarehouseModal({ open, warehouse, onSave, onClose, isSaving }: P
     if (!isEdit && !form.code.trim()) e.code    = 'Code is required.';
     if (!form.addressLine1.trim()) e.addressLine1 = 'Address is required.';
     if (!form.city.trim())        e.city        = 'City is required.';
-    if (!form.district.trim())    e.district    = 'District is required.';
+    if (!form.district)           e.district    = 'District is required.';
     if (!form.postalCode.trim())  e.postalCode  = 'Postal code is required.';
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -167,8 +170,17 @@ export function WarehouseModal({ open, warehouse, onSave, onClose, isSaving }: P
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     District <span className="text-red-500">*</span>
                   </label>
-                  <input type="text" value={form.district} onChange={(e) => set('district', e.target.value)}
-                    placeholder="Dhaka" disabled={isSaving} className={inputCls(errors.district)} />
+                  <select
+                    value={form.district}
+                    onChange={(e) => set('district', e.target.value)}
+                    disabled={isSaving}
+                    className={inputCls(errors.district)}
+                  >
+                    <option value="">Select district…</option>
+                    {districts.map((d) => (
+                      <option key={d.code} value={d.code}>{d.name}</option>
+                    ))}
+                  </select>
                   {errors.district && <p className="mt-1 text-xs text-red-500">{errors.district}</p>}
                 </div>
               </div>
@@ -206,7 +218,7 @@ export function WarehouseModal({ open, warehouse, onSave, onClose, isSaving }: P
                 </div>
               </div>
 
-              {/* Default toggle */}
+              {/* Default toggle — create only */}
               {!isEdit && (
                 <label className="flex items-center gap-3 cursor-pointer select-none">
                   <div

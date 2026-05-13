@@ -1,3 +1,4 @@
+using BasicCommerce.Application.Common;
 using BasicCommerce.Application.Features.Warehouses.Commands;
 using BasicCommerce.Application.Features.Warehouses.Queries;
 using BasicCommerce.Contracts.Common;
@@ -16,6 +17,15 @@ public class WarehousesController : ControllerBase
     private readonly IMediator _mediator;
 
     public WarehousesController(IMediator mediator) => _mediator = mediator;
+
+    [HttpGet("districts")]
+    public ActionResult<ApiResponse<IEnumerable<DistrictResponse>>> GetDistricts()
+    {
+        var districts = BangladeshDistricts.All
+            .OrderBy(kv => kv.Value)
+            .Select(kv => new DistrictResponse(kv.Key, kv.Value));
+        return Ok(ApiResponse<IEnumerable<DistrictResponse>>.Ok(districts));
+    }
 
     [HttpGet]
     public async Task<ActionResult<ApiResponse<IEnumerable<WarehouseResponse>>>> GetAll(CancellationToken ct)

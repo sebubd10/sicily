@@ -2,8 +2,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as warehousesApi from '../api/warehousesApi';
 import type { WarehouseFormData } from '../types/warehouse';
 
-const KEY  = ['warehouses'] as const;
-const STORES_KEY = ['stores'] as const;
+const KEY          = ['warehouses'] as const;
+const STORES_KEY   = ['stores'] as const;
+const DISTRICTS_KEY = ['warehouse-districts'] as const;
 
 export function useWarehouses() {
   return useQuery({
@@ -48,6 +49,14 @@ export function useStores() {
     queryKey: STORES_KEY,
     queryFn: warehousesApi.getStores,
     staleTime: 5 * 60_000,
+  });
+}
+
+export function useDistricts() {
+  return useQuery({
+    queryKey: DISTRICTS_KEY,
+    queryFn: warehousesApi.getDistricts,
+    staleTime: Infinity,
   });
 }
 

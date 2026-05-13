@@ -72,3 +72,8 @@ export interface TransferFormData {
   quantity: string;
   notes: string;
 }
+
+export interface District {
+  code: string;
+  name: string;
+}

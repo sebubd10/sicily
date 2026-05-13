@@ -1,3 +1,4 @@
+using BasicCommerce.Application.Common;
 using BasicCommerce.Application.Interfaces;
 using BasicCommerce.Contracts.Warehouses;
 using BasicCommerce.Domain.Entities;
@@ -53,7 +54,25 @@ public class CreateWarehouseCommandValidator : AbstractValidator<CreateWarehouse
         RuleFor(x => x.Code).NotEmpty().MaximumLength(50);
         RuleFor(x => x.AddressLine1).NotEmpty().MaximumLength(200);
         RuleFor(x => x.City).NotEmpty().MaximumLength(100);
-        RuleFor(x => x.District).NotEmpty().MaximumLength(100);
+        RuleFor(x => x.District)
+            .NotEmpty()
+            .Must(BangladeshDistricts.IsValid)
+            .WithMessage("District must be a valid Bangladesh district code.");
+        RuleFor(x => x.PostalCode).NotEmpty().MaximumLength(20);
+    }
+}
+
+public class UpdateWarehouseCommandValidator : AbstractValidator<UpdateWarehouseCommand>
+{
+    public UpdateWarehouseCommandValidator()
+    {
+        RuleFor(x => x.Name).NotEmpty().MaximumLength(200);
+        RuleFor(x => x.AddressLine1).NotEmpty().MaximumLength(200);
+        RuleFor(x => x.City).NotEmpty().MaximumLength(100);
+        RuleFor(x => x.District)
+            .NotEmpty()
+            .Must(BangladeshDistricts.IsValid)
+            .WithMessage("District must be a valid Bangladesh district code.");
         RuleFor(x => x.PostalCode).NotEmpty().MaximumLength(20);
     }
 }

@@ -68,6 +68,8 @@ public record UpdateWarehouseRequest(
     string? Phone = null,
     string? Email = null);
 
+public record DistrictResponse(string Code, string Name);
+
 public record TransferWarehouseToStoreRequest(
     Guid WarehouseId,
     Guid StoreId,
