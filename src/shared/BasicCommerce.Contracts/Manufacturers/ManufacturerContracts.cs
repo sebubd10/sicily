@@ -1,5 +1,7 @@
 namespace BasicCommerce.Contracts.Manufacturers;
 
+public record CountryResponse(string Code, string Name);
+
 public record ManufacturerResponse(
     Guid Id,
     string Name,

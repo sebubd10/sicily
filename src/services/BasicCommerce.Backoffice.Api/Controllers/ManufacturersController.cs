@@ -1,3 +1,4 @@
+using BasicCommerce.Application.Common;
 using BasicCommerce.Application.Features.Manufacturers.Commands;
 using BasicCommerce.Application.Features.Manufacturers.Queries;
 using BasicCommerce.Contracts.Common;
@@ -16,6 +17,14 @@ public class ManufacturersController : ControllerBase
     private readonly IMediator _mediator;
 
     public ManufacturersController(IMediator mediator) => _mediator = mediator;
+
+    [HttpGet("countries")]
+    public ActionResult<ApiResponse<IEnumerable<CountryResponse>>> GetCountries()
+    {
+        var countries = Countries.All
+            .Select(kv => new CountryResponse(kv.Key, kv.Value));
+        return Ok(ApiResponse<IEnumerable<CountryResponse>>.Ok(countries));
+    }
 
     [HttpGet]
     public async Task<ActionResult<ApiResponse<IEnumerable<ManufacturerResponse>>>> GetAll(CancellationToken ct)

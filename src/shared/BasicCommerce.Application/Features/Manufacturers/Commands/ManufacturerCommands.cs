@@ -1,3 +1,4 @@
+using BasicCommerce.Application.Common;
 using BasicCommerce.Application.Interfaces;
 using BasicCommerce.Contracts.Manufacturers;
 using BasicCommerce.Domain.Entities;
@@ -34,6 +35,10 @@ public class CreateManufacturerCommandValidator : AbstractValidator<CreateManufa
     {
         RuleFor(x => x.Name).NotEmpty().MaximumLength(200);
         RuleFor(x => x.Code).MaximumLength(50).When(x => x.Code is not null);
+        RuleFor(x => x.Country)
+            .Must(Countries.IsValid)
+            .WithMessage("Country must be a valid ISO country code.")
+            .When(x => !string.IsNullOrWhiteSpace(x.Country));
         RuleFor(x => x.Website).MaximumLength(500).When(x => x.Website is not null);
         RuleFor(x => x.ContactEmail).EmailAddress().MaximumLength(200).When(x => x.ContactEmail is not null);
     }
@@ -46,6 +51,10 @@ public class UpdateManufacturerCommandValidator : AbstractValidator<UpdateManufa
         RuleFor(x => x.ManufacturerId).NotEmpty();
         RuleFor(x => x.Name).NotEmpty().MaximumLength(200);
         RuleFor(x => x.Code).MaximumLength(50).When(x => x.Code is not null);
+        RuleFor(x => x.Country)
+            .Must(Countries.IsValid)
+            .WithMessage("Country must be a valid ISO country code.")
+            .When(x => !string.IsNullOrWhiteSpace(x.Country));
         RuleFor(x => x.Website).MaximumLength(500).When(x => x.Website is not null);
         RuleFor(x => x.ContactEmail).EmailAddress().MaximumLength(200).When(x => x.ContactEmail is not null);
     }

@@ -3,6 +3,7 @@ import * as Dialog from '@radix-ui/react-dialog';
 import { Factory, X } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import type { Manufacturer, ManufacturerFormData } from '../../types/manufacturer';
+import { useCountries } from '../../hooks/useManufacturers';
 
 type Props = {
   open: boolean;
@@ -24,6 +25,7 @@ const EMPTY: ManufacturerFormData = {
 export function ManufacturerModal({ open, manufacturer, onSave, onClose, isSaving }: Props) {
   const isEdit = manufacturer !== null;
   const [form, setForm] = useState<ManufacturerFormData>(EMPTY);
+  const { data: countries = [] } = useCountries();
   const [errors, setErrors] = useState<Partial<Record<keyof ManufacturerFormData, string>>>({});
 
   useEffect(() => {
@@ -137,14 +139,17 @@ export function ManufacturerModal({ open, manufacturer, onSave, onClose, isSavin
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Country
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={form.country}
                     onChange={(e) => set('country', e.target.value)}
-                    placeholder="Bangladesh"
                     disabled={isSaving}
                     className={inputCls()}
-                  />
+                  >
+                    <option value="">Select country…</option>
+                    {countries.map((c) => (
+                      <option key={c.code} value={c.code}>{c.name}</option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">

@@ -17,3 +17,8 @@ export interface ManufacturerFormData {
   contactEmail: string;
   notes: string;
 }
+
+export interface Country {
+  code: string;
+  name: string;
+}

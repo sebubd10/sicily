@@ -1,5 +1,5 @@
 import { api } from './axiosInstance';
-import type { Manufacturer, ManufacturerFormData } from '../types/manufacturer';
+import type { Manufacturer, ManufacturerFormData, Country } from '../types/manufacturer';
 
 type ApiResponse<T> = { success: boolean; data: T; message?: string };
 
@@ -59,4 +59,9 @@ export async function exportManufacturersPdf(params?: {
   a.download = `manufacturers_${new Date().toISOString().slice(0, 10)}.pdf`;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+export async function getCountries(): Promise<Country[]> {
+  const { data } = await api.get<ApiResponse<Country[]>>('/manufacturers/countries');
+  return data.data!;
 }

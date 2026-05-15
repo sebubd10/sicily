@@ -2,7 +2,16 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as manufacturersApi from '../api/manufacturersApi';
 import type { ManufacturerFormData } from '../types/manufacturer';
 
-const KEY = ['manufacturers'] as const;
+const KEY          = ['manufacturers'] as const;
+const COUNTRIES_KEY = ['manufacturer-countries'] as const;
+
+export function useCountries() {
+  return useQuery({
+    queryKey: COUNTRIES_KEY,
+    queryFn: manufacturersApi.getCountries,
+    staleTime: Infinity,
+  });
+}
 
 export function useManufacturers() {
   return useQuery({
