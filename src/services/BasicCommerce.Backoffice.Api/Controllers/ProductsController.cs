@@ -1,3 +1,5 @@
+using BasicCommerce.Application.Features.ProductImages.Commands;
+using BasicCommerce.Application.Features.ProductImages.Queries;
 using BasicCommerce.Application.Features.Products.Commands;
 using BasicCommerce.Application.Features.Products.Queries;
 using BasicCommerce.Application.Features.ProductTags.Commands;
@@ -151,5 +153,67 @@ public class ProductsController : ControllerBase
     {
         var result = await _mediator.Send(new SetProductTagsCommand(id, request.TagIds), ct);
         return Ok(ApiResponse<ProductResponse>.Ok(result));
+    }
+
+    // ── Product Images ───────────────────────────────────────────────────────
+
+    [HttpGet("{id:guid}/images")]
+    public async Task<ActionResult<ApiResponse<IEnumerable<ProductImageResponse>>>> GetImages(
+        Guid id, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new GetProductImagesQuery(id), ct);
+        return Ok(ApiResponse<IEnumerable<ProductImageResponse>>.Ok(result));
+    }
+
+    [HttpPost("{id:guid}/images/url")]
+    [Authorize(Policy = "StoreManagerAndAbove")]
+    public async Task<ActionResult<ApiResponse<ProductImageResponse>>> AddImageByUrl(
+        Guid id, [FromBody] AddProductImageByUrlRequest request, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new AddProductImageByUrlCommand(
+            id, request.Title, request.Url, request.Description, request.SortOrder), ct);
+        return Ok(ApiResponse<ProductImageResponse>.Ok(result));
+    }
+
+    [HttpPost("{id:guid}/images/upload")]
+    [Authorize(Policy = "StoreManagerAndAbove")]
+    public async Task<ActionResult<ApiResponse<ProductImageResponse>>> AddImageByUpload(
+        Guid id, IFormFile file,
+        [FromForm] string title,
+        [FromForm] string? description = null,
+        [FromForm] int sortOrder = 0,
+        CancellationToken ct = default)
+    {
+        var result = await _mediator.Send(new AddProductImageByUploadCommand(
+            id, title, file.OpenReadStream(), file.FileName, description, sortOrder), ct);
+        return Ok(ApiResponse<ProductImageResponse>.Ok(result));
+    }
+
+    [HttpPut("{id:guid}/images/{imageId:guid}")]
+    [Authorize(Policy = "StoreManagerAndAbove")]
+    public async Task<ActionResult<ApiResponse<ProductImageResponse>>> UpdateImage(
+        Guid id, Guid imageId, [FromBody] UpdateProductImageRequest request, CancellationToken ct)
+    {
+        var result = await _mediator.Send(
+            new UpdateProductImageCommand(imageId, request.Title, request.Description), ct);
+        return Ok(ApiResponse<ProductImageResponse>.Ok(result));
+    }
+
+    [HttpDelete("{id:guid}/images/{imageId:guid}")]
+    [Authorize(Policy = "StoreManagerAndAbove")]
+    public async Task<IActionResult> DeleteImage(Guid id, Guid imageId, CancellationToken ct)
+    {
+        await _mediator.Send(new DeleteProductImageCommand(imageId), ct);
+        return NoContent();
+    }
+
+    [HttpPut("{id:guid}/images/reorder")]
+    [Authorize(Policy = "StoreManagerAndAbove")]
+    public async Task<IActionResult> ReorderImages(
+        Guid id, [FromBody] ReorderProductImagesRequest request, CancellationToken ct)
+    {
+        var items = request.Items.Select(i => (i.Id, i.SortOrder));
+        await _mediator.Send(new ReorderProductImagesCommand(id, items), ct);
+        return NoContent();
     }
 }

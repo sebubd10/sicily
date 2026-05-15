@@ -117,6 +117,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseExceptionHandling();
+app.UseStaticFiles();
 app.UseCors("BasicCommerceCors");
 app.UseAuthentication();
 app.UseAuthorization();

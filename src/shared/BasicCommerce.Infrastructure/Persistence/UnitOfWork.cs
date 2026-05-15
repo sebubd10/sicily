@@ -43,6 +43,7 @@ public class UnitOfWork : IUnitOfWork
     public IAppMenuRepository AppMenus { get; }
     public IApiPermissionRepository ApiPermissions { get; }
     public ITenantLookupRepository Tenants { get; }
+    public IProductImageRepository ProductImages { get; }
 
     public UnitOfWork(BasicCommerceDbContext db)
     {
@@ -81,6 +82,7 @@ public class UnitOfWork : IUnitOfWork
         AppMenus = new AppMenuRepository(db);
         ApiPermissions = new ApiPermissionRepository(db);
         Tenants = new TenantLookupRepository(db);
+        ProductImages = new ProductImageRepository(db);
     }
 
     public async Task<int> SaveChangesAsync(CancellationToken ct = default) =>

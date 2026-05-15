@@ -36,6 +36,7 @@ public interface IUnitOfWork : IDisposable
     IAppMenuRepository AppMenus { get; }
     IApiPermissionRepository ApiPermissions { get; }
     ITenantLookupRepository Tenants { get; }
+    IProductImageRepository ProductImages { get; }
 
     Task<int> SaveChangesAsync(CancellationToken ct = default);
     Task BeginTransactionAsync(CancellationToken ct = default);
