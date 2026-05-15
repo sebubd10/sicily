@@ -96,4 +96,17 @@ public class ReportsController : ControllerBase
         var filename = $"users_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
         return File(pdf, "application/pdf", filename);
     }
+
+    /// <summary>Downloads a PDF report listing all manufacturers for the current tenant.</summary>
+    [HttpGet("manufacturers/pdf")]
+    [HasPermission(Reports.ManufacturerReport)]
+    public async Task<IActionResult> ManufacturerReportPdf(
+        [FromQuery] string? search = null,
+        [FromQuery] bool includeInactive = false,
+        CancellationToken ct = default)
+    {
+        var pdf = await _mediator.Send(new ManufacturerReportQuery(search, includeInactive), ct);
+        var filename = $"manufacturers_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
+        return File(pdf, "application/pdf", filename);
+    }
 }
