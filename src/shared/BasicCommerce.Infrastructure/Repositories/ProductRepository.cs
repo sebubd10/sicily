@@ -49,7 +49,7 @@ public class ProductRepository : TenantRepository<Product>, IProductRepository
     public async Task<(IEnumerable<Product> Items, int TotalCount)> GetPagedAsync(
         Guid tenantId, int page, int pageSize,
         Guid? categoryId = null, EntityStatus? status = null,
-        CancellationToken ct = default)
+        string? search = null, CancellationToken ct = default)
     {
         var query = Db.Products
             .Include(p => p.Category)
@@ -61,6 +61,17 @@ public class ProductRepository : TenantRepository<Product>, IProductRepository
         if (status.HasValue)
             query = query.Where(p => p.Status == status.Value);
 
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var term = search.Trim().ToLower();
+            query = query.Where(p =>
+                p.Name.ToLower().Contains(term) ||
+                p.NameBn.Contains(term) ||
+                p.Sku.ToLower().Contains(term) ||
+                p.Barcode.Contains(term) ||
+                (p.Plu != null && p.Plu.Contains(term)));
+        }
+
         var total = await query.CountAsync(ct);
         var items = await query
             .OrderBy(p => p.Name)
@@ -69,6 +80,33 @@ public class ProductRepository : TenantRepository<Product>, IProductRepository
             .ToListAsync(ct);
 
         return (items, total);
+    }
+
+    public async Task<IEnumerable<Product>> GetAllForTenantAsync(
+        Guid tenantId, Guid? categoryId = null, bool includeInactive = false,
+        string? search = null, CancellationToken ct = default)
+    {
+        var query = Db.Products
+            .Include(p => p.Category)
+            .Include(p => p.Manufacturer)
+            .Where(p => p.TenantId == tenantId);
+
+        if (!includeInactive)
+            query = query.Where(p => p.Status == EntityStatus.Active);
+
+        if (categoryId.HasValue)
+            query = query.Where(p => p.CategoryId == categoryId.Value);
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var term = search.Trim().ToLower();
+            query = query.Where(p =>
+                p.Name.ToLower().Contains(term) ||
+                p.Sku.ToLower().Contains(term) ||
+                p.Barcode.Contains(term));
+        }
+
+        return await query.OrderBy(p => p.Name).ToListAsync(ct);
     }
 }
 

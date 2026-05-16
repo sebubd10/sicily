@@ -39,7 +39,10 @@ public record ProductListResponse(
     IEnumerable<ProductResponse> Items,
     int TotalCount,
     int PageNumber,
-    int PageSize);
+    int PageSize)
+{
+    public int TotalPages => PageSize > 0 ? (int)Math.Ceiling((double)TotalCount / PageSize) : 0;
+}
 
 public record CreateProductRequest(
     string Sku,

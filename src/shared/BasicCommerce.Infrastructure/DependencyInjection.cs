@@ -37,6 +37,7 @@ public static class DependencyInjection
         services.AddScoped<ICategoryReportService, CategoryReportService>();
         services.AddScoped<IUserReportService, UserReportService>();
         services.AddScoped<IManufacturerReportService, ManufacturerReportService>();
+        services.AddScoped<IProductReportService, ProductReportService>();
         services.AddScoped<IFileStorageService, LocalFileStorageService>();
         services.AddMemoryCache();
 

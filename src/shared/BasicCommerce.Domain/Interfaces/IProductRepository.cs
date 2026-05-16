@@ -12,7 +12,10 @@ public interface IProductRepository : ITenantRepository<Product>
     Task<IEnumerable<Product>> SearchAsync(Guid tenantId, string term, int limit = 20, CancellationToken ct = default);
     Task<(IEnumerable<Product> Items, int TotalCount)> GetPagedAsync(Guid tenantId,
         int page, int pageSize, Guid? categoryId = null, EntityStatus? status = null,
-        CancellationToken ct = default);
+        string? search = null, CancellationToken ct = default);
+    Task<IEnumerable<Product>> GetAllForTenantAsync(Guid tenantId,
+        Guid? categoryId = null, bool includeInactive = false,
+        string? search = null, CancellationToken ct = default);
 }
 
 public interface IStockLevelRepository : ITenantRepository<StockLevel>
