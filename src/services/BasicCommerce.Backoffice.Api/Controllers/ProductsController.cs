@@ -33,10 +33,11 @@ public class ProductsController : ControllerBase
         [FromQuery] int pageSize = 20,
         [FromQuery] Guid? categoryId = null,
         [FromQuery] EntityStatus? status = null,
+        [FromQuery] string? search = null,
         CancellationToken ct = default)
     {
         var result = await _mediator.Send(
-            new GetProductsQuery(page, pageSize, categoryId, status), ct);
+            new GetProductsQuery(page, pageSize, categoryId, status, search), ct);
         return Ok(ApiResponse<ProductListResponse>.Ok(result));
     }
 
