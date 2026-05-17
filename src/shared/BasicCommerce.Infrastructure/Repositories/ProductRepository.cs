@@ -52,6 +52,68 @@ public class ProductRepository : TenantRepository<Product>, IProductRepository
             .Take(limit)
             .ToListAsync(ct);
 
+    public async Task<(IEnumerable<ProductListProjection> Items, int TotalCount)> GetPagedProjectedAsync(
+        Guid tenantId, int page, int pageSize,
+        Guid? categoryId = null, EntityStatus? status = null,
+        string? search = null, CancellationToken ct = default)
+    {
+        var baseQuery =
+            from p in Db.Products
+            join c in Db.Categories on p.CategoryId equals c.Id
+            join vr in Db.VatRates on p.VatRateId equals vr.Id
+            join m in Db.Manufacturers on p.ManufacturerId equals m.Id into mj
+            from m in mj.DefaultIfEmpty()
+            where p.TenantId == tenantId
+            select new { p, c, vr, m };
+
+        if (categoryId.HasValue)
+            baseQuery = baseQuery.Where(x => x.p.CategoryId == categoryId.Value);
+
+        if (status.HasValue)
+            baseQuery = baseQuery.Where(x => x.p.Status == status.Value);
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var term = search.Trim().ToLower();
+            baseQuery = baseQuery.Where(x =>
+                x.p.Name.ToLower().Contains(term) ||
+                x.p.NameBn.Contains(term) ||
+                x.p.Sku.ToLower().Contains(term) ||
+                x.p.Barcode.Contains(term) ||
+                (x.p.Plu != null && x.p.Plu.Contains(term)));
+        }
+
+        var total = await baseQuery.CountAsync(ct);
+
+        var rawItems = await baseQuery
+            .OrderBy(x => x.p.Name)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(x => new
+            {
+                x.p.Id,
+                x.p.Sku,
+                x.p.Name,
+                x.p.NameBn,
+                CategoryName = x.c.Name,
+                PriceAmount  = x.p.Price.Amount,
+                Currency     = x.p.Price.Currency,
+                VatRate      = x.vr.Rate,
+                x.p.ImageUrl,
+                ManufacturerName = (string?)x.m.Name,
+                x.p.Status,
+            })
+            .ToListAsync(ct);
+
+        var items = rawItems.Select(x => new ProductListProjection(
+            x.Id, x.Sku, x.Name, x.NameBn,
+            x.CategoryName, x.PriceAmount, x.Currency,
+            x.VatRate, x.ImageUrl, x.ManufacturerName,
+            x.Status.ToString()));
+
+        return (items, total);
+    }
+
     public async Task<(IEnumerable<Product> Items, int TotalCount)> GetPagedAsync(
         Guid tenantId, int page, int pageSize,
         Guid? categoryId = null, EntityStatus? status = null,

@@ -35,8 +35,21 @@ public record ProductResponse(
     DateTime CreatedAt,
     DateTime? UpdatedAt);
 
+public record ProductListItemResponse(
+    Guid Id,
+    string Sku,
+    string Name,
+    string NameBn,
+    string CategoryName,
+    decimal Price,
+    string Currency,
+    decimal VatRate,
+    string? ImageUrl,
+    string? ManufacturerName,
+    string Status);
+
 public record ProductListResponse(
-    IEnumerable<ProductResponse> Items,
+    IEnumerable<ProductListItemResponse> Items,
     int TotalCount,
     int PageNumber,
     int PageSize)

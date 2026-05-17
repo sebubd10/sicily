@@ -3,6 +3,19 @@ using BasicCommerce.Domain.Enums;
 
 namespace BasicCommerce.Domain.Interfaces;
 
+public record ProductListProjection(
+    Guid Id,
+    string Sku,
+    string Name,
+    string NameBn,
+    string CategoryName,
+    decimal Price,
+    string Currency,
+    decimal VatRate,
+    string? ImageUrl,
+    string? ManufacturerName,
+    string Status);
+
 public interface IProductRepository : ITenantRepository<Product>
 {
     Task<Product?> GetByBarcodeAsync(Guid tenantId, string barcode, CancellationToken ct = default);
@@ -11,6 +24,10 @@ public interface IProductRepository : ITenantRepository<Product>
     Task<Product?> GetBySkuAsync(Guid tenantId, string sku, CancellationToken ct = default);
     Task<Product?> GetWithTagsAsync(Guid tenantId, Guid id, CancellationToken ct = default);
     Task<IEnumerable<Product>> SearchAsync(Guid tenantId, string term, int limit = 20, CancellationToken ct = default);
+    Task<(IEnumerable<ProductListProjection> Items, int TotalCount)> GetPagedProjectedAsync(
+        Guid tenantId, int page, int pageSize,
+        Guid? categoryId = null, EntityStatus? status = null,
+        string? search = null, CancellationToken ct = default);
     Task<(IEnumerable<Product> Items, int TotalCount)> GetPagedAsync(Guid tenantId,
         int page, int pageSize, Guid? categoryId = null, EntityStatus? status = null,
         string? search = null, CancellationToken ct = default);

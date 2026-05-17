@@ -4,7 +4,7 @@ import {
   AlertCircle, Package, Download, Filter, Image as ImageIcon,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
-import type { Product, ProductFormData } from '../types/product';
+import type { Product, ProductListItem, ProductFormData } from '../types/product';
 import { ProductModal } from '../components/products/ProductModal';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { Pagination } from '../components/ui/Pagination';
@@ -20,8 +20,8 @@ import {
 } from '../hooks/useProducts';
 
 type ConfirmState =
-  | { type: 'deactivate'; product: Product }
-  | { type: 'activate';   product: Product }
+  | { type: 'deactivate'; product: ProductListItem }
+  | { type: 'activate';   product: ProductListItem }
   | null;
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50];
@@ -88,9 +88,9 @@ export default function ProductsPage() {
   }
 
   function openAdd() { setEditId(null); setModalOpen(true); }
-  function openEdit(p: Product) { setEditId(p.id); setModalOpen(true); }
+  function openEdit(p: ProductListItem) { setEditId(p.id); setModalOpen(true); }
 
-  function handleToggleStatus(p: Product) {
+  function handleToggleStatus(p: ProductListItem) {
     setConfirm(p.status === 'Active'
       ? { type: 'deactivate', product: p }
       : { type: 'activate',   product: p });

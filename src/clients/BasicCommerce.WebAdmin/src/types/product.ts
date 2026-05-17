@@ -76,8 +76,22 @@ export type ProductFormData = {
   tagIds: string[];
 };
 
+export type ProductListItem = {
+  id: string;
+  sku: string;
+  name: string;
+  nameBn: string;
+  categoryName: string;
+  price: number;
+  currency: string;
+  vatRate: number;
+  imageUrl: string | null;
+  manufacturerName: string | null;
+  status: ProductStatus;
+};
+
 export type ProductListResponse = {
-  items: Product[];
+  items: ProductListItem[];
   totalCount: number;
   pageNumber: number;
   pageSize: number;

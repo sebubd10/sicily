@@ -1,7 +1,5 @@
-using BasicCommerce.Application.Features.Products;
 using BasicCommerce.Application.Interfaces;
 using BasicCommerce.Contracts.Products;
-using BasicCommerce.Domain.Entities;
 using BasicCommerce.Domain.Enums;
 using BasicCommerce.Domain.Interfaces;
 using MediatR;
@@ -29,20 +27,14 @@ public class GetProductsQueryHandler : IRequestHandler<GetProductsQuery, Product
     public async Task<ProductListResponse> Handle(GetProductsQuery request, CancellationToken ct)
     {
         var tenantId = _currentUser.TenantId;
-        var (items, total) = await _uow.Products.GetPagedAsync(
+        var (items, total) = await _uow.Products.GetPagedProjectedAsync(
             tenantId, request.Page, request.PageSize, request.CategoryId, request.Status,
             request.Search, ct);
 
-        var vatRateIds = items.Select(p => p.VatRateId).Distinct().ToList();
-        var vatRates = new Dictionary<Guid, VatRate>();
-        foreach (var id in vatRateIds)
-        {
-            var vr = await _uow.VatRates.GetByIdAsync(id, ct);
-            if (vr is not null) vatRates[id] = vr;
-        }
-
-        var responses = items.Select(p =>
-            ProductMapper.ToResponse(p, vatRates.GetValueOrDefault(p.VatRateId), p.Category?.Name));
+        var responses = items.Select(i => new ProductListItemResponse(
+            i.Id, i.Sku, i.Name, i.NameBn,
+            i.CategoryName, i.Price, i.Currency,
+            i.VatRate, i.ImageUrl, i.ManufacturerName, i.Status));
 
         return new ProductListResponse(responses, total, request.Page, request.PageSize);
     }
