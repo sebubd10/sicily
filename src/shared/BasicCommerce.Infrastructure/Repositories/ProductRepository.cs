@@ -57,14 +57,23 @@ public class ProductRepository : TenantRepository<Product>, IProductRepository
         Guid? categoryId = null, EntityStatus? status = null,
         string? search = null, CancellationToken ct = default)
     {
-        var baseQuery =
-            from p in Db.Products
-            join c in Db.Categories on p.CategoryId equals c.Id
-            join vr in Db.VatRates on p.VatRateId equals vr.Id
-            join m in Db.Manufacturers on p.ManufacturerId equals m.Id into mj
-            from m in mj.DefaultIfEmpty()
-            where p.TenantId == tenantId
-            select new { p, c, vr, m };
+        var baseQuery = Db.Products
+            .Where(p => p.TenantId == tenantId)
+            .Join(Db.Categories,
+                p  => p.CategoryId,
+                c  => c.Id,
+                (p, c) => new { p, c })
+            .Join(Db.VatRates,
+                x  => x.p.VatRateId,
+                vr => vr.Id,
+                (x, vr) => new { x.p, x.c, vr })
+            .GroupJoin(Db.Manufacturers,
+                x  => x.p.ManufacturerId,
+                m  => m.Id,
+                (x, mj) => new { x.p, x.c, x.vr, mj })
+            .SelectMany(
+                x  => x.mj.DefaultIfEmpty(),
+                (x, m) => new { x.p, x.c, x.vr, m });
 
         if (categoryId.HasValue)
             baseQuery = baseQuery.Where(x => x.p.CategoryId == categoryId.Value);
