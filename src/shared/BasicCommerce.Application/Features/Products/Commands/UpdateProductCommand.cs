@@ -67,6 +67,23 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
         if (product.TenantId != _currentUser.TenantId)
             throw new NotFoundException("Product", request.ProductId);
 
+        var tenantId = _currentUser.TenantId;
+
+        var skuConflict = await _uow.Products.GetBySkuAsync(tenantId, product.Sku, ct);
+        if (skuConflict is not null && skuConflict.Id != request.ProductId)
+            throw new DomainException($"SKU '{product.Sku}' is already in use by another product.");
+
+        var barcodeConflict = await _uow.Products.GetByBarcodeAsync(tenantId, product.Barcode, ct);
+        if (barcodeConflict is not null && barcodeConflict.Id != request.ProductId)
+            throw new DomainException($"Barcode '{product.Barcode}' is already in use by another product.");
+
+        if (!string.IsNullOrWhiteSpace(request.Plu))
+        {
+            var pluConflict = await _uow.Products.GetByPluAsync(tenantId, request.Plu, ct);
+            if (pluConflict is not null && pluConflict.Id != request.ProductId)
+                throw new DomainException($"PLU '{request.Plu}' is already in use by another product.");
+        }
+
         var vatRate = await _uow.VatRates.GetByIdAsync(request.VatRateId, ct)
             ?? throw new NotFoundException("VatRate", request.VatRateId);
 

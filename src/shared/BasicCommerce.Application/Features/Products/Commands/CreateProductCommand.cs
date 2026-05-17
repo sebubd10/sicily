@@ -72,6 +72,10 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
         if (await _uow.Products.GetByBarcodeAsync(tenantId, request.Barcode, ct) is not null)
             throw new DomainException($"Barcode '{request.Barcode}' already exists.");
 
+        if (!string.IsNullOrWhiteSpace(request.Plu) &&
+            await _uow.Products.GetByPluAsync(tenantId, request.Plu, ct) is not null)
+            throw new DomainException($"PLU '{request.Plu}' is already in use.");
+
         var vatRate = await _uow.VatRates.GetByIdAsync(request.VatRateId, ct)
             ?? throw new NotFoundException("VatRate", request.VatRateId);
 
