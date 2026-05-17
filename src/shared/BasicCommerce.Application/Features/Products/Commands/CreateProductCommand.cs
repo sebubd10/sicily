@@ -29,7 +29,10 @@ public record CreateProductCommand(
     string? Description = null,
     string? UnitLabel = null,
     Guid? ManufacturerId = null,
-    IEnumerable<Guid>? TagIds = null) : IRequest<ProductResponse>;
+    IEnumerable<Guid>? TagIds = null,
+    bool IsEbtEligible = false,
+    bool TrackInventory = true,
+    int ReorderLevel = 0) : IRequest<ProductResponse>;
 
 public class CreateProductCommandValidator : AbstractValidator<CreateProductCommand>
 {
@@ -77,21 +80,23 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
             : UnitType.Each;
 
         var price = new Money(request.Price);
+        var costPrice = request.CostPrice.HasValue ? new Money(request.CostPrice.Value) : null;
         var product = Product.Create(tenantId, request.Sku, request.Barcode,
             request.Name, request.NameBn, request.CategoryId, price,
             request.VatRateId, unitType, request.IsWeightBased);
 
-        if (!string.IsNullOrWhiteSpace(request.Plu))
-            product.SetPlu(request.Plu);
+        product.UpdateDetails(
+            request.Name, request.NameBn, request.Description,
+            request.CategoryId, request.VatRateId,
+            unitType, request.UnitLabel, request.IsWeightBased,
+            request.IsEbtEligible, request.TrackInventory,
+            request.ReorderLevel, null, costPrice,
+            request.ManufacturerId, request.IsPerishable);
 
-        if (request.IsPerishable)
-            product.SetPerishable(true);
+        product.SetPlu(request.Plu);
 
         if (request.IsAgeRestricted && request.AgeRestrictionYears.HasValue)
             product.SetAgeRestriction(request.AgeRestrictionYears.Value);
-
-        if (request.ManufacturerId.HasValue)
-            product.SetManufacturer(request.ManufacturerId.Value);
 
         await _uow.Products.AddAsync(product, ct);
 

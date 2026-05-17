@@ -70,9 +70,10 @@ function toPayload(form: ProductFormData, isCreate: boolean) {
     costPrice: form.costPrice ? parseFloat(form.costPrice) : null,
     manufacturerId: form.manufacturerId || null,
     tagIds: form.tagIds,
+    plu: form.plu || null,
   };
   if (isCreate) {
-    return { ...base, sku: form.sku, barcode: form.barcode, plu: form.plu || null };
+    return { ...base, sku: form.sku, barcode: form.barcode };
   }
   return base;
 }

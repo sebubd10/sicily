@@ -16,6 +16,7 @@ public record UpdateProductCommand(
     string NameBn,
     string? Description,
     Guid CategoryId,
+    decimal Price,
     Guid VatRateId,
     string UnitType,
     string? UnitLabel,
@@ -29,7 +30,8 @@ public record UpdateProductCommand(
     string? ImageUrl,
     decimal? CostPrice,
     Guid? ManufacturerId = null,
-    IEnumerable<Guid>? TagIds = null) : IRequest<ProductResponse>;
+    IEnumerable<Guid>? TagIds = null,
+    string? Plu = null) : IRequest<ProductResponse>;
 
 public class UpdateProductCommandValidator : AbstractValidator<UpdateProductCommand>
 {
@@ -80,6 +82,9 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
             request.IsEbtEligible, request.TrackInventory,
             request.ReorderLevel, request.ImageUrl, costPrice,
             request.ManufacturerId, request.IsPerishable);
+
+        product.UpdatePrice(new Money(request.Price));
+        product.SetPlu(request.Plu);
 
         if (request.IsAgeRestricted && request.AgeRestrictionYears.HasValue)
             product.SetAgeRestriction(request.AgeRestrictionYears.Value);

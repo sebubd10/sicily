@@ -62,13 +62,17 @@ public record CreateProductRequest(
     string? Description = null,
     string? UnitLabel = null,
     Guid? ManufacturerId = null,
-    IEnumerable<Guid>? TagIds = null);
+    IEnumerable<Guid>? TagIds = null,
+    bool IsEbtEligible = false,
+    bool TrackInventory = true,
+    int ReorderLevel = 0);
 
 public record UpdateProductRequest(
     string Name,
     string NameBn,
     string? Description,
     Guid CategoryId,
+    decimal Price,
     Guid VatRateId,
     string UnitType,
     string? UnitLabel,
@@ -82,7 +86,8 @@ public record UpdateProductRequest(
     string? ImageUrl,
     decimal? CostPrice,
     Guid? ManufacturerId = null,
-    IEnumerable<Guid>? TagIds = null);
+    IEnumerable<Guid>? TagIds = null,
+    string? Plu = null);
 
 public record SetProductTagsRequest(IEnumerable<Guid> TagIds);
 

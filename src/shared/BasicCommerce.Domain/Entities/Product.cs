@@ -92,7 +92,7 @@ public class Product : TenantEntity
         ReorderLevel = reorderLevel;
         ImageUrl = imageUrl;
         ManufacturerId = manufacturerId;
-        if (costPrice is not null) CostPrice = costPrice;
+        CostPrice = costPrice;
         UpdatedAt = DateTime.UtcNow;
     }
 
@@ -116,7 +116,7 @@ public class Product : TenantEntity
         UpdatedAt = DateTime.UtcNow;
     }
 
-    public void SetPlu(string plu) => Plu = plu;
+    public void SetPlu(string? plu) => Plu = string.IsNullOrWhiteSpace(plu) ? null : plu;
     public void SetManufacturer(Guid? manufacturerId) { ManufacturerId = manufacturerId; UpdatedAt = DateTime.UtcNow; }
     public void SetPerishable(bool isPerishable) { IsPerishable = isPerishable; UpdatedAt = DateTime.UtcNow; }
 

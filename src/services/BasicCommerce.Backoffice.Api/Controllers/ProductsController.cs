@@ -89,7 +89,10 @@ public class ProductsController : ControllerBase
             request.Description,
             request.UnitLabel,
             request.ManufacturerId,
-            request.TagIds), ct);
+            request.TagIds,
+            request.IsEbtEligible,
+            request.TrackInventory,
+            request.ReorderLevel), ct);
         return CreatedAtAction(nameof(GetById), new { id = result.Id },
             ApiResponse<ProductResponse>.Ok(result));
     }
@@ -105,6 +108,7 @@ public class ProductsController : ControllerBase
             request.NameBn,
             request.Description,
             request.CategoryId,
+            request.Price,
             request.VatRateId,
             request.UnitType,
             request.UnitLabel,
@@ -118,7 +122,8 @@ public class ProductsController : ControllerBase
             request.ImageUrl,
             request.CostPrice,
             request.ManufacturerId,
-            request.TagIds), ct);
+            request.TagIds,
+            request.Plu), ct);
         return Ok(ApiResponse<ProductResponse>.Ok(result));
     }
 
