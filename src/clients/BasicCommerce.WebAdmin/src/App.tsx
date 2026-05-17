@@ -12,6 +12,7 @@ import PermissionsPage from './pages/PermissionsPage';
 import WarehousesPage from './pages/WarehousesPage';
 import ManufacturersPage from './pages/ManufacturersPage';
 import ProductsPage from './pages/ProductsPage';
+import ProductTagsPage from './pages/ProductTagsPage';
 import PlaceholderPage from './pages/PlaceholderPage';
 import { useThemeStore } from './store/themeStore';
 
@@ -38,7 +39,7 @@ export default function App() {
             <Route path="products" element={<ProductsPage />} />
             <Route path="products/categories" element={<CategoriesPage />} />
             <Route path="products/manufacturers" element={<ManufacturersPage />} />
-            <Route path="products/tags" element={<PlaceholderPage title="Product Tags" />} />
+            <Route path="products/tags" element={<ProductTagsPage />} />
 
             {/* Inventory */}
             <Route path="inventory/stock" element={<PlaceholderPage title="Stock Levels" />} />
