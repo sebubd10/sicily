@@ -57,61 +57,59 @@ public class ProductRepository : TenantRepository<Product>, IProductRepository
         Guid? categoryId = null, EntityStatus? status = null,
         string? search = null, CancellationToken ct = default)
     {
-        var baseQuery = Db.Products
-            .Where(p => p.TenantId == tenantId)
-            .Join(Db.Categories,
-                p  => p.CategoryId,
-                c  => c.Id,
-                (p, c) => new { p, c })
-            .Join(Db.VatRates,
-                x  => x.p.VatRateId,
-                vr => vr.Id,
-                (x, vr) => new { x.p, x.c, vr })
-            .GroupJoin(Db.Manufacturers,
-                x  => x.p.ManufacturerId,
-                m  => m.Id,
-                (x, mj) => new { x.p, x.c, x.vr, mj })
-            .SelectMany(
-                x  => x.mj.DefaultIfEmpty(),
-                (x, m) => new { x.p, x.c, x.vr, m });
+        var productsQuery = Db.Products.Where(p => p.TenantId == tenantId);
 
         if (categoryId.HasValue)
-            baseQuery = baseQuery.Where(x => x.p.CategoryId == categoryId.Value);
+            productsQuery = productsQuery.Where(p => p.CategoryId == categoryId.Value);
 
         if (status.HasValue)
-            baseQuery = baseQuery.Where(x => x.p.Status == status.Value);
+            productsQuery = productsQuery.Where(p => p.Status == status.Value);
 
         if (!string.IsNullOrWhiteSpace(search))
         {
             var term = search.Trim().ToLower();
-            baseQuery = baseQuery.Where(x =>
-                x.p.Name.ToLower().Contains(term) ||
-                x.p.NameBn.Contains(term) ||
-                x.p.Sku.ToLower().Contains(term) ||
-                x.p.Barcode.Contains(term) ||
-                (x.p.Plu != null && x.p.Plu.Contains(term)));
+            productsQuery = productsQuery.Where(p =>
+                p.Name.ToLower().Contains(term) ||
+                p.NameBn.Contains(term)         ||
+                p.Sku.ToLower().Contains(term)  ||
+                p.Barcode.Contains(term)         ||
+                (p.Plu != null && p.Plu.Contains(term)));
         }
 
-        var total = await baseQuery.CountAsync(ct);
+        var total = await productsQuery.CountAsync(ct);
 
-        var rawItems = await baseQuery
-            .OrderBy(x => x.p.Name)
+        var rawItems = await productsQuery
+            .OrderBy(p => p.Name)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(x => new
-            {
-                x.p.Id,
-                x.p.Sku,
-                x.p.Name,
-                x.p.NameBn,
-                CategoryName = x.c.Name,
-                PriceAmount  = x.p.Price.Amount,
-                Currency     = x.p.Price.Currency,
-                VatRate      = x.vr.Rate,
-                x.p.ImageUrl,
-                ManufacturerName = (string?)x.m.Name,
-                x.p.Status,
-            })
+            .Join(Db.Categories,
+                p  => p.CategoryId,
+                c  => c.Id,
+                (p, c) => new { p, CategoryName = c.Name })
+            .Join(Db.VatRates,
+                x  => x.p.VatRateId,
+                vr => vr.Id,
+                (x, vr) => new { x.p, x.CategoryName, VatRate = vr.Rate })
+            .GroupJoin(Db.Manufacturers,
+                x  => x.p.ManufacturerId,
+                m  => m.Id,
+                (x, mj) => new { x.p, x.CategoryName, x.VatRate, mj })
+            .SelectMany(
+                x  => x.mj.DefaultIfEmpty(),
+                (x, m) => new
+                {
+                    x.p.Id,
+                    x.p.Sku,
+                    x.p.Name,
+                    x.p.NameBn,
+                    x.CategoryName,
+                    PriceAmount      = x.p.Price.Amount,
+                    Currency         = x.p.Price.Currency,
+                    x.VatRate,
+                    x.p.ImageUrl,
+                    ManufacturerName = (string?)m.Name,
+                    x.p.Status,
+                })
             .ToListAsync(ct);
 
         var items = rawItems.Select(x => new ProductListProjection(
