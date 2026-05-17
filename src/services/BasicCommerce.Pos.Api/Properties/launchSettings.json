@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "BasicCommerce.Pos.Api": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:14905;http://localhost:14906"
+    }
+  }
+}

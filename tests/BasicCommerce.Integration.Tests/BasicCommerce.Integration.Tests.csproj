@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="xunit" Version="2.7.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.7">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="FluentAssertions" Version="6.12.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.0" />
+    <PackageReference Include="Testcontainers" Version="3.7.0" />
+    <PackageReference Include="Testcontainers.PostgreSql" Version="3.7.0" />
+    <PackageReference Include="Testcontainers.MsSql" Version="3.7.0" />
+    <PackageReference Include="Testcontainers.MySql" Version="3.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\services\BasicCommerce.Pos.Api\BasicCommerce.Pos.Api.csproj" />
+    <ProjectReference Include="..\..\src\services\BasicCommerce.Backoffice.Api\BasicCommerce.Backoffice.Api.csproj" />
+  </ItemGroup>
+
+</Project>

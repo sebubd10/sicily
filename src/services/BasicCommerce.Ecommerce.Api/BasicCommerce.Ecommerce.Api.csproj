@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>BasicCommerce.Ecommerce.Api</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\shared\BasicCommerce.Application\BasicCommerce.Application.csproj" />
+    <ProjectReference Include="..\..\shared\BasicCommerce.Infrastructure\BasicCommerce.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\shared\BasicCommerce.Contracts\BasicCommerce.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>
