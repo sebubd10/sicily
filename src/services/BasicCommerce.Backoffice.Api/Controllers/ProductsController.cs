@@ -104,6 +104,8 @@ public class ProductsController : ControllerBase
     {
         var result = await _mediator.Send(new UpdateProductCommand(
             id,
+            request.Sku,
+            request.Barcode,
             request.Name,
             request.NameBn,
             request.Description,

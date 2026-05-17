@@ -50,6 +50,8 @@ export async function deactivateProduct(id: string): Promise<void> {
 
 function toPayload(form: ProductFormData, isCreate: boolean) {
   const base = {
+    sku: form.sku.toUpperCase(),
+    barcode: form.barcode,
     name: form.name,
     nameBn: form.nameBn,
     description: form.description || null,
@@ -72,9 +74,6 @@ function toPayload(form: ProductFormData, isCreate: boolean) {
     tagIds: form.tagIds,
     plu: form.plu || null,
   };
-  if (isCreate) {
-    return { ...base, sku: form.sku, barcode: form.barcode };
-  }
   return base;
 }
 

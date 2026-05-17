@@ -12,6 +12,8 @@ namespace BasicCommerce.Application.Features.Products.Commands;
 
 public record UpdateProductCommand(
     Guid ProductId,
+    string Sku,
+    string Barcode,
     string Name,
     string NameBn,
     string? Description,
@@ -38,6 +40,8 @@ public class UpdateProductCommandValidator : AbstractValidator<UpdateProductComm
     public UpdateProductCommandValidator()
     {
         RuleFor(x => x.ProductId).NotEmpty();
+        RuleFor(x => x.Sku).NotEmpty().MaximumLength(50);
+        RuleFor(x => x.Barcode).NotEmpty().MaximumLength(100);
         RuleFor(x => x.Name).NotEmpty().MaximumLength(200);
         RuleFor(x => x.NameBn).NotEmpty().MaximumLength(200);
         RuleFor(x => x.CategoryId).NotEmpty();
@@ -69,6 +73,14 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
 
         var tenantId = _currentUser.TenantId;
 
+        var skuConflict = await _uow.Products.GetBySkuAsync(tenantId, request.Sku, ct);
+        if (skuConflict is not null && skuConflict.Id != request.ProductId)
+            throw new DomainException($"SKU '{request.Sku}' is already in use by another product.");
+
+        var barcodeConflict = await _uow.Products.GetByBarcodeAsync(tenantId, request.Barcode, ct);
+        if (barcodeConflict is not null && barcodeConflict.Id != request.ProductId)
+            throw new DomainException($"Barcode '{request.Barcode}' is already in use by another product.");
+
         var nameConflict = await _uow.Products.GetByNameAsync(tenantId, request.Name, ct);
         if (nameConflict is not null && nameConflict.Id != request.ProductId)
             throw new DomainException($"A product named '{request.Name}' already exists.");
@@ -97,6 +109,8 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
             request.ManufacturerId, request.IsPerishable);
 
         product.UpdatePrice(new Money(request.Price));
+        product.UpdateSku(request.Sku);
+        product.UpdateBarcode(request.Barcode);
         product.SetPlu(request.Plu);
 
         if (request.IsAgeRestricted && request.AgeRestrictionYears.HasValue)

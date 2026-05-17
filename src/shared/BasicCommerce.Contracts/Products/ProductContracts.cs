@@ -68,6 +68,8 @@ public record CreateProductRequest(
     int ReorderLevel = 0);
 
 public record UpdateProductRequest(
+    string Sku,
+    string Barcode,
     string Name,
     string NameBn,
     string? Description,

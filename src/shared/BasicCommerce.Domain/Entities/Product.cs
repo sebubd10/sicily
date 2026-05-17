@@ -117,6 +117,8 @@ public class Product : TenantEntity
     }
 
     public void SetPlu(string? plu) => Plu = string.IsNullOrWhiteSpace(plu) ? null : plu;
+    public void UpdateSku(string sku) { Sku = sku.ToUpperInvariant(); UpdatedAt = DateTime.UtcNow; }
+    public void UpdateBarcode(string barcode) { Barcode = barcode; UpdatedAt = DateTime.UtcNow; }
     public void SetManufacturer(Guid? manufacturerId) { ManufacturerId = manufacturerId; UpdatedAt = DateTime.UtcNow; }
     public void SetPerishable(bool isPerishable) { IsPerishable = isPerishable; UpdatedAt = DateTime.UtcNow; }
 

@@ -82,8 +82,8 @@ export function ProductModal({ open, product, onSave, onClose, isSaving }: Props
     const e: Partial<Record<keyof ProductFormData, string>> = {};
     if (!form.name.trim()) e.name = 'Name is required.';
     if (!form.nameBn.trim()) e.nameBn = 'Bengali name is required.';
-    if (!isEdit && !form.sku.trim()) e.sku = 'SKU is required.';
-    if (!isEdit && !form.barcode.trim()) e.barcode = 'Barcode is required.';
+    if (!form.sku.trim()) e.sku = 'SKU is required.';
+    if (!form.barcode.trim()) e.barcode = 'Barcode is required.';
     if (!form.categoryId) e.categoryId = 'Category is required.';
     if (!form.vatRateId) e.vatRateId = 'VAT rate is required.';
     const price = parseFloat(form.price);
@@ -193,29 +193,29 @@ export function ProductModal({ open, product, onSave, onClose, isSaving }: Props
                   <div className="grid grid-cols-3 gap-3">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        SKU {!isEdit && <span className="text-red-500">*</span>}
+                        SKU <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
                         value={form.sku}
                         onChange={(e) => set('sku', e.target.value.toUpperCase())}
                         placeholder="SKU-001"
-                        disabled={isSaving || isEdit}
-                        className={cn(inputCls(errors.sku), isEdit && 'opacity-60 cursor-not-allowed')}
+                        disabled={isSaving}
+                        className={inputCls(errors.sku)}
                       />
                       {errors.sku && <p className="mt-1 text-xs text-red-500">{errors.sku}</p>}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Barcode {!isEdit && <span className="text-red-500">*</span>}
+                        Barcode <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
                         value={form.barcode}
                         onChange={(e) => set('barcode', e.target.value)}
                         placeholder="1234567890"
-                        disabled={isSaving || isEdit}
-                        className={cn(inputCls(errors.barcode), isEdit && 'opacity-60 cursor-not-allowed')}
+                        disabled={isSaving}
+                        className={inputCls(errors.barcode)}
                       />
                       {errors.barcode && <p className="mt-1 text-xs text-red-500">{errors.barcode}</p>}
                     </div>
