@@ -72,6 +72,9 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
         if (await _uow.Products.GetByBarcodeAsync(tenantId, request.Barcode, ct) is not null)
             throw new DomainException($"Barcode '{request.Barcode}' already exists.");
 
+        if (await _uow.Products.GetByNameAsync(tenantId, request.Name, ct) is not null)
+            throw new DomainException($"A product named '{request.Name}' already exists.");
+
         if (!string.IsNullOrWhiteSpace(request.Plu) &&
             await _uow.Products.GetByPluAsync(tenantId, request.Plu, ct) is not null)
             throw new DomainException($"PLU '{request.Plu}' is already in use.");

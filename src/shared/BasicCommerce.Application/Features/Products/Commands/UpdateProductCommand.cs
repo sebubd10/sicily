@@ -69,13 +69,9 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
 
         var tenantId = _currentUser.TenantId;
 
-        var skuConflict = await _uow.Products.GetBySkuAsync(tenantId, product.Sku, ct);
-        if (skuConflict is not null && skuConflict.Id != request.ProductId)
-            throw new DomainException($"SKU '{product.Sku}' is already in use by another product.");
-
-        var barcodeConflict = await _uow.Products.GetByBarcodeAsync(tenantId, product.Barcode, ct);
-        if (barcodeConflict is not null && barcodeConflict.Id != request.ProductId)
-            throw new DomainException($"Barcode '{product.Barcode}' is already in use by another product.");
+        var nameConflict = await _uow.Products.GetByNameAsync(tenantId, request.Name, ct);
+        if (nameConflict is not null && nameConflict.Id != request.ProductId)
+            throw new DomainException($"A product named '{request.Name}' already exists.");
 
         if (!string.IsNullOrWhiteSpace(request.Plu))
         {

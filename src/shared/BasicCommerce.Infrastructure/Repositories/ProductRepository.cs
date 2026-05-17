@@ -17,6 +17,12 @@ public class ProductRepository : TenantRepository<Product>, IProductRepository
             .FirstOrDefaultAsync(
                 p => p.TenantId == tenantId && p.Barcode == barcode && p.Status == EntityStatus.Active, ct);
 
+    public async Task<Product?> GetByNameAsync(Guid tenantId, string name,
+        CancellationToken ct = default) =>
+        await Db.Products
+            .FirstOrDefaultAsync(
+                p => p.TenantId == tenantId && p.Name.ToLower() == name.ToLower() && p.Status == EntityStatus.Active, ct);
+
     public async Task<Product?> GetByPluAsync(Guid tenantId, string plu,
         CancellationToken ct = default) =>
         await Db.Products

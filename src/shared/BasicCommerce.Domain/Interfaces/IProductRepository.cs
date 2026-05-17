@@ -6,6 +6,7 @@ namespace BasicCommerce.Domain.Interfaces;
 public interface IProductRepository : ITenantRepository<Product>
 {
     Task<Product?> GetByBarcodeAsync(Guid tenantId, string barcode, CancellationToken ct = default);
+    Task<Product?> GetByNameAsync(Guid tenantId, string name, CancellationToken ct = default);
     Task<Product?> GetByPluAsync(Guid tenantId, string plu, CancellationToken ct = default);
     Task<Product?> GetBySkuAsync(Guid tenantId, string sku, CancellationToken ct = default);
     Task<Product?> GetWithTagsAsync(Guid tenantId, Guid id, CancellationToken ct = default);
