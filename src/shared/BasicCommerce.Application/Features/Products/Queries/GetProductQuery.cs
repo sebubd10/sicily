@@ -30,6 +30,9 @@ public class GetProductQueryHandler : IRequestHandler<GetProductQuery, ProductRe
 
         var vatRate = await _uow.VatRates.GetByIdAsync(product.VatRateId, ct);
         var category = await _uow.Categories.GetByIdAsync(product.CategoryId, ct);
-        return ProductMapper.ToResponse(product, vatRate, category?.Name);
+        var manufacturer = product.ManufacturerId.HasValue
+            ? await _uow.Manufacturers.GetByIdAsync(product.ManufacturerId.Value, ct)
+            : null;
+        return ProductMapper.ToResponse(product, vatRate, category?.Name, manufacturer?.Name);
     }
 }

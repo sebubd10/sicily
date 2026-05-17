@@ -59,6 +59,7 @@ public class ProductRepository : TenantRepository<Product>, IProductRepository
     {
         var query = Db.Products
             .Include(p => p.Category)
+            .Include(p => p.Manufacturer)
             .Where(p => p.TenantId == tenantId);
 
         if (categoryId.HasValue)
