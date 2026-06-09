@@ -162,6 +162,10 @@ export function ProductModal({ open, product, onSave, onClose, isSaving }: Props
             </Dialog.Close>
           </div>
 
+          <Dialog.Description className="sr-only">
+            {isEdit ? `Edit product ${product?.sku}` : 'Add a new product'}
+          </Dialog.Description>
+
           {/* Tabs */}
           <div className="flex border-b border-gray-200 dark:border-gray-700 px-6 bg-gray-50 dark:bg-gray-800/50">
             {tabs.map((t) => (
@@ -183,7 +187,26 @@ export function ProductModal({ open, product, onSave, onClose, isSaving }: Props
             ))}
           </div>
 
+          {/* ── Images tab rendered outside <form> to avoid nested-form error ── */}
+          {tab === 'images' && product && (
+            <>
+              <div className="px-6 py-5 max-h-[58vh] overflow-y-auto">
+                <ProductImageManager productId={product.id} />
+              </div>
+              <div className="flex justify-end px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                >
+                  Done
+                </button>
+              </div>
+            </>
+          )}
+
           <form onSubmit={handleSubmit} noValidate>
+            {tab !== 'images' && (
             <div className="px-6 py-5 max-h-[58vh] overflow-y-auto">
 
               {/* ── Tab: Basic Info ─────────────────────────────────────────── */}
@@ -536,11 +559,8 @@ export function ProductModal({ open, product, onSave, onClose, isSaving }: Props
                 </div>
               )}
 
-              {/* ── Tab: Images ─────────────────────────────────────────────── */}
-              {tab === 'images' && product && (
-                <ProductImageManager productId={product.id} />
-              )}
             </div>
+            )}
 
             {tab !== 'images' && (
               <div className="flex justify-between items-center px-6 py-4 border-t border-gray-200 dark:border-gray-700">
@@ -587,17 +607,6 @@ export function ProductModal({ open, product, onSave, onClose, isSaving }: Props
               </div>
             )}
 
-            {tab === 'images' && (
-              <div className="flex justify-end px-6 py-4 border-t border-gray-200 dark:border-gray-700">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                >
-                  Done
-                </button>
-              </div>
-            )}
           </form>
         </Dialog.Content>
       </Dialog.Portal>

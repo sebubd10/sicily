@@ -22,11 +22,9 @@ public class GetProductQueryHandler : IRequestHandler<GetProductQuery, ProductRe
 
     public async Task<ProductResponse> Handle(GetProductQuery request, CancellationToken ct)
     {
-        var product = await _uow.Products.GetByIdAsync(request.ProductId, ct)
+        var tenantId = _currentUser.TenantId;
+        var product = await _uow.Products.GetWithTagsAsync(tenantId, request.ProductId, ct)
             ?? throw new NotFoundException("Product", request.ProductId);
-
-        if (product.TenantId != _currentUser.TenantId)
-            throw new NotFoundException("Product", request.ProductId);
 
         var vatRate = await _uow.VatRates.GetByIdAsync(product.VatRateId, ct);
         var category = await _uow.Categories.GetByIdAsync(product.CategoryId, ct);
