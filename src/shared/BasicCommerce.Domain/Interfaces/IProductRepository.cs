@@ -34,6 +34,7 @@ public interface IProductRepository : ITenantRepository<Product>
     Task<IEnumerable<Product>> GetAllForTenantAsync(Guid tenantId,
         Guid? categoryId = null, bool includeInactive = false,
         string? search = null, CancellationToken ct = default);
+    Task<int> CountByCategoryAsync(Guid tenantId, Guid categoryId, CancellationToken ct = default);
 }
 
 public interface IStockLevelRepository : ITenantRepository<StockLevel>

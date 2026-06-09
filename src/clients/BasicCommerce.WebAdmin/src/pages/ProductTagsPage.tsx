@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Search, Plus, Pencil, Trash2, Tag, Loader2, AlertCircle } from 'lucide-react';
-import { cn } from '../lib/utils';
+import { cn, extractApiError } from '../lib/utils';
 import type { TagDetail, TagFormData } from '../types/tag';
 import { TagModal } from '../components/tags/TagModal';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
@@ -27,6 +27,7 @@ export default function ProductTagsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editId, setEditId]       = useState<string | null>(null);
   const [confirm, setConfirm]     = useState<ConfirmState>(null);
+  const [confirmError, setConfirmError] = useState<string | null>(null);
 
   const { data: editTag, isFetching: isFetchingEdit } = useTagDetail(editId);
 
@@ -70,8 +71,13 @@ export default function ProductTagsPage() {
 
   async function executeConfirm() {
     if (!confirm) return;
-    await deleteMutation.mutateAsync(confirm.tag.id);
-    setConfirm(null);
+    try {
+      setConfirmError(null);
+      await deleteMutation.mutateAsync(confirm.tag.id);
+      setConfirm(null);
+    } catch (err) {
+      setConfirmError(extractApiError(err));
+    }
   }
 
   const rows     = data?.items ?? [];
@@ -290,8 +296,9 @@ export default function ProductTagsPage() {
           confirmLabel="Delete"
           variant="danger"
           loading={deleteMutation.isPending}
+          error={confirmError}
           onConfirm={executeConfirm}
-          onClose={() => setConfirm(null)}
+          onClose={() => { setConfirm(null); setConfirmError(null); }}
         />
       )}
     </div>

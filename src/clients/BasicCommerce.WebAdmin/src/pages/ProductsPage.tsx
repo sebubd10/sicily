@@ -3,7 +3,7 @@ import {
   Search, Plus, Pencil, PowerOff, Power, Loader2,
   AlertCircle, Package, Download, Filter, Image as ImageIcon,
 } from 'lucide-react';
-import { cn } from '../lib/utils';
+import { cn, extractApiError } from '../lib/utils';
 import type { Product, ProductListItem, ProductFormData } from '../types/product';
 import { ProductModal } from '../components/products/ProductModal';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
@@ -39,6 +39,7 @@ export default function ProductsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editId, setEditId]       = useState<string | null>(null);
   const [confirm, setConfirm]     = useState<ConfirmState>(null);
+  const [confirmError, setConfirmError] = useState<string | null>(null);
 
   const params = useMemo(() => ({
     page,
@@ -108,9 +109,14 @@ export default function ProductsPage() {
 
   async function executeConfirm() {
     if (!confirm) return;
-    if (confirm.type === 'deactivate') await deactivateMutation.mutateAsync(confirm.product.id);
-    if (confirm.type === 'activate')   await activateMutation.mutateAsync(confirm.product.id);
-    setConfirm(null);
+    try {
+      setConfirmError(null);
+      if (confirm.type === 'deactivate') await deactivateMutation.mutateAsync(confirm.product.id);
+      if (confirm.type === 'activate')   await activateMutation.mutateAsync(confirm.product.id);
+      setConfirm(null);
+    } catch (err) {
+      setConfirmError(extractApiError(err));
+    }
   }
 
   async function handleExportPdf() {
@@ -408,8 +414,9 @@ export default function ProductsPage() {
           confirmLabel={confirmProps.confirmLabel}
           variant={confirmProps.variant}
           loading={isMutating}
+          error={confirmError}
           onConfirm={executeConfirm}
-          onClose={() => setConfirm(null)}
+          onClose={() => { setConfirm(null); setConfirmError(null); }}
         />
       )}
     </div>

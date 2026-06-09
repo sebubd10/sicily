@@ -3,7 +3,7 @@ import {
   ShieldCheck, Plus, Pencil, Trash2, Key, LayoutDashboard,
   AlertCircle, Loader2,
 } from 'lucide-react';
-import { cn } from '../lib/utils';
+import { cn, extractApiError } from '../lib/utils';
 import type { UserType, UserTypeFormData } from '../types/userType';
 import { UserTypeModal } from '../components/userTypes/UserTypeModal';
 import { ManagePermissionsModal } from '../components/userTypes/ManagePermissionsModal';
@@ -29,6 +29,7 @@ export default function UserTypesPage() {
   const [permTarget, setPermTarget]     = useState<PermissionTarget | null>(null);
   const [menuTarget, setMenuTarget]     = useState<MenuTarget | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<UserType | null>(null);
+  const [deleteError, setDeleteError]   = useState<string | null>(null);
 
   const { data: userTypes = [], isLoading, isError } = useUserTypes();
   const { data: allPermissions = [] } = useApiPermissions();
@@ -69,8 +70,13 @@ export default function UserTypesPage() {
 
   async function handleDeleteConfirm() {
     if (!deleteTarget) return;
-    await deleteMutation.mutateAsync(deleteTarget.id);
-    setDeleteTarget(null);
+    try {
+      setDeleteError(null);
+      await deleteMutation.mutateAsync(deleteTarget.id);
+      setDeleteTarget(null);
+    } catch (err) {
+      setDeleteError(extractApiError(err));
+    }
   }
 
   async function handleSavePermissions(codes: string[]) {
@@ -301,8 +307,9 @@ export default function UserTypesPage() {
         confirmLabel="Delete"
         variant="danger"
         loading={deleteMutation.isPending}
+        error={deleteError}
         onConfirm={handleDeleteConfirm}
-        onClose={() => setDeleteTarget(null)}
+        onClose={() => { setDeleteTarget(null); setDeleteError(null); }}
       />
     </div>
   );

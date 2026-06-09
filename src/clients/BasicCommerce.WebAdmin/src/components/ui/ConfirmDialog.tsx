@@ -11,6 +11,7 @@ type Props = {
   confirmLabel?: string;
   variant?: Variant;
   loading?: boolean;
+  error?: string | null;
   onConfirm: () => void;
   onClose: () => void;
 };
@@ -35,6 +36,7 @@ export function ConfirmDialog({
   confirmLabel = 'Confirm',
   variant = 'danger',
   loading = false,
+  error,
   onConfirm,
   onClose,
 }: Props) {
@@ -79,6 +81,14 @@ export function ConfirmDialog({
               </Dialog.Description>
             </div>
           </div>
+
+          {/* Blocked-action error */}
+          {error && (
+            <div className="mt-4 flex items-start gap-2 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 px-3 py-2.5">
+              <AlertTriangle className="w-4 h-4 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-red-700 dark:text-red-300">{error}</p>
+            </div>
+          )}
 
           {/* Actions */}
           <div className="mt-6 flex justify-end gap-3">

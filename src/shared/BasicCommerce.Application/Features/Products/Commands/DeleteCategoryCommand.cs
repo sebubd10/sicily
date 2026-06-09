@@ -27,6 +27,16 @@ public class DeleteCategoryCommandHandler : IRequestHandler<DeleteCategoryComman
         if (category.TenantId != tenantId)
             throw new NotFoundException("Category", request.CategoryId);
 
+        var children = await _uow.Categories.GetChildrenAsync(tenantId, category.Id, ct);
+        if (children.Any())
+            throw new DomainException(
+                $"Cannot delete: this category has {children.Count()} sub-categor{(children.Count() == 1 ? "y" : "ies")}. Delete or move them first.");
+
+        var productCount = await _uow.Products.CountByCategoryAsync(tenantId, category.Id, ct);
+        if (productCount > 0)
+            throw new DomainException(
+                $"Cannot delete: {productCount} product{(productCount == 1 ? " is" : "s are")} assigned to this category. Reassign or deactivate them first.");
+
         _uow.Categories.Remove(category);
         await _uow.SaveChangesAsync(ct);
     }

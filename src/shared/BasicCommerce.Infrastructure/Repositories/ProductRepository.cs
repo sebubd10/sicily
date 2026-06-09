@@ -160,6 +160,10 @@ public class ProductRepository : TenantRepository<Product>, IProductRepository
         return (items, total);
     }
 
+    public async Task<int> CountByCategoryAsync(Guid tenantId, Guid categoryId,
+        CancellationToken ct = default) =>
+        await Db.Products.CountAsync(p => p.TenantId == tenantId && p.CategoryId == categoryId, ct);
+
     public async Task<IEnumerable<Product>> GetAllForTenantAsync(
         Guid tenantId, Guid? categoryId = null, bool includeInactive = false,
         string? search = null, CancellationToken ct = default)

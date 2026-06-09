@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Search, Plus, Pencil, PowerOff, Layers, Trash2, Power, Loader2, AlertCircle, Download } from 'lucide-react';
 import { exportCategoriesPdf } from '../api/categoriesApi';
-import { cn } from '../lib/utils';
+import { cn, extractApiError } from '../lib/utils';
 import type { Category, CategoryFormData } from '../types/category';
 import { CategoryModal } from '../components/categories/CategoryModal';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
@@ -36,6 +36,7 @@ export default function CategoriesPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editId, setEditId]       = useState<string | null>(null);  // null = add mode
   const [confirm, setConfirm]     = useState<ConfirmState>(null);
+  const [confirmError, setConfirmError] = useState<string | null>(null);
 
   // Fetch full detail when an edit ID is set; opens the modal once data arrives
   const { data: editCategory, isFetching: isFetchingEdit } = useCategoryDetail(editId);
@@ -106,10 +107,15 @@ export default function CategoriesPage() {
 
   async function executeConfirm() {
     if (!confirm) return;
-    if (confirm.type === 'delete')     await deleteMutation.mutateAsync(confirm.category.id);
-    if (confirm.type === 'deactivate') await deactivateMutation.mutateAsync(confirm.category.id);
-    if (confirm.type === 'activate')   await activateMutation.mutateAsync(confirm.category.id);
-    setConfirm(null);
+    try {
+      setConfirmError(null);
+      if (confirm.type === 'delete')     await deleteMutation.mutateAsync(confirm.category.id);
+      if (confirm.type === 'deactivate') await deactivateMutation.mutateAsync(confirm.category.id);
+      if (confirm.type === 'activate')   await activateMutation.mutateAsync(confirm.category.id);
+      setConfirm(null);
+    } catch (err) {
+      setConfirmError(extractApiError(err));
+    }
   }
 
   // ── Confirm dialog props ──────────────────────────────────────────────────────
@@ -385,8 +391,9 @@ export default function CategoriesPage() {
           confirmLabel={confirmProps.confirmLabel}
           variant={confirmProps.variant}
           loading={isMutating}
+          error={confirmError}
           onConfirm={executeConfirm}
-          onClose={() => setConfirm(null)}
+          onClose={() => { setConfirm(null); setConfirmError(null); }}
         />
       )}
     </div>

@@ -99,6 +99,11 @@ public class DeleteUserTypeCommandHandler : IRequestHandler<DeleteUserTypeComman
         if (userType.IsSystem)
             throw new DomainException("System user types cannot be deleted.");
 
+        var userCount = await _uow.Users.CountByUserTypeAsync(tenantId, request.Id, ct);
+        if (userCount > 0)
+            throw new DomainException(
+                $"Cannot delete: {userCount} user{(userCount == 1 ? " is" : "s are")} assigned to this type. Reassign them first.");
+
         userType.Status = EntityStatus.Deleted;
         _uow.UserTypes.Update(userType);
         await _uow.SaveChangesAsync(ct);
