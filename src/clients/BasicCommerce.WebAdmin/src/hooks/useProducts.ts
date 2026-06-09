@@ -4,7 +4,7 @@ import type { ProductFormData, ProductListParams } from '../types/product';
 
 const KEY      = ['products'] as const;
 const VAT_KEY  = ['vat-rates'] as const;
-const CAT_KEY  = ['categories', 'all-active'] as const;
+const CAT_KEY  = ['categories', 'simple-list'] as const;
 const MFR_KEY  = ['manufacturers'] as const;
 const TAGS_KEY = ['product-tags', 'all'] as const;
 
