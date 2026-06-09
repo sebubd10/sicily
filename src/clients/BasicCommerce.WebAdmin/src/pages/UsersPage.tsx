@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import {
-  Users, Search, Plus, Power, PowerOff, LockOpen, Tag,
+  Users, Search, Plus, Power, PowerOff, LockOpen, Tag, Trash2,
   AlertCircle, Loader2, Download,
 } from 'lucide-react';
-import { cn } from '../lib/utils';
+import { cn, extractApiError } from '../lib/utils';
 import type { User } from '../types/user';
 import { exportUsersPdf } from '../api/usersApi';
 import { CreateUserModal } from '../components/users/CreateUserModal';
@@ -17,6 +17,7 @@ import {
   useDeactivateUser,
   useUnlockUser,
   useAssignUserType,
+  useDeleteUser,
 } from '../hooks/useUsers';
 import { useUserTypes } from '../hooks/useUserTypes';
 
@@ -26,6 +27,7 @@ type ConfirmState =
   | { type: 'activate';   user: User }
   | { type: 'deactivate'; user: User }
   | { type: 'unlock';     user: User }
+  | { type: 'delete';     user: User }
   | null;
 
 const ROLE_COLORS: Record<string, string> = {
@@ -59,13 +61,17 @@ export default function UsersPage() {
   const deactivateMutation = useDeactivateUser();
   const unlockMutation     = useUnlockUser();
   const assignMutation     = useAssignUserType();
+  const deleteMutation     = useDeleteUser();
+
+  const [confirmError, setConfirmError] = useState<string | null>(null);
 
   const isMutating =
     createMutation.isPending ||
     activateMutation.isPending ||
     deactivateMutation.isPending ||
     unlockMutation.isPending ||
-    assignMutation.isPending;
+    assignMutation.isPending ||
+    deleteMutation.isPending;
 
   const rows     = data?.items ?? [];
   const total    = data?.totalCount ?? 0;
@@ -93,10 +99,16 @@ export default function UsersPage() {
 
   async function executeConfirm() {
     if (!confirm) return;
-    if (confirm.type === 'activate')   await activateMutation.mutateAsync(confirm.user.id);
-    if (confirm.type === 'deactivate') await deactivateMutation.mutateAsync(confirm.user.id);
-    if (confirm.type === 'unlock')     await unlockMutation.mutateAsync(confirm.user.id);
-    setConfirm(null);
+    try {
+      setConfirmError(null);
+      if (confirm.type === 'activate')   await activateMutation.mutateAsync(confirm.user.id);
+      if (confirm.type === 'deactivate') await deactivateMutation.mutateAsync(confirm.user.id);
+      if (confirm.type === 'unlock')     await unlockMutation.mutateAsync(confirm.user.id);
+      if (confirm.type === 'delete')     await deleteMutation.mutateAsync(confirm.user.id);
+      setConfirm(null);
+    } catch (err) {
+      setConfirmError(extractApiError(err));
+    }
   }
 
   const confirmProps = (() => {
@@ -113,6 +125,12 @@ export default function UsersPage() {
       message: `"${name}" will be able to log in again.`,
       confirmLabel: 'Activate',
       variant: 'warning' as const,
+    };
+    if (confirm.type === 'delete') return {
+      title: 'Delete User',
+      message: `"${name}" will be permanently removed. Their audit history is preserved, but they will not be able to log in. This cannot be undone.`,
+      confirmLabel: 'Delete',
+      variant: 'danger' as const,
     };
     return {
       title: 'Unlock Account',
@@ -321,6 +339,16 @@ export default function UsersPage() {
                                 <LockOpen className="w-3.5 h-3.5" />
                               </button>
                             )}
+
+                            {/* Delete */}
+                            <button
+                              title="Delete User"
+                              onClick={() => setConfirm({ type: 'delete', user })}
+                              disabled={isMutating}
+                              className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-40"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -370,8 +398,9 @@ export default function UsersPage() {
           confirmLabel={confirmProps.confirmLabel}
           variant={confirmProps.variant}
           loading={isMutating}
+          error={confirmError}
           onConfirm={executeConfirm}
-          onClose={() => setConfirm(null)}
+          onClose={() => { setConfirm(null); setConfirmError(null); }}
         />
       )}
     </div>

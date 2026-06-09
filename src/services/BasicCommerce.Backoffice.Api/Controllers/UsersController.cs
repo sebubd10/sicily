@@ -84,4 +84,12 @@ public class UsersController : ControllerBase
         await _mediator.Send(new AssignUserTypeCommand(id, request.UserTypeId), ct);
         return Ok(ApiResponse<object>.Ok(null!));
     }
+
+    [HttpDelete("{id:guid}")]
+    [Authorize(Policy = "ChainAdminOnly")]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
+    {
+        await _mediator.Send(new DeleteUserCommand(id), ct);
+        return Ok(ApiResponse<object>.Ok(null!));
+    }
 }

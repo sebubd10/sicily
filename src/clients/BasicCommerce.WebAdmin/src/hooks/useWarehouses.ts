@@ -93,6 +93,14 @@ export function useDeactivateWarehouse() {
   });
 }
 
+export function useDeleteWarehouse() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => warehousesApi.deleteWarehouse(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+  });
+}
+
 export function useTransferToStore() {
   const qc = useQueryClient();
   return useMutation({

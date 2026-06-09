@@ -76,6 +76,10 @@ export async function deactivateWarehouse(id: string): Promise<void> {
   await api.put(`/warehouses/${id}/deactivate`);
 }
 
+export async function deleteWarehouse(id: string): Promise<void> {
+  await api.delete(`/warehouses/${id}`);
+}
+
 export async function transferToStore(
   warehouseId: string,
   storeId: string,

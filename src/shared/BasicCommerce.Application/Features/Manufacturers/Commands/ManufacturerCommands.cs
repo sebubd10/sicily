@@ -28,6 +28,7 @@ public record UpdateManufacturerCommand(
 
 public record DeactivateManufacturerCommand(Guid ManufacturerId) : IRequest;
 public record ActivateManufacturerCommand(Guid ManufacturerId) : IRequest;
+public record DeleteManufacturerCommand(Guid ManufacturerId) : IRequest;
 
 public class CreateManufacturerCommandValidator : AbstractValidator<CreateManufacturerCommand>
 {
@@ -153,6 +154,35 @@ public class ActivateManufacturerCommandHandler : IRequestHandler<ActivateManufa
         if (manufacturer.TenantId != _currentUser.TenantId)
             throw new NotFoundException("Manufacturer", request.ManufacturerId);
         manufacturer.Activate();
+        await _uow.SaveChangesAsync(ct);
+    }
+}
+
+public class DeleteManufacturerCommandHandler : IRequestHandler<DeleteManufacturerCommand>
+{
+    private readonly IUnitOfWork _uow;
+    private readonly ICurrentUserService _currentUser;
+
+    public DeleteManufacturerCommandHandler(IUnitOfWork uow, ICurrentUserService currentUser)
+    {
+        _uow = uow;
+        _currentUser = currentUser;
+    }
+
+    public async Task Handle(DeleteManufacturerCommand request, CancellationToken ct)
+    {
+        var tenantId = _currentUser.TenantId;
+        var manufacturer = await _uow.Manufacturers.GetByIdAsync(request.ManufacturerId, ct)
+            ?? throw new NotFoundException("Manufacturer", request.ManufacturerId);
+        if (manufacturer.TenantId != tenantId)
+            throw new NotFoundException("Manufacturer", request.ManufacturerId);
+
+        var productCount = await _uow.Products.CountByManufacturerAsync(tenantId, request.ManufacturerId, ct);
+        if (productCount > 0)
+            throw new DomainException(
+                $"Cannot delete: {productCount} product{(productCount == 1 ? " is" : "s are")} linked to this manufacturer. Update those products first.");
+
+        _uow.Manufacturers.Remove(manufacturer);
         await _uow.SaveChangesAsync(ct);
     }
 }

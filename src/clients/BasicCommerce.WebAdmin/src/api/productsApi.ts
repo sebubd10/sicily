@@ -48,6 +48,10 @@ export async function deactivateProduct(id: string): Promise<void> {
   await api.put(`/products/${id}/deactivate`);
 }
 
+export async function deleteProduct(id: string): Promise<void> {
+  await api.delete(`/products/${id}`);
+}
+
 function toPayload(form: ProductFormData, isCreate: boolean) {
   const base = {
     sku: form.sku.toUpperCase(),

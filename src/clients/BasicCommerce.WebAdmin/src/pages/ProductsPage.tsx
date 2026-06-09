@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import {
-  Search, Plus, Pencil, PowerOff, Power, Loader2,
+  Search, Plus, Pencil, PowerOff, Power, Trash2, Loader2,
   AlertCircle, Package, Download, Filter, Image as ImageIcon,
 } from 'lucide-react';
 import { cn, extractApiError } from '../lib/utils';
@@ -16,12 +16,14 @@ import {
   useUpdateProduct,
   useActivateProduct,
   useDeactivateProduct,
+  useDeleteProduct,
   useAllCategoriesFlat,
 } from '../hooks/useProducts';
 
 type ConfirmState =
   | { type: 'deactivate'; product: ProductListItem }
   | { type: 'activate';   product: ProductListItem }
+  | { type: 'delete';     product: ProductListItem }
   | null;
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50];
@@ -57,12 +59,14 @@ export default function ProductsPage() {
   const updateMutation     = useUpdateProduct();
   const activateMutation   = useActivateProduct();
   const deactivateMutation = useDeactivateProduct();
+  const deleteMutation     = useDeleteProduct();
 
   const isMutating =
     createMutation.isPending ||
     updateMutation.isPending ||
     activateMutation.isPending ||
-    deactivateMutation.isPending;
+    deactivateMutation.isPending ||
+    deleteMutation.isPending;
 
   const products   = data?.items ?? [];
   const totalCount = data?.totalCount ?? 0;
@@ -113,6 +117,7 @@ export default function ProductsPage() {
       setConfirmError(null);
       if (confirm.type === 'deactivate') await deactivateMutation.mutateAsync(confirm.product.id);
       if (confirm.type === 'activate')   await activateMutation.mutateAsync(confirm.product.id);
+      if (confirm.type === 'delete')     await deleteMutation.mutateAsync(confirm.product.id);
       setConfirm(null);
     } catch (err) {
       setConfirmError(extractApiError(err));
@@ -140,6 +145,12 @@ export default function ProductsPage() {
       message: `"${name}" will be hidden from sales.`,
       confirmLabel: 'Deactivate',
       variant: 'warning' as const,
+    };
+    if (confirm.type === 'delete') return {
+      title: 'Delete Product',
+      message: `"${name}" will be permanently removed from the catalogue. Transaction history is preserved, but the product will no longer be available. This cannot be undone.`,
+      confirmLabel: 'Delete',
+      variant: 'danger' as const,
     };
     return {
       title: 'Activate Product',
@@ -373,6 +384,14 @@ export default function ProductsPage() {
                               {p.status === 'Active'
                                 ? <PowerOff className="w-3.5 h-3.5" />
                                 : <Power    className="w-3.5 h-3.5" />}
+                            </button>
+                            <button
+                              title="Delete"
+                              onClick={() => setConfirm({ type: 'delete', product: p })}
+                              disabled={isMutating}
+                              className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-40"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </td>

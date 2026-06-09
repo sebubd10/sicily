@@ -80,6 +80,8 @@ public class ProductRepository : TenantRepository<Product>, IProductRepository
 
         if (status.HasValue)
             baseQuery = baseQuery.Where(x => x.p.Status == status.Value);
+        else
+            baseQuery = baseQuery.Where(x => x.p.Status != EntityStatus.Deleted);
 
         if (!string.IsNullOrWhiteSpace(search))
         {
@@ -163,6 +165,10 @@ public class ProductRepository : TenantRepository<Product>, IProductRepository
     public async Task<int> CountByCategoryAsync(Guid tenantId, Guid categoryId,
         CancellationToken ct = default) =>
         await Db.Products.CountAsync(p => p.TenantId == tenantId && p.CategoryId == categoryId, ct);
+
+    public async Task<int> CountByManufacturerAsync(Guid tenantId, Guid manufacturerId,
+        CancellationToken ct = default) =>
+        await Db.Products.CountAsync(p => p.TenantId == tenantId && p.ManufacturerId == manufacturerId, ct);
 
     public async Task<IEnumerable<Product>> GetAllForTenantAsync(
         Guid tenantId, Guid? categoryId = null, bool includeInactive = false,

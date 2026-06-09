@@ -45,6 +45,10 @@ export async function deactivateManufacturer(id: string): Promise<void> {
   await api.put(`/manufacturers/${id}/deactivate`);
 }
 
+export async function deleteManufacturer(id: string): Promise<void> {
+  await api.delete(`/manufacturers/${id}`);
+}
+
 export async function exportManufacturersPdf(params?: {
   search?: string;
   includeInactive?: boolean;

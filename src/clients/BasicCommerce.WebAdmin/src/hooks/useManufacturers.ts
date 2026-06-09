@@ -62,3 +62,11 @@ export function useDeactivateManufacturer() {
     onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
   });
 }
+
+export function useDeleteManufacturer() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => manufacturersApi.deleteManufacturer(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+  });
+}

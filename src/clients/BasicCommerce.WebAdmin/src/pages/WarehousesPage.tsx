@@ -1,9 +1,9 @@
 import { useState, useMemo } from 'react';
 import {
-  Search, Plus, Pencil, PowerOff, Power, Loader2, AlertCircle,
+  Search, Plus, Pencil, PowerOff, Power, Trash2, Loader2, AlertCircle,
   Warehouse as WarehouseIcon, Package, Activity, Star,
 } from 'lucide-react';
-import { cn } from '../lib/utils';
+import { cn, extractApiError } from '../lib/utils';
 import type { Warehouse, WarehouseFormData } from '../types/warehouse';
 import { WarehouseModal } from '../components/warehouses/WarehouseModal';
 import { WarehouseStockModal } from '../components/warehouses/WarehouseStockModal';
@@ -17,11 +17,13 @@ import {
   useUpdateWarehouse,
   useActivateWarehouse,
   useDeactivateWarehouse,
+  useDeleteWarehouse,
 } from '../hooks/useWarehouses';
 
 type ConfirmState =
   | { type: 'deactivate'; warehouse: Warehouse }
   | { type: 'activate';   warehouse: Warehouse }
+  | { type: 'delete';     warehouse: Warehouse }
   | null;
 
 export default function WarehousesPage() {
@@ -45,12 +47,16 @@ export default function WarehousesPage() {
   const updateMutation     = useUpdateWarehouse();
   const activateMutation   = useActivateWarehouse();
   const deactivateMutation = useDeactivateWarehouse();
+  const deleteMutation     = useDeleteWarehouse();
+
+  const [confirmError, setConfirmError] = useState<string | null>(null);
 
   const isMutating =
     createMutation.isPending ||
     updateMutation.isPending ||
     activateMutation.isPending ||
-    deactivateMutation.isPending;
+    deactivateMutation.isPending ||
+    deleteMutation.isPending;
 
   const filtered = useMemo(() => {
     let list = warehouses;
@@ -103,9 +109,15 @@ export default function WarehousesPage() {
 
   async function executeConfirm() {
     if (!confirm) return;
-    if (confirm.type === 'deactivate') await deactivateMutation.mutateAsync(confirm.warehouse.id);
-    if (confirm.type === 'activate')   await activateMutation.mutateAsync(confirm.warehouse.id);
-    setConfirm(null);
+    try {
+      setConfirmError(null);
+      if (confirm.type === 'deactivate') await deactivateMutation.mutateAsync(confirm.warehouse.id);
+      if (confirm.type === 'activate')   await activateMutation.mutateAsync(confirm.warehouse.id);
+      if (confirm.type === 'delete')     await deleteMutation.mutateAsync(confirm.warehouse.id);
+      setConfirm(null);
+    } catch (err) {
+      setConfirmError(extractApiError(err));
+    }
   }
 
   const confirmProps = (() => {
@@ -116,6 +128,12 @@ export default function WarehousesPage() {
       message: `"${name}" will be marked inactive. Stock transfers to/from it will be blocked.`,
       confirmLabel: 'Deactivate',
       variant: 'warning' as const,
+    };
+    if (confirm.type === 'delete') return {
+      title: 'Delete Warehouse',
+      message: `"${name}" will be permanently removed. This cannot be undone.`,
+      confirmLabel: 'Delete',
+      variant: 'danger' as const,
     };
     return {
       title: 'Activate Warehouse',
@@ -309,6 +327,16 @@ export default function WarehousesPage() {
                               ? <PowerOff className="w-3.5 h-3.5" />
                               : <Power    className="w-3.5 h-3.5" />}
                           </button>
+                          {!w.isDefault && (
+                            <button
+                              title="Delete"
+                              onClick={() => setConfirm({ type: 'delete', warehouse: w })}
+                              disabled={isMutating}
+                              className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-40"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -353,8 +381,9 @@ export default function WarehousesPage() {
           confirmLabel={confirmProps.confirmLabel}
           variant={confirmProps.variant}
           loading={isMutating}
+          error={confirmError}
           onConfirm={executeConfirm}
-          onClose={() => setConfirm(null)}
+          onClose={() => { setConfirm(null); setConfirmError(null); }}
         />
       )}
     </div>

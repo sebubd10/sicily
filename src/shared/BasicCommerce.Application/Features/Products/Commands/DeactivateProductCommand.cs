@@ -7,6 +7,7 @@ namespace BasicCommerce.Application.Features.Products.Commands;
 
 public record DeactivateProductCommand(Guid ProductId) : IRequest;
 public record ActivateProductCommand(Guid ProductId) : IRequest;
+public record DeleteProductCommand(Guid ProductId) : IRequest;
 
 public class DeactivateProductCommandHandler : IRequestHandler<DeactivateProductCommand>
 {
@@ -52,6 +53,30 @@ public class ActivateProductCommandHandler : IRequestHandler<ActivateProductComm
             throw new NotFoundException("Product", request.ProductId);
 
         product.Activate();
+        await _uow.SaveChangesAsync(ct);
+    }
+}
+
+public class DeleteProductCommandHandler : IRequestHandler<DeleteProductCommand>
+{
+    private readonly IUnitOfWork _uow;
+    private readonly ICurrentUserService _currentUser;
+
+    public DeleteProductCommandHandler(IUnitOfWork uow, ICurrentUserService currentUser)
+    {
+        _uow = uow;
+        _currentUser = currentUser;
+    }
+
+    public async Task Handle(DeleteProductCommand request, CancellationToken ct)
+    {
+        var product = await _uow.Products.GetByIdAsync(request.ProductId, ct)
+            ?? throw new NotFoundException("Product", request.ProductId);
+
+        if (product.TenantId != _currentUser.TenantId)
+            throw new NotFoundException("Product", request.ProductId);
+
+        product.SoftDelete(_currentUser.UserId);
         await _uow.SaveChangesAsync(ct);
     }
 }

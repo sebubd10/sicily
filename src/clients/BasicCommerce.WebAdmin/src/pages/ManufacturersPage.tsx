@@ -1,9 +1,9 @@
 import { useState, useMemo } from 'react';
 import {
-  Search, Plus, Pencil, PowerOff, Power, Loader2,
+  Search, Plus, Pencil, PowerOff, Power, Trash2, Loader2,
   AlertCircle, Factory, Download,
 } from 'lucide-react';
-import { cn } from '../lib/utils';
+import { cn, extractApiError } from '../lib/utils';
 import type { Manufacturer, ManufacturerFormData } from '../types/manufacturer';
 import { ManufacturerModal } from '../components/manufacturers/ManufacturerModal';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
@@ -15,11 +15,13 @@ import {
   useUpdateManufacturer,
   useActivateManufacturer,
   useDeactivateManufacturer,
+  useDeleteManufacturer,
 } from '../hooks/useManufacturers';
 
 type ConfirmState =
   | { type: 'deactivate'; manufacturer: Manufacturer }
   | { type: 'activate';   manufacturer: Manufacturer }
+  | { type: 'delete';     manufacturer: Manufacturer }
   | null;
 
 export default function ManufacturersPage() {
@@ -38,12 +40,16 @@ export default function ManufacturersPage() {
   const updateMutation     = useUpdateManufacturer();
   const activateMutation   = useActivateManufacturer();
   const deactivateMutation = useDeactivateManufacturer();
+  const deleteMutation     = useDeleteManufacturer();
+
+  const [confirmError, setConfirmError] = useState<string | null>(null);
 
   const isMutating =
     createMutation.isPending ||
     updateMutation.isPending ||
     activateMutation.isPending ||
-    deactivateMutation.isPending;
+    deactivateMutation.isPending ||
+    deleteMutation.isPending;
 
   const filtered = useMemo(() => {
     let list = manufacturers;
@@ -89,9 +95,15 @@ export default function ManufacturersPage() {
 
   async function executeConfirm() {
     if (!confirm) return;
-    if (confirm.type === 'deactivate') await deactivateMutation.mutateAsync(confirm.manufacturer.id);
-    if (confirm.type === 'activate')   await activateMutation.mutateAsync(confirm.manufacturer.id);
-    setConfirm(null);
+    try {
+      setConfirmError(null);
+      if (confirm.type === 'deactivate') await deactivateMutation.mutateAsync(confirm.manufacturer.id);
+      if (confirm.type === 'activate')   await activateMutation.mutateAsync(confirm.manufacturer.id);
+      if (confirm.type === 'delete')     await deleteMutation.mutateAsync(confirm.manufacturer.id);
+      setConfirm(null);
+    } catch (err) {
+      setConfirmError(extractApiError(err));
+    }
   }
 
   async function handleExportPdf() {
@@ -114,6 +126,12 @@ export default function ManufacturersPage() {
       message: `"${name}" will be hidden from product listings.`,
       confirmLabel: 'Deactivate',
       variant: 'warning' as const,
+    };
+    if (confirm.type === 'delete') return {
+      title: 'Delete Manufacturer',
+      message: `"${name}" will be permanently removed. This cannot be undone.`,
+      confirmLabel: 'Delete',
+      variant: 'danger' as const,
     };
     return {
       title: 'Activate Manufacturer',
@@ -303,6 +321,14 @@ export default function ManufacturersPage() {
                                 ? <PowerOff className="w-3.5 h-3.5" />
                                 : <Power    className="w-3.5 h-3.5" />}
                             </button>
+                            <button
+                              title="Delete"
+                              onClick={() => setConfirm({ type: 'delete', manufacturer: m })}
+                              disabled={isMutating}
+                              className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-40"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -337,8 +363,9 @@ export default function ManufacturersPage() {
           confirmLabel={confirmProps.confirmLabel}
           variant={confirmProps.variant}
           loading={isMutating}
+          error={confirmError}
           onConfirm={executeConfirm}
-          onClose={() => setConfirm(null)}
+          onClose={() => { setConfirm(null); setConfirmError(null); }}
         />
       )}
     </div>

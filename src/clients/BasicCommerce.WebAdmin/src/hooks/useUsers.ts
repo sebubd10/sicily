@@ -44,6 +44,14 @@ export function useUnlockUser() {
   });
 }
 
+export function useDeleteUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => usersApi.deleteUser(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+  });
+}
+
 export function useAssignUserType() {
   const qc = useQueryClient();
   return useMutation({

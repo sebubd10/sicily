@@ -154,6 +154,14 @@ public class ProductsController : ControllerBase
         return NoContent();
     }
 
+    [HttpDelete("{id:guid}")]
+    [Authorize(Policy = "StoreManagerAndAbove")]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
+    {
+        await _mediator.Send(new DeleteProductCommand(id), ct);
+        return NoContent();
+    }
+
     [HttpPut("{id:guid}/tags")]
     [Authorize(Policy = "StoreManagerAndAbove")]
     public async Task<ActionResult<ApiResponse<ProductResponse>>> SetTags(

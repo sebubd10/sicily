@@ -109,4 +109,12 @@ public class WarehousesController : ControllerBase
         await _mediator.Send(new ActivateWarehouseCommand(id), ct);
         return NoContent();
     }
+
+    [HttpDelete("{id:guid}")]
+    [Authorize(Policy = "StoreManagerAndAbove")]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
+    {
+        await _mediator.Send(new DeleteWarehouseCommand(id), ct);
+        return NoContent();
+    }
 }

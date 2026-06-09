@@ -39,6 +39,10 @@ export async function unlockUser(id: string): Promise<void> {
   await api.put(`/users/${id}/unlock`);
 }
 
+export async function deleteUser(id: string): Promise<void> {
+  await api.delete(`/users/${id}`);
+}
+
 export async function assignUserType(id: string, userTypeId: string | null): Promise<void> {
   await api.put(`/users/${id}/user-type`, { userTypeId: userTypeId || null });
 }

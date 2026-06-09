@@ -58,6 +58,14 @@ export function useDeactivateProduct() {
   });
 }
 
+export function useDeleteProduct() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => productsApi.deleteProduct(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+  });
+}
+
 // ── Lookup hooks ─────────────────────────────────────────────────────────────
 
 export function useVatRates() {

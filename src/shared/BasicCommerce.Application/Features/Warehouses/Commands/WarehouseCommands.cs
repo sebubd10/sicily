@@ -38,6 +38,7 @@ public record UpdateWarehouseCommand(
 
 public record DeactivateWarehouseCommand(Guid WarehouseId) : IRequest;
 public record ActivateWarehouseCommand(Guid WarehouseId) : IRequest;
+public record DeleteWarehouseCommand(Guid WarehouseId) : IRequest;
 
 public record TransferWarehouseToStoreCommand(
     Guid WarehouseId,
@@ -178,6 +179,39 @@ public class ActivateWarehouseCommandHandler : IRequestHandler<ActivateWarehouse
         if (warehouse.TenantId != _currentUser.TenantId)
             throw new NotFoundException("Warehouse", request.WarehouseId);
         warehouse.Activate();
+        await _uow.SaveChangesAsync(ct);
+    }
+}
+
+public class DeleteWarehouseCommandHandler : IRequestHandler<DeleteWarehouseCommand>
+{
+    private readonly IUnitOfWork _uow;
+    private readonly ICurrentUserService _currentUser;
+
+    public DeleteWarehouseCommandHandler(IUnitOfWork uow, ICurrentUserService currentUser)
+    {
+        _uow = uow;
+        _currentUser = currentUser;
+    }
+
+    public async Task Handle(DeleteWarehouseCommand request, CancellationToken ct)
+    {
+        var tenantId = _currentUser.TenantId;
+        var warehouse = await _uow.Warehouses.GetByIdAsync(request.WarehouseId, ct)
+            ?? throw new NotFoundException("Warehouse", request.WarehouseId);
+        if (warehouse.TenantId != tenantId)
+            throw new NotFoundException("Warehouse", request.WarehouseId);
+
+        if (warehouse.IsDefault)
+            throw new DomainException("Cannot delete the default warehouse. Assign another warehouse as default first.");
+
+        var stockLevels = await _uow.WarehouseStockLevels.GetByWarehouseAsync(tenantId, request.WarehouseId, ct);
+        var stockCount = stockLevels.Count(s => s.Quantity > 0);
+        if (stockCount > 0)
+            throw new DomainException(
+                $"Cannot delete: this warehouse has stock for {stockCount} product{(stockCount == 1 ? "" : "s")}. Transfer or write off all stock first.");
+
+        _uow.Warehouses.Remove(warehouse);
         await _uow.SaveChangesAsync(ct);
     }
 }
