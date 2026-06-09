@@ -94,6 +94,9 @@ export function ManufacturerModal({ open, manufacturer, onSave, onClose, isSavin
               <Factory className="w-5 h-5 text-primary-700" />
               {isEdit ? 'Edit Manufacturer' : 'Add Manufacturer'}
             </Dialog.Title>
+            <Dialog.Description className="sr-only">
+              {isEdit ? `Edit manufacturer ${manufacturer?.name}` : 'Add a new manufacturer'}
+            </Dialog.Description>
             <Dialog.Close disabled={isSaving} className="rounded-lg p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none disabled:opacity-40">
               <X className="w-4 h-4" />
             </Dialog.Close>

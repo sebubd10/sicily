@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { Layers, X } from 'lucide-react';
+import { Layers, X, AlertTriangle } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import type { Category, CategoryFormData } from '../../types/category';
 
@@ -45,6 +45,10 @@ export function CategoryModal({ open, category, allCategories, onSave, onClose, 
       );
     }
   }, [open, category]);
+
+  // A category with sub-categories cannot be nested under another parent —
+  // that would create a 3-level hierarchy.
+  const hasChildren = isEdit && (category.childCount ?? 0) > 0;
 
   // Root categories only; exclude self when editing
   const parentOptions = allCategories.filter(
@@ -102,6 +106,9 @@ export function CategoryModal({ open, category, allCategories, onSave, onClose, 
               <Layers className="w-5 h-5 text-primary-700" />
               {isEdit ? 'Edit Category' : 'Add Category'}
             </Dialog.Title>
+            <Dialog.Description className="sr-only">
+              {isEdit ? `Edit category ${category?.name}` : 'Add a new product category'}
+            </Dialog.Description>
             <Dialog.Close
               disabled={isSaving}
               className="rounded-lg p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 disabled:opacity-40"
@@ -165,18 +172,28 @@ export function CategoryModal({ open, category, allCategories, onSave, onClose, 
                   Parent Category
                   <span className="text-xs text-gray-400 ml-1">(leave empty for root)</span>
                 </label>
-                <select
-                  value={form.parentCategoryId}
-                  onChange={(e) => set('parentCategoryId', e.target.value)}
-                  className={cn(inputCls(), 'cursor-pointer')}
-                >
-                  <option value="">— None (root category) —</option>
-                  {parentOptions.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
+                {hasChildren ? (
+                  <div className="flex items-start gap-2 rounded-lg border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 px-3 py-2.5">
+                    <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                    <p className="text-xs text-amber-700 dark:text-amber-300">
+                      This category has {category.childCount} sub-categor{category.childCount === 1 ? 'y' : 'ies'} and cannot be nested under another category. Remove its sub-categories first.
+                    </p>
+                  </div>
+                ) : (
+                  <select
+                    value={form.parentCategoryId}
+                    onChange={(e) => set('parentCategoryId', e.target.value)}
+                    disabled={isSaving}
+                    className={cn(inputCls(), 'cursor-pointer')}
+                  >
+                    <option value="">— None (root category) —</option>
+                    {parentOptions.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
 
               {/* Sort Order */}
