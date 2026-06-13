@@ -338,32 +338,41 @@ export function ProductModal({ open, product, onSave, onClose, isSaving }: Props
                   </div>
 
                   {/* Tags */}
-                  {allTags.length > 0 && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tags</label>
-                      <div className="flex flex-wrap gap-2">
-                        {allTags.map((t) => {
-                          const selected = form.tagIds.includes(t.id);
-                          return (
-                            <button
-                              key={t.id}
-                              type="button"
-                              onClick={() => toggleTag(t.id)}
-                              disabled={isSaving}
-                              className={cn(
-                                'px-2.5 py-1 rounded-full text-xs font-medium border transition-colors',
-                                selected
-                                  ? 'bg-primary-100 dark:bg-primary-900/30 border-primary-400 text-primary-700 dark:text-primary-300'
-                                  : 'bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-400',
-                              )}
-                            >
-                              {selected && '✓ '}{t.name}
-                            </button>
-                          );
-                        })}
+                  {(() => {
+                    const visibleTags = allTags.filter(
+                      (t) => t.status === 'Active' || form.tagIds.includes(t.id),
+                    );
+                    return visibleTags.length > 0 && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tags</label>
+                        <div className="flex flex-wrap gap-2">
+                          {visibleTags.map((t) => {
+                            const selected = form.tagIds.includes(t.id);
+                            const inactive = t.status === 'Inactive';
+                            return (
+                              <button
+                                key={t.id}
+                                type="button"
+                                onClick={() => toggleTag(t.id)}
+                                disabled={isSaving}
+                                title={inactive ? `${t.name} (inactive tag)` : undefined}
+                                className={cn(
+                                  'px-2.5 py-1 rounded-full text-xs font-medium border transition-colors',
+                                  inactive
+                                    ? 'bg-amber-100 dark:bg-amber-900/30 border-amber-400 text-amber-700 dark:text-amber-300'
+                                    : selected
+                                      ? 'bg-primary-100 dark:bg-primary-900/30 border-primary-400 text-primary-700 dark:text-primary-300'
+                                      : 'bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-400',
+                                )}
+                              >
+                                {selected && '✓ '}{t.name}
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    );
+                  })()}
                 </div>
               )}
 

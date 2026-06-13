@@ -129,6 +129,7 @@ export type SimpleManufacturer = {
 export type SimpleTag = {
   id: string;
   name: string;
+  status: 'Active' | 'Inactive';
 };
 
 export const UNIT_TYPES = ['Each', 'Weight', 'Volume', 'Length', 'Pack'] as const;
