@@ -6,7 +6,7 @@ namespace BasicCommerce.Application.Features.Products;
 internal static class ProductMapper
 {
     internal static ProductResponse ToResponse(Product p, VatRate? vatRate,
-        string? categoryName = null, string? manufacturerName = null) =>
+        string? categoryName = null, string? manufacturerName = null, string? categoryStatus = null) =>
         new(p.Id,
             p.Sku,
             p.Barcode,
@@ -16,6 +16,7 @@ internal static class ProductMapper
             p.Description,
             p.CategoryId,
             categoryName ?? p.Category?.Name ?? string.Empty,
+            categoryStatus ?? p.Category?.Status.ToString() ?? "Active",
             p.Price.Amount,
             p.Price.Currency,
             p.CostPrice?.Amount,

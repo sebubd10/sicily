@@ -28,4 +28,7 @@ public class CategoryRepository : TenantRepository<Category>, ICategoryRepositor
         await Db.Categories.AnyAsync(c =>
             c.TenantId == tenantId && c.Name == name &&
             (excludeId == null || c.Id != excludeId), ct);
+
+    public async Task<Category?> GetByIdIncludingDeletedAsync(Guid id, CancellationToken ct = default) =>
+        await Db.Categories.IgnoreQueryFilters().FirstOrDefaultAsync(c => c.Id == id, ct);
 }

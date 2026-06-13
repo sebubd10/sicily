@@ -27,6 +27,7 @@ export type Product = {
   description: string | null;
   categoryId: string;
   categoryName: string;
+  categoryStatus: 'Active' | 'Inactive' | 'Deleted';
   price: number;
   currency: string;
   costPrice: number | null;
@@ -119,6 +120,7 @@ export type SimpleCategory = {
   id: string;
   name: string;
   parentCategoryId: string | null;
+  status: 'Active' | 'Inactive';
 };
 
 export type SimpleManufacturer = {

@@ -27,10 +27,11 @@ public class GetProductQueryHandler : IRequestHandler<GetProductQuery, ProductRe
             ?? throw new NotFoundException("Product", request.ProductId);
 
         var vatRate = await _uow.VatRates.GetByIdAsync(product.VatRateId, ct);
-        var category = await _uow.Categories.GetByIdAsync(product.CategoryId, ct);
+        var category = await _uow.Categories.GetByIdIncludingDeletedAsync(product.CategoryId, ct);
         var manufacturer = product.ManufacturerId.HasValue
             ? await _uow.Manufacturers.GetByIdAsync(product.ManufacturerId.Value, ct)
             : null;
-        return ProductMapper.ToResponse(product, vatRate, category?.Name, manufacturer?.Name);
+        return ProductMapper.ToResponse(product, vatRate, category?.Name, manufacturer?.Name,
+            category?.Status.ToString());
     }
 }

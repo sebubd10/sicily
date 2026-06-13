@@ -115,7 +115,7 @@ export async function getVatRates(): Promise<VatRate[]> {
 
 export async function getAllCategories(): Promise<SimpleCategory[]> {
   const { data } = await api.get<ApiResponse<{ items: SimpleCategory[] }>>('/categories', {
-    params: { pageNumber: 1, pageSize: 500, includeInactive: false },
+    params: { pageNumber: 1, pageSize: 500, includeInactive: true },
   });
   return data.data!.items;
 }

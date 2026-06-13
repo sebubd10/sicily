@@ -12,6 +12,7 @@ public record ProductResponse(
     string? Description,
     Guid CategoryId,
     string CategoryName,
+    string CategoryStatus,
     decimal Price,
     string Currency,
     decimal? CostPrice,

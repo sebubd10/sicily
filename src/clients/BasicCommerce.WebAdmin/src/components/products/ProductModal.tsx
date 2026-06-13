@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { Package, X, ChevronRight } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import type { Product, ProductFormData } from '../../types/product';
+import type { Product, ProductFormData, SimpleCategory } from '../../types/product';
 import { UNIT_TYPES } from '../../types/product';
 import { useVatRates, useAllCategoriesFlat, useAllManufacturers, useAllTags } from '../../hooks/useProducts';
 import { ProductImageManager } from './ProductImageManager';
@@ -293,20 +293,56 @@ export function ProductModal({ open, product, onSave, onClose, isSaving }: Props
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Category <span className="text-red-500">*</span>
                       </label>
-                      <select
-                        value={form.categoryId}
-                        onChange={(e) => set('categoryId', e.target.value)}
-                        disabled={isSaving}
-                        className={inputCls(errors.categoryId)}
-                      >
-                        <option value="">Select category…</option>
-                        {categories.map((c) => (
-                          <option key={c.id} value={c.id}>
-                            {c.parentCategoryId ? '  ↳ ' : ''}{c.name}
-                          </option>
-                        ))}
-                      </select>
-                      {errors.categoryId && <p className="mt-1 text-xs text-red-500">{errors.categoryId}</p>}
+                      {(() => {
+                        const currentCategoryMissing = !!(
+                          isEdit && product &&
+                          form.categoryId === product.categoryId &&
+                          !categories.some((c) => c.id === product.categoryId)
+                        );
+
+                        const visibleCategories: (SimpleCategory & { status: 'Active' | 'Inactive' | 'Deleted' })[] = [
+                          ...categories.filter((c) => c.status === 'Active' || c.id === form.categoryId),
+                          ...(currentCategoryMissing
+                            ? [{
+                                id: product!.categoryId,
+                                name: product!.categoryName,
+                                parentCategoryId: null,
+                                status: product!.categoryStatus,
+                              }]
+                            : []),
+                        ];
+
+                        const selected = visibleCategories.find((c) => c.id === form.categoryId);
+                        const selectedInactive = !!selected && selected.status !== 'Active';
+
+                        return (
+                          <>
+                            <select
+                              value={form.categoryId}
+                              onChange={(e) => set('categoryId', e.target.value)}
+                              disabled={isSaving}
+                              className={cn(
+                                inputCls(errors.categoryId),
+                                selectedInactive && !errors.categoryId && 'border-amber-400 dark:border-amber-500',
+                              )}
+                            >
+                              <option value="">Select category…</option>
+                              {visibleCategories.map((c) => (
+                                <option key={c.id} value={c.id}>
+                                  {c.parentCategoryId ? '  ↳ ' : ''}{c.name}
+                                  {c.status !== 'Active' ? ` (${c.status})` : ''}
+                                </option>
+                              ))}
+                            </select>
+                            {errors.categoryId && <p className="mt-1 text-xs text-red-500">{errors.categoryId}</p>}
+                            {!errors.categoryId && selectedInactive && (
+                              <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
+                                This category is {selected!.status.toLowerCase()}. Choose another category to update it.
+                              </p>
+                            )}
+                          </>
+                        );
+                      })()}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Manufacturer</label>

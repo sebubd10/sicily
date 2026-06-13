@@ -96,6 +96,10 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
         var vatRate = await _uow.VatRates.GetByIdAsync(request.VatRateId, ct)
             ?? throw new NotFoundException("VatRate", request.VatRateId);
 
+        var category = await _uow.Categories.GetByIdIncludingDeletedAsync(request.CategoryId, ct)
+            ?? throw new NotFoundException("Category", request.CategoryId);
+        CategoryAssignmentValidator.EnsureActiveOrUnchanged(category, product.CategoryId);
+
         var unitType = Enum.TryParse<UnitType>(request.UnitType, true, out var parsed)
             ? parsed : UnitType.Each;
 
@@ -130,7 +134,6 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
 
         await _uow.SaveChangesAsync(ct);
 
-        var category = await _uow.Categories.GetByIdAsync(product.CategoryId, ct);
-        return ProductMapper.ToResponse(product, vatRate, category?.Name);
+        return ProductMapper.ToResponse(product, vatRate, category.Name, categoryStatus: category.Status.ToString());
     }
 }
