@@ -63,6 +63,22 @@ public class ProductTagsController : ControllerBase
         return NoContent();
     }
 
+    [HttpPut("{id:guid}/activate")]
+    [Authorize(Policy = "StoreManagerAndAbove")]
+    public async Task<IActionResult> Activate(Guid id, CancellationToken ct)
+    {
+        await _mediator.Send(new ActivateProductTagCommand(id), ct);
+        return NoContent();
+    }
+
+    [HttpPut("{id:guid}/deactivate")]
+    [Authorize(Policy = "StoreManagerAndAbove")]
+    public async Task<IActionResult> Deactivate(Guid id, CancellationToken ct)
+    {
+        await _mediator.Send(new DeactivateProductTagCommand(id), ct);
+        return NoContent();
+    }
+
     [HttpPost("bulk-delete")]
     [Authorize(Policy = "StoreManagerAndAbove")]
     public async Task<IActionResult> BulkDelete(

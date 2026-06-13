@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Plus, Pencil, Trash2, Tag, Loader2, AlertCircle } from 'lucide-react';
+import { Search, Plus, Pencil, Trash2, Power, PowerOff, Tag, Loader2, AlertCircle } from 'lucide-react';
 import { cn, extractApiError } from '../lib/utils';
 import type { TagDetail, TagFormData } from '../types/tag';
 import { TagModal } from '../components/tags/TagModal';
@@ -11,11 +11,17 @@ import {
   useCreateTag,
   useUpdateTag,
   useDeleteTag,
+  useActivateTag,
+  useDeactivateTag,
 } from '../hooks/useTags';
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50];
 
-type ConfirmState = { type: 'delete'; tag: TagDetail } | null;
+type ConfirmState =
+  | { type: 'delete';     tag: TagDetail }
+  | { type: 'activate';   tag: TagDetail }
+  | { type: 'deactivate'; tag: TagDetail }
+  | null;
 
 export default function ProductTagsPage() {
   // ── Filter / pagination state ─────────────────────────────────────────────
@@ -39,14 +45,18 @@ export default function ProductTagsPage() {
   });
 
   // ── Mutations ─────────────────────────────────────────────────────────────
-  const createMutation = useCreateTag();
-  const updateMutation = useUpdateTag();
-  const deleteMutation = useDeleteTag();
+  const createMutation     = useCreateTag();
+  const updateMutation     = useUpdateTag();
+  const deleteMutation     = useDeleteTag();
+  const activateMutation   = useActivateTag();
+  const deactivateMutation = useDeactivateTag();
 
   const isMutating =
     createMutation.isPending ||
     updateMutation.isPending ||
-    deleteMutation.isPending;
+    deleteMutation.isPending ||
+    activateMutation.isPending ||
+    deactivateMutation.isPending;
 
   // ── Handlers ──────────────────────────────────────────────────────────────
   function openAdd() {
@@ -69,11 +79,21 @@ export default function ProductTagsPage() {
     setEditId(null);
   }
 
+  function handleToggleStatus(tag: TagDetail) {
+    setConfirm(
+      tag.status === 'Active'
+        ? { type: 'deactivate', tag }
+        : { type: 'activate',   tag },
+    );
+  }
+
   async function executeConfirm() {
     if (!confirm) return;
     try {
       setConfirmError(null);
-      await deleteMutation.mutateAsync(confirm.tag.id);
+      if (confirm.type === 'delete')     await deleteMutation.mutateAsync(confirm.tag.id);
+      if (confirm.type === 'activate')   await activateMutation.mutateAsync(confirm.tag.id);
+      if (confirm.type === 'deactivate') await deactivateMutation.mutateAsync(confirm.tag.id);
       setConfirm(null);
     } catch (err) {
       setConfirmError(extractApiError(err));
@@ -245,6 +265,21 @@ export default function ProductTagsPage() {
                               )}
                             </button>
                             <button
+                              title={tag.status === 'Active' ? 'Deactivate' : 'Activate'}
+                              onClick={() => handleToggleStatus(tag)}
+                              disabled={isMutating}
+                              className={cn(
+                                'p-1.5 rounded-lg transition-colors disabled:opacity-40',
+                                tag.status === 'Active'
+                                  ? 'text-gray-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20'
+                                  : 'text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20',
+                              )}
+                            >
+                              {tag.status === 'Active'
+                                ? <PowerOff className="w-3.5 h-3.5" />
+                                : <Power    className="w-3.5 h-3.5" />}
+                            </button>
+                            <button
                               title="Delete"
                               onClick={() => setConfirm({ type: 'delete', tag })}
                               disabled={isMutating}
@@ -296,6 +331,36 @@ export default function ProductTagsPage() {
           confirmLabel="Delete"
           variant="danger"
           loading={deleteMutation.isPending}
+          error={confirmError}
+          onConfirm={executeConfirm}
+          onClose={() => { setConfirm(null); setConfirmError(null); }}
+        />
+      )}
+
+      {/* Confirm Deactivate */}
+      {confirm?.type === 'deactivate' && (
+        <ConfirmDialog
+          open
+          title="Deactivate Tag"
+          message={`"${confirm.tag.name}" will be marked inactive and hidden from active tag lists.`}
+          confirmLabel="Deactivate"
+          variant="warning"
+          loading={deactivateMutation.isPending}
+          error={confirmError}
+          onConfirm={executeConfirm}
+          onClose={() => { setConfirm(null); setConfirmError(null); }}
+        />
+      )}
+
+      {/* Confirm Activate */}
+      {confirm?.type === 'activate' && (
+        <ConfirmDialog
+          open
+          title="Activate Tag"
+          message={`"${confirm.tag.name}" will be made active again.`}
+          confirmLabel="Activate"
+          variant="warning"
+          loading={activateMutation.isPending}
           error={confirmError}
           onConfirm={executeConfirm}
           onClose={() => { setConfirm(null); setConfirmError(null); }}

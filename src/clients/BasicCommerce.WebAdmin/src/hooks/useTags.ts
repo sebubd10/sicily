@@ -46,6 +46,22 @@ export function useDeleteTag() {
   });
 }
 
+export function useActivateTag() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => tagsApi.activateTag(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+  });
+}
+
+export function useDeactivateTag() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => tagsApi.deactivateTag(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+  });
+}
+
 export function useBulkDeleteTags() {
   const qc = useQueryClient();
   return useMutation({

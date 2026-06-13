@@ -37,6 +37,14 @@ export async function deleteTag(id: string): Promise<void> {
   await api.delete(`/product-tags/${id}`);
 }
 
+export async function activateTag(id: string): Promise<void> {
+  await api.put(`/product-tags/${id}/activate`);
+}
+
+export async function deactivateTag(id: string): Promise<void> {
+  await api.put(`/product-tags/${id}/deactivate`);
+}
+
 export async function bulkDeleteTags(ids: string[]): Promise<void> {
   await api.post('/product-tags/bulk-delete', { ids });
 }

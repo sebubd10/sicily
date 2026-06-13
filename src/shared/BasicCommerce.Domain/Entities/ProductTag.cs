@@ -1,3 +1,5 @@
+using BasicCommerce.Domain.Enums;
+
 namespace BasicCommerce.Domain.Entities;
 
 public class ProductTag : TenantEntity
@@ -15,6 +17,18 @@ public class ProductTag : TenantEntity
     public void Rename(string name)
     {
         Name = name.Trim();
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void Activate()
+    {
+        Status = EntityStatus.Active;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void Deactivate()
+    {
+        Status = EntityStatus.Inactive;
         UpdatedAt = DateTime.UtcNow;
     }
 }
