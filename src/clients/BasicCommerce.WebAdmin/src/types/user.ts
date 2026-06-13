@@ -22,6 +22,32 @@ export interface UserFormData {
   phoneNumber: string;
 }
 
+export interface UserDetail {
+  id: string;
+  employeeCode: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: string;
+  storeId: string | null;
+  storeName: string | null;
+  phoneNumber: string | null;
+  status: string;
+  lastLoginAt: string | null;
+  userTypeId: string | null;
+  userTypeName: string | null;
+  isLocked: boolean;
+}
+
+export interface UserEditFormData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: string;
+  storeId: string;
+  phoneNumber: string;
+}
+
 export interface UserListParams {
   page: number;
   pageSize: number;

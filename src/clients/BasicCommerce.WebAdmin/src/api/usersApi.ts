@@ -1,5 +1,5 @@
 import { api } from './axiosInstance';
-import type { User, UserFormData, UserListParams, PaginatedUsers } from '../types/user';
+import type { User, UserDetail, UserEditFormData, UserFormData, UserListParams, PaginatedUsers } from '../types/user';
 
 type ApiResponse<T> = { success: boolean; data: T; message?: string };
 
@@ -20,6 +20,23 @@ export async function createUser(form: UserFormData): Promise<User> {
     lastName: form.lastName,
     email: form.email,
     password: form.password,
+    role: form.role,
+    storeId: form.storeId || null,
+    phoneNumber: form.phoneNumber || null,
+  });
+  return data.data!;
+}
+
+export async function getUserById(id: string): Promise<UserDetail> {
+  const { data } = await api.get<ApiResponse<UserDetail>>(`/users/${id}`);
+  return data.data!;
+}
+
+export async function updateUser(id: string, form: UserEditFormData): Promise<User> {
+  const { data } = await api.put<ApiResponse<User>>(`/users/${id}`, {
+    firstName: form.firstName,
+    lastName: form.lastName,
+    email: form.email,
     role: form.role,
     storeId: form.storeId || null,
     phoneNumber: form.phoneNumber || null,

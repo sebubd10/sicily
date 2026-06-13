@@ -36,6 +36,14 @@ public class UsersController : ControllerBase
         return Ok(ApiResponse<PaginatedResponse<UserListResponse>>.Ok(result));
     }
 
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<ApiResponse<UserDetailResponse>>> GetById(
+        Guid id, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new GetUserQuery(id), ct);
+        return Ok(ApiResponse<UserDetailResponse>.Ok(result));
+    }
+
     [HttpPost]
     [Authorize(Policy = "ChainAdminOnly")]
     public async Task<ActionResult<ApiResponse<UserListResponse>>> Create(
@@ -50,6 +58,22 @@ public class UsersController : ControllerBase
             request.StoreId,
             request.PhoneNumber), ct);
         return CreatedAtAction(null, ApiResponse<UserListResponse>.Ok(result));
+    }
+
+    [HttpPut("{id:guid}")]
+    [Authorize(Policy = "ChainAdminOnly")]
+    public async Task<ActionResult<ApiResponse<UserListResponse>>> Update(
+        Guid id, [FromBody] UpdateUserRequest request, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new UpdateUserCommand(
+            id,
+            request.FirstName,
+            request.LastName,
+            request.Email,
+            request.Role,
+            request.StoreId,
+            request.PhoneNumber), ct);
+        return Ok(ApiResponse<UserListResponse>.Ok(result));
     }
 
     [HttpPut("{id:guid}/activate")]

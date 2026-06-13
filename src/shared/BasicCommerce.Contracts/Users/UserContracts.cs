@@ -21,3 +21,27 @@ public record CreateUserRequest(
     string Role,
     Guid? StoreId = null,
     string? PhoneNumber = null);
+
+public record UpdateUserRequest(
+    string FirstName,
+    string LastName,
+    string Email,
+    string Role,
+    Guid? StoreId = null,
+    string? PhoneNumber = null);
+
+public record UserDetailResponse(
+    Guid Id,
+    string EmployeeCode,
+    string FirstName,
+    string LastName,
+    string Email,
+    string Role,
+    Guid? StoreId,
+    string? StoreName,
+    string? PhoneNumber,
+    string Status,
+    DateTime? LastLoginAt,
+    Guid? UserTypeId,
+    string? UserTypeName,
+    bool IsLocked);

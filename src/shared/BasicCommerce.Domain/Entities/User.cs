@@ -114,4 +114,16 @@ public class User : TenantEntity
         UserTypeId = userTypeId;
         UpdatedAt = DateTime.UtcNow;
     }
+
+    public void UpdateProfile(string firstName, string lastName, string email,
+        string? phoneNumber, UserRole role, Guid? storeId)
+    {
+        FirstName = firstName;
+        LastName = lastName;
+        Email = email.ToLowerInvariant();
+        PhoneNumber = phoneNumber;
+        Role = role;
+        StoreId = storeId;
+        UpdatedAt = DateTime.UtcNow;
+    }
 }

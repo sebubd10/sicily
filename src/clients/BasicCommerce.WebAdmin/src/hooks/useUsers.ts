@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import * as usersApi from '../api/usersApi';
-import type { UserFormData, UserListParams } from '../types/user';
+import type { UserEditFormData, UserFormData, UserListParams } from '../types/user';
 
 const KEY = ['users'] as const;
 
@@ -16,6 +16,23 @@ export function useCreateUser() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (form: UserFormData) => usersApi.createUser(form),
+    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+  });
+}
+
+export function useUserDetail(id: string | null) {
+  return useQuery({
+    queryKey: [...KEY, 'detail', id],
+    queryFn: () => usersApi.getUserById(id!),
+    enabled: !!id,
+  });
+}
+
+export function useUpdateUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, form }: { id: string; form: UserEditFormData }) =>
+      usersApi.updateUser(id, form),
     onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
   });
 }

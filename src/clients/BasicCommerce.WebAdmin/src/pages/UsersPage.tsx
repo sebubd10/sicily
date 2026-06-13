@@ -1,18 +1,21 @@
 import { useState } from 'react';
 import {
-  Users, Search, Plus, Power, PowerOff, LockOpen, Tag, Trash2,
+  Users, Search, Plus, Pencil, Power, PowerOff, LockOpen, Tag, Trash2,
   AlertCircle, Loader2, Download,
 } from 'lucide-react';
 import { cn, extractApiError } from '../lib/utils';
 import type { User } from '../types/user';
 import { exportUsersPdf } from '../api/usersApi';
 import { CreateUserModal } from '../components/users/CreateUserModal';
+import { EditUserModal } from '../components/users/EditUserModal';
 import { AssignUserTypeModal } from '../components/users/AssignUserTypeModal';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { Pagination } from '../components/ui/Pagination';
 import {
   useUsers,
   useCreateUser,
+  useUserDetail,
+  useUpdateUser,
   useActivateUser,
   useDeactivateUser,
   useUnlockUser,
@@ -44,6 +47,7 @@ export default function UsersPage() {
   const [pageSize, setPageSize] = useState(20);
 
   const [createOpen, setCreateOpen] = useState(false);
+  const [editId, setEditId]         = useState<string | null>(null);
   const [assignUser, setAssignUser] = useState<User | null>(null);
   const [confirm, setConfirm]       = useState<ConfirmState>(null);
   const [isExporting, setIsExporting] = useState(false);
@@ -56,7 +60,11 @@ export default function UsersPage() {
 
   const { data: userTypes = [] } = useUserTypes();
 
+  // Fetch full detail when an edit ID is set; opens the modal once data arrives
+  const { data: editUser, isFetching: isFetchingEdit } = useUserDetail(editId);
+
   const createMutation     = useCreateUser();
+  const updateMutation     = useUpdateUser();
   const activateMutation   = useActivateUser();
   const deactivateMutation = useDeactivateUser();
   const unlockMutation     = useUnlockUser();
@@ -67,6 +75,7 @@ export default function UsersPage() {
 
   const isMutating =
     createMutation.isPending ||
+    updateMutation.isPending ||
     activateMutation.isPending ||
     deactivateMutation.isPending ||
     unlockMutation.isPending ||
@@ -89,6 +98,12 @@ export default function UsersPage() {
   async function handleCreate(form: Parameters<typeof createMutation.mutateAsync>[0]) {
     await createMutation.mutateAsync(form);
     setCreateOpen(false);
+  }
+
+  async function handleEdit(form: Parameters<typeof updateMutation.mutateAsync>[0]['form']) {
+    if (!editId) return;
+    await updateMutation.mutateAsync({ id: editId, form });
+    setEditId(null);
   }
 
   async function handleAssign(userTypeId: string | null) {
@@ -295,6 +310,18 @@ export default function UsersPage() {
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-1">
+                            {/* Edit */}
+                            <button
+                              title="Edit"
+                              onClick={() => setEditId(user.id)}
+                              disabled={isMutating || isFetchingEdit}
+                              className="p-1.5 rounded-lg text-gray-400 hover:text-primary-700 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors disabled:opacity-40"
+                            >
+                              {isFetchingEdit && editId === user.id
+                                ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                : <Pencil className="w-3.5 h-3.5" />}
+                            </button>
+
                             {/* Assign user type */}
                             <button
                               title="Assign User Type"
@@ -377,6 +404,15 @@ export default function UsersPage() {
         onSave={handleCreate}
         onClose={() => setCreateOpen(false)}
         isSaving={createMutation.isPending}
+      />
+
+      {/* Edit user modal */}
+      <EditUserModal
+        open={!!editId && !!editUser}
+        user={editUser ?? null}
+        onSave={handleEdit}
+        onClose={() => setEditId(null)}
+        isSaving={updateMutation.isPending}
       />
 
       {/* Assign user type modal */}
