@@ -9,6 +9,7 @@ export async function getUsers(params: UserListParams): Promise<PaginatedUsers> 
       page: params.page,
       pageSize: params.pageSize,
       search: params.search || undefined,
+      includeInactive: params.includeInactive || undefined,
     },
   });
   return data.data!;

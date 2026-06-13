@@ -1,6 +1,7 @@
 using BasicCommerce.Application.Interfaces;
 using BasicCommerce.Contracts.Common;
 using BasicCommerce.Contracts.Users;
+using BasicCommerce.Domain.Enums;
 using BasicCommerce.Domain.Interfaces;
 using MediatR;
 
@@ -9,7 +10,8 @@ namespace BasicCommerce.Application.Features.Users.Queries;
 public record GetUsersQuery(
     int Page = 1,
     int PageSize = 20,
-    string? Search = null) : IRequest<PaginatedResponse<UserListResponse>>;
+    string? Search = null,
+    bool IncludeInactive = false) : IRequest<PaginatedResponse<UserListResponse>>;
 
 public class GetUsersQueryHandler : IRequestHandler<GetUsersQuery, PaginatedResponse<UserListResponse>>
 {
@@ -31,6 +33,9 @@ public class GetUsersQueryHandler : IRequestHandler<GetUsersQuery, PaginatedResp
         var size = Math.Clamp(request.PageSize, 1, 100);
 
         IEnumerable<Domain.Entities.User> filtered = users.OrderBy(u => u.FullName);
+
+        if (!request.IncludeInactive)
+            filtered = filtered.Where(u => u.Status == EntityStatus.Active);
 
         if (!string.IsNullOrWhiteSpace(request.Search))
         {

@@ -52,6 +52,7 @@ export interface UserListParams {
   page: number;
   pageSize: number;
   search?: string;
+  includeInactive?: boolean;
 }
 
 export interface PaginatedUsers {

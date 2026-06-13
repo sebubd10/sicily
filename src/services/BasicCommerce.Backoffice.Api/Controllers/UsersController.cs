@@ -30,9 +30,10 @@ public class UsersController : ControllerBase
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         [FromQuery] string? search = null,
+        [FromQuery] bool includeInactive = false,
         CancellationToken ct = default)
     {
-        var result = await _mediator.Send(new GetUsersQuery(page, pageSize, search), ct);
+        var result = await _mediator.Send(new GetUsersQuery(page, pageSize, search, includeInactive), ct);
         return Ok(ApiResponse<PaginatedResponse<UserListResponse>>.Ok(result));
     }
 
