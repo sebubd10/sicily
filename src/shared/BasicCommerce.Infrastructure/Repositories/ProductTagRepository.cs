@@ -1,4 +1,5 @@
 using BasicCommerce.Domain.Entities;
+using BasicCommerce.Domain.Enums;
 using BasicCommerce.Domain.Interfaces;
 using BasicCommerce.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -25,12 +26,15 @@ public class ProductTagRepository : TenantRepository<ProductTag>, IProductTagRep
 
     public async Task<(IEnumerable<(ProductTag Tag, int TaggedProductsCount)> Items, int TotalCount)>
         GetPagedAsync(Guid tenantId, int page, int pageSize, string? search = null,
-            CancellationToken ct = default)
+            EntityStatus? status = null, CancellationToken ct = default)
     {
         var query = Db.ProductTags.Where(t => t.TenantId == tenantId);
 
         if (!string.IsNullOrWhiteSpace(search))
             query = query.Where(t => t.Name.Contains(search));
+
+        if (status.HasValue)
+            query = query.Where(t => t.Status == status.Value);
 
         var total = await query.CountAsync(ct);
         var items = await query

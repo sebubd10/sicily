@@ -21,6 +21,7 @@ export type TagListParams = {
   page: number;
   pageSize: number;
   search?: string;
+  includeInactive?: boolean;
 };
 
 export type TagFormData = {

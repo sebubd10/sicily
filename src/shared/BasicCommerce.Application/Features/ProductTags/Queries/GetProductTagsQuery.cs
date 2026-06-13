@@ -1,5 +1,6 @@
 using BasicCommerce.Application.Interfaces;
 using BasicCommerce.Contracts.ProductTags;
+using BasicCommerce.Domain.Enums;
 using BasicCommerce.Domain.Interfaces;
 using MediatR;
 
@@ -8,7 +9,8 @@ namespace BasicCommerce.Application.Features.ProductTags.Queries;
 public record GetProductTagsQuery(
     int Page = 1,
     int PageSize = 20,
-    string? Search = null) : IRequest<ProductTagListResponse>;
+    string? Search = null,
+    EntityStatus? Status = null) : IRequest<ProductTagListResponse>;
 
 public class GetProductTagsQueryHandler
     : IRequestHandler<GetProductTagsQuery, ProductTagListResponse>
@@ -26,7 +28,7 @@ public class GetProductTagsQueryHandler
         GetProductTagsQuery request, CancellationToken ct)
     {
         var (items, total) = await _uow.ProductTags.GetPagedAsync(
-            _currentUser.TenantId, request.Page, request.PageSize, request.Search, ct);
+            _currentUser.TenantId, request.Page, request.PageSize, request.Search, request.Status, ct);
 
         return new ProductTagListResponse(
             items.Select(x => MapToResponse(x.Tag, x.TaggedProductsCount)),

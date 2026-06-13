@@ -28,6 +28,7 @@ export default function ProductTagsPage() {
   const [search, setSearch] = useState('');
   const [page, setPage]     = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [showInactive, setShowInactive] = useState(false);
 
   // ── Modal / confirm state ─────────────────────────────────────────────────
   const [modalOpen, setModalOpen] = useState(false);
@@ -42,6 +43,7 @@ export default function ProductTagsPage() {
     page,
     pageSize,
     search: search.trim() || undefined,
+    includeInactive: showInactive,
   });
 
   // ── Mutations ─────────────────────────────────────────────────────────────
@@ -85,6 +87,11 @@ export default function ProductTagsPage() {
         ? { type: 'deactivate', tag }
         : { type: 'activate',   tag },
     );
+  }
+
+  function handleToggleInactive(value: boolean) {
+    setShowInactive(value);
+    setPage(1);
   }
 
   async function executeConfirm() {
@@ -138,6 +145,11 @@ export default function ProductTagsPage() {
             value: rows.filter((t) => t.status === 'Active').length,
             color: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300',
           },
+          {
+            label: 'Inactive',
+            value: rows.filter((t) => t.status !== 'Active').length,
+            color: 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400',
+          },
         ].map((s) => (
           <span key={s.label} className={cn('px-3 py-1 rounded-full text-sm font-medium', s.color)}>
             {s.label}: <strong>{s.value}</strong>
@@ -157,6 +169,23 @@ export default function ProductTagsPage() {
             className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-900 dark:text-white placeholder-gray-400"
           />
         </div>
+
+        <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 cursor-pointer select-none">
+          <div
+            onClick={() => handleToggleInactive(!showInactive)}
+            className={cn(
+              'w-9 h-5 rounded-full transition-colors relative',
+              showInactive ? 'bg-primary-700' : 'bg-gray-300 dark:bg-gray-600',
+            )}
+          >
+            <span className={cn(
+              'absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all',
+              showInactive ? 'left-4' : 'left-0.5',
+            )} />
+          </div>
+          Show inactive
+        </label>
+
         {isFetching && !isLoading && (
           <Loader2 className="w-4 h-4 animate-spin text-gray-400 self-center" />
         )}

@@ -2,6 +2,7 @@ using BasicCommerce.Application.Features.ProductTags.Commands;
 using BasicCommerce.Application.Features.ProductTags.Queries;
 using BasicCommerce.Contracts.Common;
 using BasicCommerce.Contracts.ProductTags;
+using BasicCommerce.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,9 +23,10 @@ public class ProductTagsController : ControllerBase
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         [FromQuery] string? search = null,
+        [FromQuery] EntityStatus? status = null,
         CancellationToken ct = default)
     {
-        var result = await _mediator.Send(new GetProductTagsQuery(page, pageSize, search), ct);
+        var result = await _mediator.Send(new GetProductTagsQuery(page, pageSize, search, status), ct);
         return Ok(ApiResponse<ProductTagListResponse>.Ok(result));
     }
 

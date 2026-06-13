@@ -9,6 +9,7 @@ export async function getTags(params: TagListParams): Promise<TagListResponse> {
       page: params.page,
       pageSize: params.pageSize,
       search: params.search || undefined,
+      status: params.includeInactive ? undefined : 'Active',
     },
   });
   const res = data.data!;
