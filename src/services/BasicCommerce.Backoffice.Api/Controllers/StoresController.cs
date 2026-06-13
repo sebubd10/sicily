@@ -63,4 +63,40 @@ public class StoresController : ControllerBase
         var result = await _mediator.Send(new GetTerminalsQuery(storeId), ct);
         return Ok(ApiResponse<IEnumerable<TerminalResponse>>.Ok(result));
     }
+
+    [HttpPut("{id:guid}")]
+    [Authorize(Policy = "ChainAdminOnly")]
+    public async Task<ActionResult<ApiResponse<StoreResponse>>> Update(
+        Guid id, [FromBody] UpdateStoreRequest request, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new UpdateStoreCommand(
+            id,
+            request.Name,
+            request.AddressLine1,
+            request.City,
+            request.District,
+            request.PostalCode,
+            request.AddressLine2,
+            request.Phone,
+            request.Email,
+            request.OpeningTime,
+            request.ClosingTime), ct);
+        return Ok(ApiResponse<StoreResponse>.Ok(result));
+    }
+
+    [HttpPut("{id:guid}/deactivate")]
+    [Authorize(Policy = "ChainAdminOnly")]
+    public async Task<IActionResult> Deactivate(Guid id, CancellationToken ct)
+    {
+        await _mediator.Send(new DeactivateStoreCommand(id), ct);
+        return NoContent();
+    }
+
+    [HttpPut("{id:guid}/activate")]
+    [Authorize(Policy = "ChainAdminOnly")]
+    public async Task<IActionResult> Activate(Guid id, CancellationToken ct)
+    {
+        await _mediator.Send(new ActivateStoreCommand(id), ct);
+        return NoContent();
+    }
 }

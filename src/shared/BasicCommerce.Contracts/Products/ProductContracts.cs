@@ -117,6 +117,18 @@ public record VatRateResponse(
     bool IsDefault,
     string Status);
 
+public record CreateVatRateRequest(
+    string Name,
+    string Code,
+    decimal Rate,
+    bool IsDefault = false);
+
+public record UpdateVatRateRequest(
+    string Name,
+    string Code,
+    decimal Rate,
+    bool IsDefault = false);
+
 public record CategoryResponse(
     Guid Id,
     string Name,

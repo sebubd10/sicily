@@ -33,9 +33,12 @@ public class GetTerminalsQueryHandler : IRequestHandler<GetTerminalsQuery, IEnum
 
         return terminals.Select(t => new TerminalResponse(
             t.Id,
+            store.Id,
+            store.Name,
             t.Name,
             t.Code,
             t.Type.ToString(),
+            t.Status.ToString(),
             t.TerminalStatus.ToString(),
             null));
     }

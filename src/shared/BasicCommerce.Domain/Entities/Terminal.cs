@@ -49,9 +49,26 @@ public class Terminal : TenantEntity
 
     public void RecordActivity() => LastActivityAt = DateTime.UtcNow;
 
+    public void Update(string name, string code, TerminalType type)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ArgumentException.ThrowIfNullOrWhiteSpace(code);
+
+        Name = name;
+        Code = code.ToUpperInvariant();
+        Type = type;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
     public void Deactivate()
     {
         Status = EntityStatus.Inactive;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void Activate()
+    {
+        Status = EntityStatus.Active;
         UpdatedAt = DateTime.UtcNow;
     }
 }

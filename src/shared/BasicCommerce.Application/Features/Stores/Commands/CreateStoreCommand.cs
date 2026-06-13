@@ -1,3 +1,4 @@
+using BasicCommerce.Application.Features.Stores;
 using BasicCommerce.Application.Interfaces;
 using BasicCommerce.Contracts.Stores;
 using BasicCommerce.Domain.Entities;
@@ -65,14 +66,6 @@ public class CreateStoreCommandHandler : IRequestHandler<CreateStoreCommand, Sto
         await _uow.Stores.AddAsync(store, ct);
         await _uow.SaveChangesAsync(ct);
 
-        return new StoreResponse(
-            store.Id,
-            store.Name,
-            store.Code,
-            $"{store.Address.Line1}, {store.Address.City}",
-            store.Phone,
-            store.Email,
-            store.Status.ToString(),
-            0);
+        return StoreMapper.ToResponse(store, 0);
     }
 }

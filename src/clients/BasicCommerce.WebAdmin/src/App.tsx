@@ -10,6 +10,9 @@ import UsersPage from './pages/UsersPage';
 import UserTypesPage from './pages/UserTypesPage';
 import MenusPage from './pages/MenusPage';
 import PermissionsPage from './pages/PermissionsPage';
+import StoresPage from './pages/StoresPage';
+import TerminalsPage from './pages/TerminalsPage';
+import VatRatesPage from './pages/VatRatesPage';
 import WarehousesPage from './pages/WarehousesPage';
 import ManufacturersPage from './pages/ManufacturersPage';
 import ProductsPage from './pages/ProductsPage';
@@ -75,6 +78,9 @@ export default function App() {
             <Route path="settings/user-types" element={<UserTypesPage />} />
             <Route path="settings/menus" element={<MenusPage />} />
             <Route path="settings/permissions" element={<PermissionsPage />} />
+            <Route path="settings/stores" element={<StoresPage />} />
+            <Route path="settings/terminals" element={<TerminalsPage />} />
+            <Route path="settings/vat-rates" element={<VatRatesPage />} />
 
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>

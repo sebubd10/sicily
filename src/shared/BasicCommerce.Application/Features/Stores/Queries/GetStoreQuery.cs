@@ -1,3 +1,4 @@
+using BasicCommerce.Application.Features.Stores;
 using BasicCommerce.Application.Interfaces;
 using BasicCommerce.Contracts.Stores;
 using BasicCommerce.Domain.Exceptions;
@@ -29,14 +30,6 @@ public class GetStoreQueryHandler : IRequestHandler<GetStoreQuery, StoreResponse
 
         var terminals = await _uow.Terminals.GetByStoreAsync(store.TenantId, store.Id, ct);
 
-        return new StoreResponse(
-            store.Id,
-            store.Name,
-            store.Code,
-            $"{store.Address.Line1}, {store.Address.City}",
-            store.Phone,
-            store.Email,
-            store.Status.ToString(),
-            terminals.Count());
+        return StoreMapper.ToResponse(store, terminals.Count());
     }
 }

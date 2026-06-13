@@ -36,4 +36,11 @@ public class TerminalRepository : TenantRepository<Terminal>, ITerminalRepositor
         await Db.Terminals.FirstOrDefaultAsync(
             t => t.TenantId == tenantId && t.StoreId == storeId &&
                  t.Code == code.ToUpperInvariant(), ct);
+
+    public async Task<bool> CodeExistsAsync(Guid tenantId, Guid storeId, string code,
+        Guid? excludeId = null, CancellationToken ct = default) =>
+        await Db.Terminals.AnyAsync(
+            t => t.TenantId == tenantId && t.StoreId == storeId &&
+                 t.Code == code.ToUpperInvariant() &&
+                 (excludeId == null || t.Id != excludeId), ct);
 }

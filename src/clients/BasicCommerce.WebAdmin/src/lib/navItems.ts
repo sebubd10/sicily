@@ -99,6 +99,9 @@ export const navItems: NavItem[] = [
       { label: 'User Types',      path: '/settings/user-types' },
       { label: 'Menus',           path: '/settings/menus' },
       { label: 'Permissions',     path: '/settings/permissions' },
+      { label: 'Stores',          path: '/settings/stores' },
+      { label: 'Terminals',       path: '/settings/terminals' },
+      { label: 'VAT Rates',       path: '/settings/vat-rates' },
     ],
   },
 ];

@@ -36,6 +36,7 @@ public interface IProductRepository : ITenantRepository<Product>
         string? search = null, CancellationToken ct = default);
     Task<int> CountByCategoryAsync(Guid tenantId, Guid categoryId, CancellationToken ct = default);
     Task<int> CountByManufacturerAsync(Guid tenantId, Guid manufacturerId, CancellationToken ct = default);
+    Task<int> CountByVatRateAsync(Guid tenantId, Guid vatRateId, CancellationToken ct = default);
 }
 
 public interface IStockLevelRepository : ITenantRepository<StockLevel>

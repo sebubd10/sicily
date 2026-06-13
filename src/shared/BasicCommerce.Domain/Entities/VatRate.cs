@@ -39,9 +39,27 @@ public class VatRate : TenantEntity
         UpdatedAt = DateTime.UtcNow;
     }
 
+    public void Update(string name, string code, decimal rate, bool isDefault)
+    {
+        if (rate < 0 || rate > 100)
+            throw new ArgumentOutOfRangeException(nameof(rate), "VAT rate must be between 0 and 100.");
+
+        Name = name;
+        Code = code.ToUpperInvariant();
+        Rate = rate;
+        IsDefault = isDefault;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
     public void Deactivate()
     {
         Status = EntityStatus.Inactive;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void Activate()
+    {
+        Status = EntityStatus.Active;
         UpdatedAt = DateTime.UtcNow;
     }
 }
