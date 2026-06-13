@@ -8,6 +8,7 @@ import DashboardPage from './pages/DashboardPage';
 import CategoriesPage from './pages/CategoriesPage';
 import UsersPage from './pages/UsersPage';
 import UserTypesPage from './pages/UserTypesPage';
+import MenusPage from './pages/MenusPage';
 import PermissionsPage from './pages/PermissionsPage';
 import WarehousesPage from './pages/WarehousesPage';
 import ManufacturersPage from './pages/ManufacturersPage';
@@ -72,7 +73,7 @@ export default function App() {
             {/* Settings */}
             <Route path="settings/users" element={<UsersPage />} />
             <Route path="settings/user-types" element={<UserTypesPage />} />
-            <Route path="settings/menus" element={<PlaceholderPage title="Menu Management" />} />
+            <Route path="settings/menus" element={<MenusPage />} />
             <Route path="settings/permissions" element={<PermissionsPage />} />
 
             <Route path="*" element={<Navigate to="/" replace />} />
