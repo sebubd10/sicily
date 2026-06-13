@@ -1,4 +1,5 @@
 using BasicCommerce.Application.Features.Products;
+using BasicCommerce.Application.Features.ProductTags;
 using BasicCommerce.Application.Interfaces;
 using BasicCommerce.Contracts.Products;
 using BasicCommerce.Domain.Entities;
@@ -110,6 +111,7 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
         if (request.TagIds is not null)
         {
             var tags = await _uow.ProductTags.GetByIdsAsync(tenantId, request.TagIds, ct);
+            ProductTagAssignmentValidator.EnsureNoNewInactiveTags(tags, []);
             product.SetTags(tags);
         }
 

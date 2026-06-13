@@ -30,7 +30,9 @@ public class SetProductTagsCommandHandler
         var product = await _uow.Products.GetWithTagsAsync(tenantId, request.ProductId, ct)
             ?? throw new NotFoundException("Product", request.ProductId);
 
+        var existingTagIds = product.Tags.Select(t => t.Id);
         var tags = await _uow.ProductTags.GetByIdsAsync(tenantId, request.TagIds, ct);
+        ProductTagAssignmentValidator.EnsureNoNewInactiveTags(tags, existingTagIds);
         product.SetTags(tags);
 
         _uow.Products.Update(product);

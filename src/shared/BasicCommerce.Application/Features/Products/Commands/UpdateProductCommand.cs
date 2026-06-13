@@ -1,4 +1,5 @@
 using BasicCommerce.Application.Features.Products;
+using BasicCommerce.Application.Features.ProductTags;
 using BasicCommerce.Application.Interfaces;
 using BasicCommerce.Contracts.Products;
 using BasicCommerce.Domain.Enums;
@@ -120,8 +121,10 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
 
         if (request.TagIds is not null)
         {
+            var existingTagIds = product.Tags.Select(t => t.Id);
             var tags = await _uow.ProductTags.GetByIdsAsync(
                 _currentUser.TenantId, request.TagIds, ct);
+            ProductTagAssignmentValidator.EnsureNoNewInactiveTags(tags, existingTagIds);
             product.SetTags(tags);
         }
 
