@@ -26,6 +26,7 @@ public class PurchaseOrderRepository : TenantRepository<PurchaseOrder>, IPurchas
         var query = Db.PurchaseOrders
             .Include(p => p.Supplier)
             .Include(p => p.Warehouse)
+            .Include(p => p.Items)
             .Where(p => p.TenantId == tenantId);
 
         if (supplierId.HasValue)

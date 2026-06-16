@@ -19,7 +19,8 @@ internal static class PurchaseOrderMapper
             po.SupplierId, po.Supplier?.Name ?? string.Empty,
             po.WarehouseId, po.Warehouse?.Name ?? string.Empty,
             po.PurchaseOrderStatus.ToString(),
-            po.OrderDate, po.ExpectedDate, po.Currency, po.TotalAmount);
+            po.OrderDate, po.ExpectedDate, po.Currency, po.TotalAmount,
+            po.Items.Count);
 
     internal static PurchaseOrderItemResponse ToItemResponse(PurchaseOrderItem i) =>
         new(i.Id, i.ProductId, i.Product?.Name ?? string.Empty, i.Product?.Sku ?? string.Empty,

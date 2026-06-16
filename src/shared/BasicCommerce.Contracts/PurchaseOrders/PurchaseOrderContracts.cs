@@ -27,7 +27,8 @@ public record PurchaseOrderSummaryResponse(
     DateTime OrderDate,
     DateTime? ExpectedDate,
     string Currency,
-    decimal TotalAmount);
+    decimal TotalAmount,
+    int ItemsCount);
 
 public record PurchaseOrderListResponse(
     IEnumerable<PurchaseOrderSummaryResponse> Items,
