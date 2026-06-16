@@ -43,4 +43,9 @@ public class TerminalRepository : TenantRepository<Terminal>, ITerminalRepositor
             t => t.TenantId == tenantId && t.StoreId == storeId &&
                  t.Code == code.ToUpperInvariant() &&
                  (excludeId == null || t.Id != excludeId), ct);
+
+    public async Task<int> CountByStoreAsync(Guid tenantId, Guid storeId,
+        CancellationToken ct = default) =>
+        await Db.Terminals.CountAsync(
+            t => t.TenantId == tenantId && t.StoreId == storeId, ct);
 }

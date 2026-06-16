@@ -13,4 +13,5 @@ public interface ITerminalRepository : ITenantRepository<Terminal>
     Task<IEnumerable<Terminal>> GetByStoreAsync(Guid tenantId, Guid storeId, CancellationToken ct = default);
     Task<Terminal?> GetByCodeAsync(Guid tenantId, Guid storeId, string code, CancellationToken ct = default);
     Task<bool> CodeExistsAsync(Guid tenantId, Guid storeId, string code, Guid? excludeId = null, CancellationToken ct = default);
+    Task<int> CountByStoreAsync(Guid tenantId, Guid storeId, CancellationToken ct = default);
 }
