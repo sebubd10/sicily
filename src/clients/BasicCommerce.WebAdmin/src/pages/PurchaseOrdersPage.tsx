@@ -70,8 +70,7 @@ export default function PurchaseOrdersPage() {
   });
 
   const { data: suppliers = [] } = useSuppliers();
-  const { data: warehousesData }  = useWarehouses();
-  const warehouses = (warehousesData?.items ?? []) as { id: string; name: string }[];
+  const { data: warehouses = [] } = useWarehouses();
 
   const { data: receivePo } = usePurchaseOrderDetail(receivePoId);
 

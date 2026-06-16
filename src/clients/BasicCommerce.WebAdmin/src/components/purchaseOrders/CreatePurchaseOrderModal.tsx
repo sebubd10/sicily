@@ -38,8 +38,7 @@ export function CreatePurchaseOrderModal({ open, onSave, onClose, isSaving }: Pr
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { data: suppliers = [] } = useSuppliers();
-  const { data: warehousesData } = useWarehouses();
-  const warehouses = warehousesData?.items ?? [];
+  const { data: warehouses = [] } = useWarehouses();
 
   useEffect(() => {
     if (open) { setForm(EMPTY); setErrors({}); setProductSearch(''); setSearchResults([]); }
@@ -197,7 +196,7 @@ export function CreatePurchaseOrderModal({ open, onSave, onClose, isSaving }: Pr
                       className={inputCls(errors.warehouseId)}
                     >
                       <option value="">Select warehouse…</option>
-                      {warehouses.filter((w: any) => w.status === 'Active').map((w: any) => (
+                      {warehouses.filter((w) => w.status === 'Active').map((w) => (
                         <option key={w.id} value={w.id}>{w.name}</option>
                       ))}
                     </select>
