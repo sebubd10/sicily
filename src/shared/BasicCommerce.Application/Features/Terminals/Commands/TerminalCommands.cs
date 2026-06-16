@@ -18,6 +18,7 @@ public record CreateTerminalCommand(
 
 public record UpdateTerminalCommand(
     Guid TerminalId,
+    Guid StoreId,
     string Name,
     string Code,
     string Type) : IRequest<TerminalResponse>;
@@ -43,6 +44,7 @@ public class UpdateTerminalCommandValidator : AbstractValidator<UpdateTerminalCo
     public UpdateTerminalCommandValidator()
     {
         RuleFor(x => x.TerminalId).NotEmpty();
+        RuleFor(x => x.StoreId).NotEmpty();
         RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
         RuleFor(x => x.Code).NotEmpty().MaximumLength(20)
             .Matches("^[A-Za-z0-9_-]+$").WithMessage("Code must be alphanumeric.");
@@ -101,15 +103,18 @@ public class UpdateTerminalCommandHandler : IRequestHandler<UpdateTerminalComman
             ?? throw new NotFoundException("Terminal", request.TerminalId);
         if (terminal.TenantId != tenantId) throw new NotFoundException("Terminal", request.TerminalId);
 
-        if (await _uow.Terminals.CodeExistsAsync(tenantId, terminal.StoreId, request.Code, terminal.Id, ct))
+        var store = await _uow.Stores.GetByIdAsync(request.StoreId, ct)
+            ?? throw new NotFoundException("Store", request.StoreId);
+        if (store.TenantId != tenantId) throw new NotFoundException("Store", request.StoreId);
+
+        if (await _uow.Terminals.CodeExistsAsync(tenantId, request.StoreId, request.Code, terminal.Id, ct))
             throw new DomainException($"Terminal code '{request.Code.ToUpperInvariant()}' already exists for this store.");
 
         var type = Enum.Parse<TerminalType>(request.Type, true);
-        terminal.Update(request.Name, request.Code, type);
+        terminal.Update(request.Name, request.Code, type, request.StoreId);
         await _uow.SaveChangesAsync(ct);
 
-        var store = await _uow.Stores.GetByIdAsync(terminal.StoreId, ct);
-        return TerminalMapper.ToResponse(terminal, store?.Name ?? "");
+        return TerminalMapper.ToResponse(terminal, store.Name);
     }
 }
 

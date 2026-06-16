@@ -25,6 +25,7 @@ export async function createTerminal(form: TerminalFormData): Promise<Terminal> 
 
 export async function updateTerminal(id: string, form: TerminalFormData): Promise<Terminal> {
   const { data } = await api.put<ApiResponse<Terminal>>(`/terminals/${id}`, {
+    storeId: form.storeId,
     name: form.name,
     code: form.code,
     type: form.type,

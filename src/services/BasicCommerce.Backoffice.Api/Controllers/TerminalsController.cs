@@ -48,7 +48,7 @@ public class TerminalsController : ControllerBase
         Guid id, [FromBody] UpdateTerminalRequest request, CancellationToken ct)
     {
         var result = await _mediator.Send(new UpdateTerminalCommand(
-            id, request.Name, request.Code, request.Type), ct);
+            id, request.StoreId, request.Name, request.Code, request.Type), ct);
         return Ok(ApiResponse<TerminalResponse>.Ok(result));
     }
 

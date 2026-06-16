@@ -58,6 +58,7 @@ public record CreateTerminalRequest(
     string Type);
 
 public record UpdateTerminalRequest(
+    Guid StoreId,
     string Name,
     string Code,
     string Type);

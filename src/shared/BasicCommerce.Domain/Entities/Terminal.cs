@@ -49,7 +49,7 @@ public class Terminal : TenantEntity
 
     public void RecordActivity() => LastActivityAt = DateTime.UtcNow;
 
-    public void Update(string name, string code, TerminalType type)
+    public void Update(string name, string code, TerminalType type, Guid? storeId = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentException.ThrowIfNullOrWhiteSpace(code);
@@ -57,6 +57,7 @@ public class Terminal : TenantEntity
         Name = name;
         Code = code.ToUpperInvariant();
         Type = type;
+        if (storeId.HasValue) StoreId = storeId.Value;
         UpdatedAt = DateTime.UtcNow;
     }
 

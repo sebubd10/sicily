@@ -117,9 +117,8 @@ export function TerminalModal({ open, terminal, onSave, onClose, isSaving }: Pro
                 <select
                   value={form.storeId}
                   onChange={(e) => set('storeId', e.target.value)}
-                  disabled={isSaving || isEdit}
-                  title={isEdit ? 'Terminal store cannot be changed' : undefined}
-                  className={cn(inputCls(errors.storeId), isEdit && 'opacity-60 cursor-not-allowed')}
+                  disabled={isSaving}
+                  className={inputCls(errors.storeId)}
                 >
                   <option value="">Select store…</option>
                   {stores.map((s) => (
