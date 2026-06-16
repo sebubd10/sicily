@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import {
-  Search, Plus, Pencil, PowerOff, Power, Loader2,
+  Search, Plus, Pencil, PowerOff, Power, Trash2, Loader2,
   AlertCircle, Monitor, Store as StoreIcon,
 } from 'lucide-react';
 import { cn, extractApiError } from '../lib/utils';
@@ -14,11 +14,13 @@ import {
   useUpdateTerminal,
   useActivateTerminal,
   useDeactivateTerminal,
+  useDeleteTerminal,
 } from '../hooks/useTerminals';
 
 type ConfirmState =
   | { type: 'deactivate'; terminal: Terminal }
   | { type: 'activate';   terminal: Terminal }
+  | { type: 'delete';     terminal: Terminal }
   | null;
 
 const OPERATIONAL_COLORS: Record<string, string> = {
@@ -43,6 +45,7 @@ export default function TerminalsPage() {
   const updateMutation     = useUpdateTerminal();
   const activateMutation   = useActivateTerminal();
   const deactivateMutation = useDeactivateTerminal();
+  const deleteMutation     = useDeleteTerminal();
 
   const [confirmError, setConfirmError] = useState<string | null>(null);
 
@@ -50,7 +53,8 @@ export default function TerminalsPage() {
     createMutation.isPending ||
     updateMutation.isPending ||
     activateMutation.isPending ||
-    deactivateMutation.isPending;
+    deactivateMutation.isPending ||
+    deleteMutation.isPending;
 
   const filtered = useMemo(() => {
     let list = terminals;
@@ -99,6 +103,7 @@ export default function TerminalsPage() {
       setConfirmError(null);
       if (confirm.type === 'deactivate') await deactivateMutation.mutateAsync(confirm.terminal.id);
       if (confirm.type === 'activate')   await activateMutation.mutateAsync(confirm.terminal.id);
+      if (confirm.type === 'delete')     await deleteMutation.mutateAsync(confirm.terminal.id);
       setConfirm(null);
     } catch (err) {
       setConfirmError(extractApiError(err));
@@ -113,6 +118,12 @@ export default function TerminalsPage() {
       message: `"${name}" will no longer be available for sign-in or sales.`,
       confirmLabel: 'Deactivate',
       variant: 'warning' as const,
+    };
+    if (confirm.type === 'delete') return {
+      title: 'Delete Terminal',
+      message: `"${name}" will be permanently removed. This cannot be undone.`,
+      confirmLabel: 'Delete',
+      variant: 'danger' as const,
     };
     return {
       title: 'Activate Terminal',
@@ -295,6 +306,14 @@ export default function TerminalsPage() {
                               {t.status === 'Active'
                                 ? <PowerOff className="w-3.5 h-3.5" />
                                 : <Power    className="w-3.5 h-3.5" />}
+                            </button>
+                            <button
+                              title="Delete"
+                              onClick={() => setConfirm({ type: 'delete', terminal: t })}
+                              disabled={isMutating}
+                              className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-40"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </td>

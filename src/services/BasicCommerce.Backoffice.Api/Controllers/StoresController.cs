@@ -99,4 +99,12 @@ public class StoresController : ControllerBase
         await _mediator.Send(new ActivateStoreCommand(id), ct);
         return NoContent();
     }
+
+    [HttpDelete("{id:guid}")]
+    [Authorize(Policy = "ChainAdminOnly")]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
+    {
+        await _mediator.Send(new DeleteStoreCommand(id), ct);
+        return NoContent();
+    }
 }

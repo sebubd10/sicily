@@ -39,3 +39,7 @@ export async function activateTerminal(id: string): Promise<void> {
 export async function deactivateTerminal(id: string): Promise<void> {
   await api.put(`/terminals/${id}/deactivate`);
 }
+
+export async function deleteTerminal(id: string): Promise<void> {
+  await api.delete(`/terminals/${id}`);
+}

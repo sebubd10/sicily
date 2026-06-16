@@ -67,4 +67,12 @@ public class TerminalsController : ControllerBase
         await _mediator.Send(new ActivateTerminalCommand(id), ct);
         return NoContent();
     }
+
+    [HttpDelete("{id:guid}")]
+    [Authorize(Policy = "ChainAdminOnly")]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
+    {
+        await _mediator.Send(new DeleteTerminalCommand(id), ct);
+        return NoContent();
+    }
 }

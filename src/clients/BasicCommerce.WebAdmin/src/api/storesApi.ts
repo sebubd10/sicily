@@ -50,3 +50,7 @@ export async function activateStore(id: string): Promise<void> {
 export async function deactivateStore(id: string): Promise<void> {
   await api.put(`/stores/${id}/deactivate`);
 }
+
+export async function deleteStore(id: string): Promise<void> {
+  await api.delete(`/stores/${id}`);
+}

@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import {
-  Search, Plus, Pencil, PowerOff, Power, Loader2,
+  Search, Plus, Pencil, PowerOff, Power, Trash2, Loader2,
   AlertCircle, Store as StoreIcon, Clock, Monitor,
 } from 'lucide-react';
 import { cn, extractApiError } from '../lib/utils';
@@ -14,11 +14,13 @@ import {
   useUpdateStore,
   useActivateStore,
   useDeactivateStore,
+  useDeleteStore,
 } from '../hooks/useStoreAdmin';
 
 type ConfirmState =
   | { type: 'deactivate'; store: Store }
   | { type: 'activate';   store: Store }
+  | { type: 'delete';     store: Store }
   | null;
 
 export default function StoresPage() {
@@ -36,6 +38,7 @@ export default function StoresPage() {
   const updateMutation     = useUpdateStore();
   const activateMutation   = useActivateStore();
   const deactivateMutation = useDeactivateStore();
+  const deleteMutation     = useDeleteStore();
 
   const [confirmError, setConfirmError] = useState<string | null>(null);
 
@@ -43,7 +46,8 @@ export default function StoresPage() {
     createMutation.isPending ||
     updateMutation.isPending ||
     activateMutation.isPending ||
-    deactivateMutation.isPending;
+    deactivateMutation.isPending ||
+    deleteMutation.isPending;
 
   const filtered = useMemo(() => {
     let list = stores;
@@ -92,6 +96,7 @@ export default function StoresPage() {
       setConfirmError(null);
       if (confirm.type === 'deactivate') await deactivateMutation.mutateAsync(confirm.store.id);
       if (confirm.type === 'activate')   await activateMutation.mutateAsync(confirm.store.id);
+      if (confirm.type === 'delete')     await deleteMutation.mutateAsync(confirm.store.id);
       setConfirm(null);
     } catch (err) {
       setConfirmError(extractApiError(err));
@@ -106,6 +111,12 @@ export default function StoresPage() {
       message: `"${name}" will be hidden from store selectors and dropdowns.`,
       confirmLabel: 'Deactivate',
       variant: 'warning' as const,
+    };
+    if (confirm.type === 'delete') return {
+      title: 'Delete Store',
+      message: `"${name}" will be permanently removed. This cannot be undone.`,
+      confirmLabel: 'Delete',
+      variant: 'danger' as const,
     };
     return {
       title: 'Activate Store',
@@ -295,6 +306,14 @@ export default function StoresPage() {
                               {s.status === 'Active'
                                 ? <PowerOff className="w-3.5 h-3.5" />
                                 : <Power    className="w-3.5 h-3.5" />}
+                            </button>
+                            <button
+                              title="Delete"
+                              onClick={() => setConfirm({ type: 'delete', store: s })}
+                              disabled={isMutating}
+                              className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-40"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </td>

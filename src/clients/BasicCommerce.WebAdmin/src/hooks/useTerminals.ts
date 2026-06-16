@@ -53,3 +53,11 @@ export function useDeactivateTerminal() {
     onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
   });
 }
+
+export function useDeleteTerminal() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => terminalsApi.deleteTerminal(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+  });
+}

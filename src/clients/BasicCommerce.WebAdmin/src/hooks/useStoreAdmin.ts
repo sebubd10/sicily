@@ -59,3 +59,11 @@ export function useDeactivateStore() {
     onSuccess: () => invalidateAll(qc),
   });
 }
+
+export function useDeleteStore() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => storesApi.deleteStore(id),
+    onSuccess: () => invalidateAll(qc),
+  });
+}
