@@ -80,7 +80,7 @@ public class BasicCommerceDbContext : DbContext
             builder.Entity(entityType.ClrType)
                 .Property<EntityStatus>(nameof(BaseEntity.Status))
                 .HasDefaultValue(EntityStatus.Active)
-                .HasSentinel((EntityStatus)0);
+                .ValueGeneratedNever();
         }
     }
 
