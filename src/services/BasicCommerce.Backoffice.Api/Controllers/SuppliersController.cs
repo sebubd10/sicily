@@ -73,4 +73,12 @@ public class SuppliersController : ControllerBase
         await _mediator.Send(new ActivateSupplierCommand(id), ct);
         return NoContent();
     }
+
+    [HttpDelete("{id:guid}")]
+    [Authorize(Policy = "StoreManagerAndAbove")]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
+    {
+        await _mediator.Send(new DeleteSupplierCommand(id), ct);
+        return NoContent();
+    }
 }
