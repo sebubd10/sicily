@@ -34,20 +34,36 @@ export function CreatePurchaseOrderModal({ open, onSave, onClose, isSaving }: Pr
   const [searchResults, setSearchResults] = useState<ProductListItem[]>([]);
   const [searching, setSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [supplierQuery, setSupplierQuery] = useState('');
+  const [showSupplierDrop, setShowSupplierDrop] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+  const supplierRef = useRef<HTMLDivElement>(null);
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { data: suppliers = [] } = useSuppliers();
   const { data: warehouses = [] } = useWarehouses();
 
+  const activeSuppliers = suppliers.filter((s) => s.status === 'Active');
+  const filteredSuppliers = supplierQuery.trim()
+    ? activeSuppliers.filter((s) =>
+        s.name.toLowerCase().includes(supplierQuery.toLowerCase()) ||
+        s.code.toLowerCase().includes(supplierQuery.toLowerCase()),
+      )
+    : activeSuppliers;
+
   useEffect(() => {
-    if (open) { setForm(EMPTY); setErrors({}); setProductSearch(''); setSearchResults([]); }
+    if (open) {
+      setForm(EMPTY); setErrors({}); setProductSearch(''); setSearchResults([]);
+      setSupplierQuery(''); setShowSupplierDrop(false);
+    }
   }, [open]);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(e.target as Node))
         setShowResults(false);
+      if (supplierRef.current && !supplierRef.current.contains(e.target as Node))
+        setShowSupplierDrop(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -172,17 +188,62 @@ export function CreatePurchaseOrderModal({ open, onSave, onClose, isSaving }: Pr
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Supplier <span className="text-red-500">*</span>
                     </label>
-                    <select
-                      value={form.supplierId}
-                      onChange={(e) => set('supplierId', e.target.value)}
-                      disabled={isSaving}
-                      className={inputCls(errors.supplierId)}
-                    >
-                      <option value="">Select supplier…</option>
-                      {suppliers.filter(s => s.status === 'Active').map((s) => (
-                        <option key={s.id} value={s.id}>{s.name}</option>
-                      ))}
-                    </select>
+                    <div ref={supplierRef} className="relative">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+                        <input
+                          type="text"
+                          value={supplierQuery}
+                          onChange={(e) => {
+                            setSupplierQuery(e.target.value);
+                            setShowSupplierDrop(true);
+                            if (!e.target.value) set('supplierId', '');
+                          }}
+                          onFocus={() => setShowSupplierDrop(true)}
+                          placeholder="Search supplier…"
+                          disabled={isSaving}
+                          className={cn(inputCls(errors.supplierId), 'pl-8 pr-7')}
+                        />
+                        {form.supplierId && (
+                          <button
+                            type="button"
+                            onClick={() => { set('supplierId', ''); setSupplierQuery(''); }}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                      {showSupplierDrop && filteredSuppliers.length > 0 && (
+                        <div className="absolute z-20 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-52 overflow-y-auto">
+                          {filteredSuppliers.map((s) => (
+                            <button
+                              key={s.id}
+                              type="button"
+                              onClick={() => {
+                                set('supplierId', s.id);
+                                setSupplierQuery(s.name);
+                                setShowSupplierDrop(false);
+                              }}
+                              className={cn(
+                                'w-full flex flex-col items-start px-4 py-2.5 text-left text-sm transition-colors',
+                                form.supplierId === s.id
+                                  ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-800 dark:text-primary-300'
+                                  : 'hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-900 dark:text-white',
+                              )}
+                            >
+                              <span className="font-medium">{s.name}</span>
+                              <span className="text-xs text-gray-400 font-mono">{s.code}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      {showSupplierDrop && supplierQuery.trim() && filteredSuppliers.length === 0 && (
+                        <div className="absolute z-20 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg px-4 py-3 text-sm text-gray-400">
+                          No suppliers match "{supplierQuery}"
+                        </div>
+                      )}
+                    </div>
                     {errors.supplierId && <p className="mt-1 text-xs text-red-500">{errors.supplierId}</p>}
                   </div>
                   <div>
