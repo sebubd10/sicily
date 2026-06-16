@@ -4,6 +4,7 @@ using BasicCommerce.Contracts.Common;
 using BasicCommerce.Domain.Exceptions;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace BasicCommerce.Infrastructure.Middleware;
@@ -12,6 +13,7 @@ public class ExceptionHandlingMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<ExceptionHandlingMiddleware> _logger;
+    private readonly IHostEnvironment _env;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -19,10 +21,12 @@ public class ExceptionHandlingMiddleware
     };
 
     public ExceptionHandlingMiddleware(RequestDelegate next,
-        ILogger<ExceptionHandlingMiddleware> logger)
+        ILogger<ExceptionHandlingMiddleware> logger,
+        IHostEnvironment env)
     {
         _next = next;
         _logger = logger;
+        _env = env;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -61,7 +65,13 @@ public class ExceptionHandlingMiddleware
 
             _ => (
                 HttpStatusCode.InternalServerError,
-                ApiResponse<object>.Fail("An unexpected error occurred."))
+                ApiResponse<object>.Fail(
+                    _env.IsDevelopment()
+                        ? $"{exception.GetType().Name}: {exception.Message}" +
+                          (exception.InnerException is not null
+                              ? $" | Inner: {exception.InnerException.Message}"
+                              : string.Empty)
+                        : "An unexpected error occurred."))
         };
 
         if (statusCode == HttpStatusCode.InternalServerError)
