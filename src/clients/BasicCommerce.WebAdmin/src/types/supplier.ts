@@ -6,7 +6,10 @@ export interface Supplier {
   email: string | null;
   phone: string | null;
   addressLine1: string | null;
+  addressLine2: string | null;
   city: string | null;
+  district: string | null;
+  postalCode: string | null;
   leadTimeDays: number;
   notes: string | null;
   manufacturerId: string | null;

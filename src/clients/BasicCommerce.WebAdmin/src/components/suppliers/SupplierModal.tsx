@@ -46,10 +46,10 @@ export function SupplierModal({ open, supplier, onSave, onClose, isSaving }: Pro
               email: supplier.email ?? '',
               phone: supplier.phone ?? '',
               addressLine1: supplier.addressLine1 ?? '',
-              addressLine2: '',
+              addressLine2: supplier.addressLine2 ?? '',
               city: supplier.city ?? '',
-              district: '',
-              postalCode: '',
+              district: supplier.district ?? '',
+              postalCode: supplier.postalCode ?? '',
               leadTimeDays: supplier.leadTimeDays,
               notes: supplier.notes ?? '',
             }
