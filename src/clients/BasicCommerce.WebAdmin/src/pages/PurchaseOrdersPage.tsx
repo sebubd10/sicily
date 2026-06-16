@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   Plus, Eye, XCircle, Loader2, AlertCircle,
-  ShoppingCart, ChevronLeft, ChevronRight,
+  ShoppingCart, ChevronLeft, ChevronRight, Pencil,
 } from 'lucide-react';
 import { cn, extractApiError } from '../lib/utils';
 import {
@@ -14,6 +14,7 @@ import {
   usePurchaseOrders,
   usePurchaseOrderDetail,
   useCreatePurchaseOrder,
+  useUpdatePurchaseOrder,
   useCancelPurchaseOrder,
   useReceivePurchaseOrder,
 } from '../hooks/usePurchaseOrders';
@@ -55,11 +56,13 @@ export default function PurchaseOrdersPage() {
   const [warehouseFilter, setWarehouseFilter] = useState('');
 
   const [createOpen, setCreateOpen]       = useState(false);
+  const [editPoId, setEditPoId]           = useState<string | null>(null);
   const [detailId, setDetailId]           = useState<string | null>(null);
   const [receivePoId, setReceivePoId]     = useState<string | null>(null);
   const [cancelPo, setCancelPo]           = useState<PurchaseOrderSummary | null>(null);
   const [cancelError, setCancelError]     = useState<string | null>(null);
   const [receiveError, setReceiveError]   = useState<string | null>(null);
+  const [saveError, setSaveError]         = useState<string | null>(null);
 
   const { data, isLoading, isError, isFetching } = usePurchaseOrders({
     page,
@@ -73,10 +76,15 @@ export default function PurchaseOrdersPage() {
   const { data: warehouses = [] } = useWarehouses();
 
   const { data: receivePo } = usePurchaseOrderDetail(receivePoId);
+  const { data: editPo }    = usePurchaseOrderDetail(editPoId);
 
   const createMutation  = useCreatePurchaseOrder();
+  const updateMutation  = useUpdatePurchaseOrder();
   const cancelMutation  = useCancelPurchaseOrder();
   const receiveMutation = useReceivePurchaseOrder();
+
+  const modalOpen = createOpen || !!editPoId;
+  const isSavingModal = createMutation.isPending || updateMutation.isPending;
 
   const totalPages = data ? Math.ceil(data.totalCount / PAGE_SIZE) : 1;
 
@@ -89,9 +97,25 @@ export default function PurchaseOrdersPage() {
   function handleSupplierFilter(id: string)    { setSupplierFilter(id); setPage(1); }
   function handleWarehouseFilter(id: string)   { setWarehouseFilter(id); setPage(1); }
 
-  async function handleCreate(form: CreatePurchaseOrderFormData) {
-    await createMutation.mutateAsync(form);
+  function handleModalClose() {
     setCreateOpen(false);
+    setEditPoId(null);
+    setSaveError(null);
+  }
+
+  async function handleSave(form: CreatePurchaseOrderFormData) {
+    try {
+      setSaveError(null);
+      if (editPoId) {
+        await updateMutation.mutateAsync({ id: editPoId, form });
+        setEditPoId(null);
+      } else {
+        await createMutation.mutateAsync(form);
+        setCreateOpen(false);
+      }
+    } catch (err) {
+      setSaveError(extractApiError(err));
+    }
   }
 
   async function handleCancel() {
@@ -296,6 +320,15 @@ export default function PurchaseOrdersPage() {
                               >
                                 <Eye className="w-3.5 h-3.5" />
                               </button>
+                              {po.status === 'Draft' && (
+                                <button
+                                  title="Edit Order"
+                                  onClick={() => setEditPoId(po.id)}
+                                  className="p-1.5 rounded-lg text-gray-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors"
+                                >
+                                  <Pencil className="w-3.5 h-3.5" />
+                                </button>
+                              )}
                               {cancellable && (
                                 <button
                                   title="Cancel Order"
@@ -370,12 +403,14 @@ export default function PurchaseOrdersPage() {
         )}
       </div>
 
-      {/* Create modal */}
+      {/* Create / Edit modal */}
       <CreatePurchaseOrderModal
-        open={createOpen}
-        onSave={handleCreate}
-        onClose={() => setCreateOpen(false)}
-        isSaving={createMutation.isPending}
+        open={modalOpen}
+        onSave={handleSave}
+        onClose={handleModalClose}
+        isSaving={isSavingModal}
+        editPo={editPo}
+        error={saveError}
       />
 
       {/* Detail modal */}
@@ -384,6 +419,7 @@ export default function PurchaseOrdersPage() {
         poId={detailId}
         onClose={() => setDetailId(null)}
         onReceive={(id) => { setDetailId(null); setReceivePoId(id); }}
+        onEdit={(id) => { setDetailId(null); setEditPoId(id); }}
       />
 
       {/* Receive modal */}

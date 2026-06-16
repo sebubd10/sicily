@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { ShoppingCart, X, Search, Plus, Trash2, Package } from 'lucide-react';
+import { ShoppingCart, X, Search, Plus, Trash2, Package, AlertCircle, Pencil } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import type { CreatePurchaseOrderFormData, CreatePOLineItem } from '../../types/purchaseOrder';
+import type { CreatePurchaseOrderFormData, CreatePOLineItem, PurchaseOrderDetail } from '../../types/purchaseOrder';
 import { useWarehouses } from '../../hooks/useWarehouses';
 import { useSuppliers } from '../../hooks/useSuppliers';
 import { getProducts } from '../../api/productsApi';
@@ -13,6 +13,8 @@ type Props = {
   onSave: (data: CreatePurchaseOrderFormData) => void;
   onClose: () => void;
   isSaving?: boolean;
+  editPo?: PurchaseOrderDetail;
+  error?: string | null;
 };
 
 const today = () => new Date().toISOString().slice(0, 10);
@@ -27,7 +29,7 @@ const EMPTY: CreatePurchaseOrderFormData = {
   items: [],
 };
 
-export function CreatePurchaseOrderModal({ open, onSave, onClose, isSaving }: Props) {
+export function CreatePurchaseOrderModal({ open, onSave, onClose, isSaving, editPo, error }: Props) {
   const [form, setForm] = useState<CreatePurchaseOrderFormData>(EMPTY);
   const [errors, setErrors] = useState<Partial<Record<string, string>>>({});
   const [productSearch, setProductSearch] = useState('');
@@ -43,6 +45,8 @@ export function CreatePurchaseOrderModal({ open, onSave, onClose, isSaving }: Pr
   const { data: suppliers = [] } = useSuppliers();
   const { data: warehouses = [] } = useWarehouses();
 
+  const isEditMode = !!editPo;
+
   const activeSuppliers = suppliers.filter((s) => s.status === 'Active');
   const filteredSuppliers = supplierQuery.trim()
     ? activeSuppliers.filter((s) =>
@@ -53,10 +57,30 @@ export function CreatePurchaseOrderModal({ open, onSave, onClose, isSaving }: Pr
 
   useEffect(() => {
     if (open) {
-      setForm(EMPTY); setErrors({}); setProductSearch(''); setSearchResults([]);
-      setSupplierQuery(''); setShowSupplierDrop(false);
+      setErrors({}); setProductSearch(''); setSearchResults([]); setShowSupplierDrop(false);
+      if (editPo) {
+        setForm({
+          supplierId: editPo.supplierId,
+          warehouseId: editPo.warehouseId,
+          orderDate: editPo.orderDate.slice(0, 10),
+          expectedDate: editPo.expectedDate ? editPo.expectedDate.slice(0, 10) : '',
+          notes: editPo.notes || '',
+          currency: editPo.currency,
+          items: editPo.items.map((i) => ({
+            productId: i.productId,
+            productName: i.productName,
+            sku: i.sku,
+            quantity: i.orderedQuantity,
+            unitCost: i.unitCost,
+          })),
+        });
+        setSupplierQuery(editPo.supplierName);
+      } else {
+        setForm(EMPTY);
+        setSupplierQuery('');
+      }
     }
-  }, [open]);
+  }, [open, editPo]);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -166,10 +190,14 @@ export function CreatePurchaseOrderModal({ open, onSave, onClose, isSaving }: Pr
           {/* Header */}
           <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 px-6 py-4">
             <Dialog.Title className="flex items-center gap-2 text-base font-semibold text-gray-900 dark:text-white">
-              <ShoppingCart className="w-5 h-5 text-primary-700" />
-              New Purchase Order
+              {isEditMode
+                ? <Pencil className="w-5 h-5 text-primary-700" />
+                : <ShoppingCart className="w-5 h-5 text-primary-700" />}
+              {isEditMode ? `Edit Purchase Order · ${editPo!.orderNumber}` : 'New Purchase Order'}
             </Dialog.Title>
-            <Dialog.Description className="sr-only">Create a new purchase order</Dialog.Description>
+            <Dialog.Description className="sr-only">
+              {isEditMode ? 'Edit draft purchase order' : 'Create a new purchase order'}
+            </Dialog.Description>
             <Dialog.Close
               disabled={isSaving}
               className="rounded-lg p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none disabled:opacity-40"
@@ -472,32 +500,44 @@ export function CreatePurchaseOrderModal({ open, onSave, onClose, isSaving }: Pr
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 rounded-b-xl">
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Order will be created as <span className="font-medium text-gray-700 dark:text-gray-300">Draft</span>
-              </p>
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  disabled={isSaving}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-40"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSaving}
-                  className="px-5 py-2 text-sm font-medium text-white bg-primary-800 hover:bg-primary-900 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
-                >
-                  {isSaving && (
-                    <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                    </svg>
-                  )}
-                  {isSaving ? 'Creating…' : 'Create Purchase Order'}
-                </button>
+            <div className="border-t border-gray-200 dark:border-gray-700 rounded-b-xl">
+              {error && (
+                <div className="flex items-start gap-2 mx-6 mt-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-4 py-3 text-sm text-red-600 dark:text-red-400">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  {error}
+                </div>
+              )}
+              <div className="flex items-center justify-between px-6 py-4 bg-gray-50 dark:bg-gray-800/50 rounded-b-xl">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {isEditMode
+                    ? <>Saving changes to <span className="font-medium text-gray-700 dark:text-gray-300">Draft</span> order</>
+                    : <>Order will be created as <span className="font-medium text-gray-700 dark:text-gray-300">Draft</span></>}
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    disabled={isSaving}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-40"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSaving}
+                    className="px-5 py-2 text-sm font-medium text-white bg-primary-800 hover:bg-primary-900 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+                  >
+                    {isSaving && (
+                      <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                      </svg>
+                    )}
+                    {isSaving
+                      ? (isEditMode ? 'Saving…' : 'Creating…')
+                      : (isEditMode ? 'Save Changes' : 'Create Purchase Order')}
+                  </button>
+                </div>
               </div>
             </div>
           </form>

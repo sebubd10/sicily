@@ -101,4 +101,26 @@ public class PurchaseOrder : TenantEntity
         Notes = notes;
         UpdatedAt = DateTime.UtcNow;
     }
+
+    public void UpdateDetails(Guid supplierId, Guid warehouseId, DateTime orderDate,
+        DateTime? expectedDate, string? notes, string currency)
+    {
+        if (PurchaseOrderStatus != PurchaseOrderStatus.Draft)
+            throw new DomainException("Only Draft purchase orders can be edited.");
+        SupplierId = supplierId;
+        WarehouseId = warehouseId;
+        OrderDate = orderDate;
+        ExpectedDate = expectedDate;
+        Notes = notes;
+        Currency = currency;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void ClearItems()
+    {
+        if (PurchaseOrderStatus != PurchaseOrderStatus.Draft)
+            throw new DomainException("Only Draft purchase orders can have items replaced.");
+        _items.Clear();
+        UpdatedAt = DateTime.UtcNow;
+    }
 }

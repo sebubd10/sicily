@@ -62,6 +62,15 @@ public record PurchaseOrderItemRequest(
     decimal Quantity,
     decimal? UnitCost = null);
 
+public record UpdatePurchaseOrderRequest(
+    Guid SupplierId,
+    Guid WarehouseId,
+    DateTime OrderDate,
+    DateTime? ExpectedDate = null,
+    string? Notes = null,
+    string Currency = "BDT",
+    IEnumerable<PurchaseOrderItemRequest>? Items = null);
+
 public record ReceivePurchaseOrderRequest(
     IEnumerable<ReceiveItemRequest> Items,
     string? Notes = null);

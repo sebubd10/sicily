@@ -3,7 +3,7 @@ import * as Dialog from '@radix-ui/react-dialog';
 import {
   ClipboardList, X, Send, XCircle, PackageCheck,
   Loader2, AlertCircle, Building2, Warehouse, CreditCard,
-  CalendarDays, FileText,
+  CalendarDays, FileText, Pencil,
 } from 'lucide-react';
 import { cn, extractApiError } from '../../lib/utils';
 import { PO_STATUS_CONFIG } from '../../types/purchaseOrder';
@@ -19,6 +19,7 @@ type Props = {
   poId: string | null;
   onClose: () => void;
   onReceive: (poId: string) => void;
+  onEdit?: (poId: string) => void;
 };
 
 function fmtDate(d: string | null | undefined): string {
@@ -42,7 +43,7 @@ function InfoCell({ icon, label, value }: { icon: React.ReactNode; label: string
   );
 }
 
-export function PurchaseOrderDetailModal({ open, poId, onClose, onReceive }: Props) {
+export function PurchaseOrderDetailModal({ open, poId, onClose, onReceive, onEdit }: Props) {
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -54,6 +55,7 @@ export function PurchaseOrderDetailModal({ open, poId, onClose, onReceive }: Pro
   const isMutating = submitMutation.isPending || cancelMutation.isPending;
 
   const statusCfg = po ? PO_STATUS_CONFIG[po.status] : null;
+  const canEdit = po?.status === 'Draft';
   const canSubmit = po?.status === 'Draft';
   const canReceive = po?.status === 'Submitted' || po?.status === 'PartiallyReceived';
   const canCancel = po?.status === 'Draft' || po?.status === 'Submitted' || po?.status === 'PartiallyReceived';
@@ -254,8 +256,18 @@ export function PurchaseOrderDetailModal({ open, poId, onClose, onReceive }: Pro
                   disabled={isMutating}
                   className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-40"
                 >
-                  {hasActions ? 'Close' : 'Close'}
+                  Close
                 </button>
+                {po && canEdit && onEdit && poId && (
+                  <button
+                    onClick={() => { onClose(); onEdit(poId); }}
+                    disabled={isMutating}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-40"
+                  >
+                    <Pencil className="w-4 h-4" />
+                    Edit
+                  </button>
+                )}
                 {po && canSubmit && (
                   <button
                     onClick={handleSubmit}

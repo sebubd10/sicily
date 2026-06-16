@@ -50,6 +50,26 @@ export async function createPurchaseOrder(
   return data.data!;
 }
 
+export async function updatePurchaseOrder(
+  id: string,
+  form: CreatePurchaseOrderFormData,
+): Promise<PurchaseOrderDetail> {
+  const { data } = await api.put<ApiResponse<PurchaseOrderDetail>>(`/purchase-orders/${id}`, {
+    supplierId: form.supplierId,
+    warehouseId: form.warehouseId,
+    orderDate: form.orderDate,
+    expectedDate: form.expectedDate || null,
+    notes: form.notes || null,
+    currency: form.currency,
+    items: form.items.map((i) => ({
+      productId: i.productId,
+      quantity: i.quantity,
+      unitCost: i.unitCost,
+    })),
+  });
+  return data.data!;
+}
+
 export async function submitPurchaseOrder(id: string): Promise<PurchaseOrderDetail> {
   const { data } = await api.put<ApiResponse<PurchaseOrderDetail>>(`/purchase-orders/${id}/submit`);
   return data.data!;

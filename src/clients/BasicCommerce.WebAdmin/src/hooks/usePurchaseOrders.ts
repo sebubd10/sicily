@@ -36,6 +36,15 @@ export function useCreatePurchaseOrder() {
   });
 }
 
+export function useUpdatePurchaseOrder() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, form }: { id: string; form: CreatePurchaseOrderFormData }) =>
+      poApi.updatePurchaseOrder(id, form),
+    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+  });
+}
+
 export function useSubmitPurchaseOrder() {
   const qc = useQueryClient();
   return useMutation({

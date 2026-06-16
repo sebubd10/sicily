@@ -53,6 +53,19 @@ public class PurchaseOrdersController : ControllerBase
             ApiResponse<PurchaseOrderResponse>.Ok(result));
     }
 
+    [HttpPut("{id:guid}")]
+    [Authorize(Policy = "StoreManagerAndAbove")]
+    public async Task<ActionResult<ApiResponse<PurchaseOrderResponse>>> Update(
+        Guid id, [FromBody] UpdatePurchaseOrderRequest request, CancellationToken ct)
+    {
+        var items = request.Items?.Select(i => (i.ProductId, i.Quantity, i.UnitCost))
+            ?? Enumerable.Empty<(Guid, decimal, decimal?)>();
+        var result = await _mediator.Send(new UpdatePurchaseOrderCommand(
+            id, request.SupplierId, request.WarehouseId, request.OrderDate,
+            request.ExpectedDate, request.Notes, request.Currency, items), ct);
+        return Ok(ApiResponse<PurchaseOrderResponse>.Ok(result));
+    }
+
     [HttpPut("{id:guid}/submit")]
     [Authorize(Policy = "StoreManagerAndAbove")]
     public async Task<ActionResult<ApiResponse<PurchaseOrderResponse>>> Submit(Guid id, CancellationToken ct)
