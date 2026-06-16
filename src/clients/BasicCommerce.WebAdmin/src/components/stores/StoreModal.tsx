@@ -3,6 +3,7 @@ import * as Dialog from '@radix-ui/react-dialog';
 import { Store as StoreIcon, X } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import type { Store, StoreFormData } from '../../types/store';
+import { useDistricts } from '../../hooks/useWarehouses';
 
 type Props = {
   open: boolean;
@@ -30,6 +31,7 @@ export function StoreModal({ open, store, onSave, onClose, isSaving }: Props) {
   const isEdit = store !== null;
   const [form, setForm] = useState<StoreFormData>(EMPTY);
   const [errors, setErrors] = useState<Partial<Record<keyof StoreFormData, string>>>({});
+  const { data: districts = [] } = useDistricts();
 
   useEffect(() => {
     if (open) {
@@ -201,14 +203,17 @@ export function StoreModal({ open, store, onSave, onClose, isSaving }: Props) {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     District <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={form.district}
                     onChange={(e) => set('district', e.target.value)}
-                    placeholder="Dhaka"
                     disabled={isSaving}
                     className={inputCls(errors.district)}
-                  />
+                  >
+                    <option value="">Select district…</option>
+                    {districts.map((d) => (
+                      <option key={d.code} value={d.code}>{d.name}</option>
+                    ))}
+                  </select>
                   {errors.district && <p className="mt-1 text-xs text-red-500">{errors.district}</p>}
                 </div>
               </div>
