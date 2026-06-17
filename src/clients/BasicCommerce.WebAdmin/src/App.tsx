@@ -19,6 +19,7 @@ import ProductsPage from './pages/ProductsPage';
 import ProductTagsPage from './pages/ProductTagsPage';
 import SuppliersPage from './pages/SuppliersPage';
 import PurchaseOrdersPage from './pages/PurchaseOrdersPage';
+import SupplierReturnsPage from './pages/SupplierReturnsPage';
 import PlaceholderPage from './pages/PlaceholderPage';
 import { useThemeStore } from './store/themeStore';
 
@@ -55,7 +56,7 @@ export default function App() {
             {/* Purchasing */}
             <Route path="purchasing/orders" element={<PurchaseOrdersPage />} />
             <Route path="purchasing/suppliers" element={<SuppliersPage />} />
-            <Route path="purchasing/returns" element={<PlaceholderPage title="Supplier Returns" />} />
+            <Route path="purchasing/returns" element={<SupplierReturnsPage />} />
 
             {/* Sales */}
             <Route path="sales/transactions" element={<PlaceholderPage title="Transactions" />} />

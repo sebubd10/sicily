@@ -1,8 +1,8 @@
 import * as Dialog from '@radix-ui/react-dialog';
-import { AlertTriangle, Trash2, X } from 'lucide-react';
+import { AlertTriangle, Trash2, X, Info } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
-type Variant = 'danger' | 'warning';
+type Variant = 'danger' | 'warning' | 'primary';
 
 type Props = {
   open: boolean;
@@ -26,6 +26,11 @@ const variantStyles: Record<Variant, { icon: React.ReactNode; btn: string; iconW
     icon: <AlertTriangle className="w-6 h-6 text-amber-500 dark:text-amber-400" />,
     btn: 'bg-amber-500 hover:bg-amber-600 focus-visible:ring-amber-400',
     iconWrap: 'bg-amber-100 dark:bg-amber-900/30',
+  },
+  primary: {
+    icon: <Info className="w-6 h-6 text-primary-700 dark:text-primary-400" />,
+    btn: 'bg-primary-800 hover:bg-primary-900 focus-visible:ring-primary-500',
+    iconWrap: 'bg-primary-100 dark:bg-primary-900/30',
   },
 };
 
