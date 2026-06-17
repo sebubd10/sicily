@@ -31,6 +31,7 @@ export interface SupplierReturnDetail {
   supplierId: string;
   supplierName: string;
   storeId: string;
+  storeName: string;
   purchaseOrderId: string | null;
   status: SupplierReturnStatus;
   notes: string | null;
@@ -51,6 +52,7 @@ export interface SupplierReturnSummary {
   supplierId: string;
   supplierName: string;
   storeId: string;
+  storeName: string;
   status: SupplierReturnStatus;
   totalReturnValue: number;
   expectedCreditAmount: number | null;

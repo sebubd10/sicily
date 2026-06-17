@@ -15,6 +15,7 @@ public class SupplierReturnRepository : TenantRepository<SupplierReturn>, ISuppl
         await Db.SupplierReturns
             .Include(r => r.Items).ThenInclude(i => i.Product)
             .Include(r => r.Supplier)
+            .Include(r => r.Store)
             .FirstOrDefaultAsync(r => r.TenantId == tenantId && r.Id == id, ct);
 
     public async Task<IEnumerable<SupplierReturn>> GetPagedAsync(
@@ -22,6 +23,7 @@ public class SupplierReturnRepository : TenantRepository<SupplierReturn>, ISuppl
         SupplierReturnStatus? status, int page, int pageSize, CancellationToken ct = default) =>
         await Db.SupplierReturns
             .Include(r => r.Supplier)
+            .Include(r => r.Store)
             .Where(r => r.TenantId == tenantId
                 && (supplierId == null || r.SupplierId == supplierId)
                 && (storeId == null || r.StoreId == storeId)
@@ -39,4 +41,7 @@ public class SupplierReturnRepository : TenantRepository<SupplierReturn>, ISuppl
                 && (supplierId == null || r.SupplierId == supplierId)
                 && (storeId == null || r.StoreId == storeId)
                 && (status == null || r.ReturnStatus == status), ct);
+
+    public void AddItem(SupplierReturnItem item) => Db.SupplierReturnItems.Add(item);
+    public void RemoveItem(SupplierReturnItem item) => Db.SupplierReturnItems.Remove(item);
 }

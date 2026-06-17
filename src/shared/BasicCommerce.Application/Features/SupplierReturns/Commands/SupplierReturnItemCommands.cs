@@ -54,8 +54,8 @@ public class AddSupplierReturnItemCommandHandler
             ?? throw new NotFoundException("Product", request.ProductId);
         if (product.TenantId != tenantId) throw new NotFoundException("Product", request.ProductId);
 
-        sr.AddItem(request.ProductId, request.Quantity, request.UnitCost, request.Reason, request.Notes);
-        _uow.SupplierReturns.Update(sr);
+        var item = sr.AddItem(request.ProductId, request.Quantity, request.UnitCost, request.Reason, request.Notes);
+        _uow.SupplierReturns.AddItem(item);
         await _uow.SaveChangesAsync(ct);
 
         var loaded = await _uow.SupplierReturns.GetWithItemsAsync(tenantId, sr.Id, ct);
@@ -88,8 +88,10 @@ public class RemoveSupplierReturnItemCommandHandler
         var sr = await _uow.SupplierReturns.GetWithItemsAsync(tenantId, request.SupplierReturnId, ct)
             ?? throw new NotFoundException("SupplierReturn", request.SupplierReturnId);
 
+        var item = sr.Items.FirstOrDefault(i => i.ProductId == request.ProductId)
+            ?? throw new NotFoundException("SupplierReturnItem", request.ProductId);
         sr.RemoveItem(request.ProductId);
-        _uow.SupplierReturns.Update(sr);
+        _uow.SupplierReturns.RemoveItem(item);
         await _uow.SaveChangesAsync(ct);
 
         var loaded = await _uow.SupplierReturns.GetWithItemsAsync(tenantId, sr.Id, ct);

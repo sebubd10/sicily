@@ -310,7 +310,7 @@ export function SupplierReturnDetailModal({ open, srId, products, onClose }: Pro
                   <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/30 dark:bg-gray-800/20">
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-4">
                       <InfoCell icon={<Building2 className="w-3.5 h-3.5" />} label="Supplier" value={sr.supplierName} />
-                      <InfoCell icon={<Store className="w-3.5 h-3.5" />} label="Store" value={String(sr.storeId).slice(0, 8) + '…'} />
+                      <InfoCell icon={<Store className="w-3.5 h-3.5" />} label="Store" value={sr.storeName} />
                       <InfoCell icon={<CalendarDays className="w-3.5 h-3.5" />} label="Created" value={fmtDate(sr.createdAt)} />
                       {sr.shippedAt && <InfoCell icon={<Truck className="w-3.5 h-3.5" />} label="Shipped" value={fmtDate(sr.shippedAt)} />}
                       {sr.creditReceivedAt && <InfoCell icon={<BadgeDollarSign className="w-3.5 h-3.5" />} label="Credit Received" value={fmtDate(sr.creditReceivedAt)} />}

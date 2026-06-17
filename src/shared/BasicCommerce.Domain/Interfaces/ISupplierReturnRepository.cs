@@ -14,4 +14,7 @@ public interface ISupplierReturnRepository : ITenantRepository<SupplierReturn>
     Task<int> GetTotalCountAsync(
         Guid tenantId, Guid? supplierId, Guid? storeId,
         SupplierReturnStatus? status, CancellationToken ct = default);
+
+    void AddItem(SupplierReturnItem item);
+    void RemoveItem(SupplierReturnItem item);
 }
