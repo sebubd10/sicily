@@ -11,4 +11,6 @@ public interface IPurchaseOrderRepository : ITenantRepository<PurchaseOrder>
         Guid? supplierId = null, Guid? warehouseId = null,
         PurchaseOrderStatus? status = null, CancellationToken ct = default);
     Task<bool> OrderNumberExistsAsync(Guid tenantId, string orderNumber, CancellationToken ct = default);
+    void RemoveItems(IEnumerable<PurchaseOrderItem> items);
+    void AddItems(IEnumerable<PurchaseOrderItem> items);
 }

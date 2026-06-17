@@ -50,4 +50,10 @@ public class PurchaseOrderRepository : TenantRepository<PurchaseOrder>, IPurchas
         CancellationToken ct = default) =>
         await Db.PurchaseOrders.AnyAsync(
             p => p.TenantId == tenantId && p.OrderNumber == orderNumber, ct);
+
+    public void RemoveItems(IEnumerable<PurchaseOrderItem> items) =>
+        Db.PurchaseOrderItems.RemoveRange(items);
+
+    public void AddItems(IEnumerable<PurchaseOrderItem> items) =>
+        Db.PurchaseOrderItems.AddRange(items);
 }

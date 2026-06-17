@@ -60,7 +60,9 @@ public class UpdatePurchaseOrderCommandHandler : IRequestHandler<UpdatePurchaseO
         po.UpdateDetails(request.SupplierId, request.WarehouseId,
             request.OrderDate, request.ExpectedDate, request.Notes, request.Currency);
 
+        var oldItems = po.Items.ToList();
         po.ClearItems();
+        _uow.PurchaseOrders.RemoveItems(oldItems);
 
         foreach (var (productId, quantity, unitCostOverride) in request.Items)
         {
@@ -85,6 +87,8 @@ public class UpdatePurchaseOrderCommandHandler : IRequestHandler<UpdatePurchaseO
 
             po.AddItem(productId, quantity, unitCost);
         }
+
+        _uow.PurchaseOrders.AddItems(po.Items.ToList());
 
         await _uow.SaveChangesAsync(ct);
 
