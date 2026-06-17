@@ -55,9 +55,6 @@ public class CreatePurchaseOrderCommandHandler : IRequestHandler<CreatePurchaseO
         var po = PurchaseOrder.Create(tenantId, orderNumber, request.SupplierId, request.WarehouseId,
             request.OrderDate, request.ExpectedDate, request.Notes, request.Currency);
 
-        await _uow.PurchaseOrders.AddAsync(po, ct);
-        await _uow.SaveChangesAsync(ct);
-
         foreach (var (productId, quantity, unitCostOverride) in request.Items)
         {
             var product = await _uow.Products.GetByIdAsync(productId, ct)
@@ -82,6 +79,7 @@ public class CreatePurchaseOrderCommandHandler : IRequestHandler<CreatePurchaseO
             po.AddItem(productId, quantity, unitCost);
         }
 
+        await _uow.PurchaseOrders.AddAsync(po, ct);
         await _uow.SaveChangesAsync(ct);
 
         var result = await _uow.PurchaseOrders.GetWithItemsAsync(tenantId, po.Id, ct);

@@ -61,7 +61,6 @@ public class UpdatePurchaseOrderCommandHandler : IRequestHandler<UpdatePurchaseO
             request.OrderDate, request.ExpectedDate, request.Notes, request.Currency);
 
         po.ClearItems();
-        await _uow.SaveChangesAsync(ct);
 
         foreach (var (productId, quantity, unitCostOverride) in request.Items)
         {
