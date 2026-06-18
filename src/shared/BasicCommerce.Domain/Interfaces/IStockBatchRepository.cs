@@ -20,4 +20,6 @@ public interface IStockBatchRepository : ITenantRepository<StockBatch>
 
     Task<IEnumerable<StockBatch>> GetExpiredUnprocessedAsync(
         Guid tenantId, CancellationToken ct = default);
+
+    Task<bool> HasActiveBatchesForProductAsync(Guid tenantId, Guid productId, CancellationToken ct = default);
 }

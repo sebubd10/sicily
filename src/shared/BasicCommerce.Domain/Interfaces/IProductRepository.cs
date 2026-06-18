@@ -44,4 +44,5 @@ public interface IStockLevelRepository : ITenantRepository<StockLevel>
     Task<StockLevel?> GetAsync(Guid tenantId, Guid storeId, Guid productId, CancellationToken ct = default);
     Task<IEnumerable<StockLevel>> GetByStoreAsync(Guid tenantId, Guid storeId, CancellationToken ct = default);
     Task<IEnumerable<StockLevel>> GetLowStockAsync(Guid tenantId, Guid storeId, CancellationToken ct = default);
+    Task<bool> HasStockForProductAsync(Guid tenantId, Guid productId, CancellationToken ct = default);
 }

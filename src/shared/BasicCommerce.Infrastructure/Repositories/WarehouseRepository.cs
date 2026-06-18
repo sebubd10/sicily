@@ -47,6 +47,11 @@ public class WarehouseStockLevelRepository : TenantRepository<WarehouseStockLeve
             .Where(w => w.TenantId == tenantId && w.WarehouseId == warehouseId &&
                 w.Quantity - w.ReservedQuantity <= w.LowStockThreshold)
             .ToListAsync(ct);
+
+    public async Task<bool> HasStockForProductAsync(Guid tenantId, Guid productId,
+        CancellationToken ct = default) =>
+        await Db.WarehouseStockLevels.AnyAsync(
+            w => w.TenantId == tenantId && w.ProductId == productId && w.Quantity > 0, ct);
 }
 
 public class WarehouseMovementRepository : TenantRepository<WarehouseMovement>, IWarehouseMovementRepository

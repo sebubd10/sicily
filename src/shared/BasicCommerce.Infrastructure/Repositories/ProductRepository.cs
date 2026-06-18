@@ -226,4 +226,9 @@ public class StockLevelRepository : TenantRepository<StockLevel>, IStockLevelRep
             .Where(s => s.TenantId == tenantId && s.StoreId == storeId &&
                 s.Quantity <= s.LowStockThreshold)
             .ToListAsync(ct);
+
+    public async Task<bool> HasStockForProductAsync(Guid tenantId, Guid productId,
+        CancellationToken ct = default) =>
+        await Db.StockLevels.AnyAsync(
+            s => s.TenantId == tenantId && s.ProductId == productId && s.Quantity > 0, ct);
 }

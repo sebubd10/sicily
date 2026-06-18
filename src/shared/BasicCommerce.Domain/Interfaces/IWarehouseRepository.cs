@@ -13,6 +13,7 @@ public interface IWarehouseStockLevelRepository : ITenantRepository<WarehouseSto
     Task<WarehouseStockLevel?> GetAsync(Guid tenantId, Guid warehouseId, Guid productId, CancellationToken ct = default);
     Task<IEnumerable<WarehouseStockLevel>> GetByWarehouseAsync(Guid tenantId, Guid warehouseId, CancellationToken ct = default);
     Task<IEnumerable<WarehouseStockLevel>> GetLowStockAsync(Guid tenantId, Guid warehouseId, CancellationToken ct = default);
+    Task<bool> HasStockForProductAsync(Guid tenantId, Guid productId, CancellationToken ct = default);
 }
 
 public interface IWarehouseMovementRepository : ITenantRepository<WarehouseMovement>

@@ -75,4 +75,12 @@ public class StockBatchRepository : TenantRepository<StockBatch>, IStockBatchRep
             .OrderBy(b => b.ExpiryDate)
             .ToListAsync(ct);
     }
+
+    public async Task<bool> HasActiveBatchesForProductAsync(Guid tenantId, Guid productId,
+        CancellationToken ct = default) =>
+        await Db.StockBatches.AnyAsync(
+            b => b.TenantId == tenantId
+                && b.ProductId == productId
+                && !b.IsExpired
+                && b.RemainingQuantity > 0, ct);
 }

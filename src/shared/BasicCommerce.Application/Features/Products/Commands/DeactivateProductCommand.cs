@@ -70,11 +70,31 @@ public class DeleteProductCommandHandler : IRequestHandler<DeleteProductCommand>
 
     public async Task Handle(DeleteProductCommand request, CancellationToken ct)
     {
+        var tenantId = _currentUser.TenantId;
+
         var product = await _uow.Products.GetByIdAsync(request.ProductId, ct)
             ?? throw new NotFoundException("Product", request.ProductId);
 
-        if (product.TenantId != _currentUser.TenantId)
+        if (product.TenantId != tenantId)
             throw new NotFoundException("Product", request.ProductId);
+
+        var reasons = new List<string>();
+
+        if (await _uow.StockLevels.HasStockForProductAsync(tenantId, request.ProductId, ct))
+            reasons.Add("the product has stock remaining in one or more stores");
+
+        if (await _uow.WarehouseStockLevels.HasStockForProductAsync(tenantId, request.ProductId, ct))
+            reasons.Add("the product has stock remaining in one or more warehouses");
+
+        if (await _uow.PurchaseOrders.HasOpenOrdersForProductAsync(tenantId, request.ProductId, ct))
+            reasons.Add("the product is referenced by open purchase orders (Draft, Submitted, or Partially Received)");
+
+        if (await _uow.StockBatches.HasActiveBatchesForProductAsync(tenantId, request.ProductId, ct))
+            reasons.Add("the product has active stock batches with remaining quantity");
+
+        if (reasons.Count > 0)
+            throw new DomainException(
+                $"Cannot delete product '{product.Name}': {string.Join("; ", reasons)}.");
 
         product.SoftDelete(_currentUser.UserId);
         await _uow.SaveChangesAsync(ct);
