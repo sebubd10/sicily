@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   Plus, Eye, XCircle, Loader2, AlertCircle,
   ShoppingCart, ChevronLeft, ChevronRight, Pencil, CalendarDays, X,
+  Search, Check, ChevronDown,
 } from 'lucide-react';
 import { cn, extractApiError } from '../lib/utils';
 import {
@@ -57,6 +58,20 @@ export default function PurchaseOrdersPage() {
   const [dateField, setDateField] = useState<'order' | 'created'>('order');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+
+  // Supplier combobox
+  const [supplierQuery, setSupplierQuery] = useState('');
+  const [supplierOpen,  setSupplierOpen]  = useState(false);
+  const supplierRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (supplierRef.current && !supplierRef.current.contains(e.target as Node))
+        setSupplierOpen(false);
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
 
   const [createOpen, setCreateOpen]       = useState(false);
   const [editPoId, setEditPoId]           = useState<string | null>(null);
@@ -203,16 +218,91 @@ export default function PurchaseOrdersPage() {
 
         {/* Secondary filters row */}
         <div className="flex flex-wrap items-center gap-3">
-          <select
-            value={supplierFilter}
-            onChange={(e) => handleSupplierFilter(e.target.value)}
-            className={selectCls}
-          >
-            <option value="">All Suppliers</option>
-            {suppliers.map((s) => (
-              <option key={s.id} value={s.id}>{s.name}</option>
-            ))}
-          </select>
+          {/* Supplier combobox */}
+          <div className="relative" ref={supplierRef}>
+            <div className={cn(
+              'flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm cursor-pointer transition min-w-[180px]',
+              'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700',
+              supplierOpen && 'ring-2 ring-primary-500 border-primary-500',
+            )}>
+              <button
+                type="button"
+                onClick={() => setSupplierOpen((o) => !o)}
+                className="flex-1 flex items-center gap-1.5 text-left focus:outline-none min-w-0"
+              >
+                {supplierFilter
+                  ? <span className="truncate text-gray-900 dark:text-white">
+                      {suppliers.find((s) => s.id === supplierFilter)?.name ?? 'Unknown'}
+                    </span>
+                  : <span className="text-gray-400">All Suppliers</span>
+                }
+                <ChevronDown className={cn('w-3.5 h-3.5 text-gray-400 flex-shrink-0 ml-auto transition-transform', supplierOpen && 'rotate-180')} />
+              </button>
+              {supplierFilter && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); handleSupplierFilter(''); setSupplierQuery(''); }}
+                  className="flex-shrink-0 p-0.5 rounded text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none"
+                  title="Clear"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+
+            {supplierOpen && (
+              <div className="absolute z-20 mt-1 w-full min-w-[220px] rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-lg">
+                <div className="p-2 border-b border-gray-100 dark:border-gray-800">
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                    <input
+                      autoFocus
+                      type="text"
+                      value={supplierQuery}
+                      onChange={(e) => setSupplierQuery(e.target.value)}
+                      placeholder="Search suppliers…"
+                      className="w-full pl-8 pr-3 py-1.5 text-xs rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                    />
+                  </div>
+                </div>
+                <ul className="max-h-52 overflow-y-auto py-1">
+                  <li
+                    onClick={() => { handleSupplierFilter(''); setSupplierQuery(''); setSupplierOpen(false); }}
+                    className={cn(
+                      'flex items-center gap-2 px-3 py-2 text-xs cursor-pointer transition-colors',
+                      !supplierFilter
+                        ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800',
+                    )}
+                  >
+                    {!supplierFilter ? <Check className="w-3 h-3 flex-shrink-0" /> : <span className="w-3 flex-shrink-0" />}
+                    <span className="font-medium">All Suppliers</span>
+                  </li>
+                  {suppliers
+                    .filter((s) => !supplierQuery.trim() || s.name.toLowerCase().includes(supplierQuery.toLowerCase()))
+                    .map((s) => (
+                      <li
+                        key={s.id}
+                        onClick={() => { handleSupplierFilter(s.id); setSupplierQuery(''); setSupplierOpen(false); }}
+                        className={cn(
+                          'flex items-center gap-2 px-3 py-2 text-xs cursor-pointer transition-colors',
+                          supplierFilter === s.id
+                            ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400'
+                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800',
+                        )}
+                      >
+                        {supplierFilter === s.id ? <Check className="w-3 h-3 flex-shrink-0" /> : <span className="w-3 flex-shrink-0" />}
+                        <span className="truncate">{s.name}</span>
+                      </li>
+                    ))
+                  }
+                  {suppliers.filter((s) => !supplierQuery.trim() || s.name.toLowerCase().includes(supplierQuery.toLowerCase())).length === 0 && (
+                    <li className="px-3 py-2 text-xs text-gray-400">No suppliers found</li>
+                  )}
+                </ul>
+              </div>
+            )}
+          </div>
 
           <select
             value={warehouseFilter}
