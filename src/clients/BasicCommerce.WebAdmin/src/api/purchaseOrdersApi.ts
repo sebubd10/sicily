@@ -13,6 +13,9 @@ export async function getPurchaseOrders(params: {
   status?: string;
   supplierId?: string;
   warehouseId?: string;
+  from?: string;
+  to?: string;
+  dateField?: string;
 }): Promise<PurchaseOrderListResponse> {
   const { data } = await api.get<ApiResponse<PurchaseOrderListResponse>>('/purchase-orders', {
     params: {
@@ -21,6 +24,9 @@ export async function getPurchaseOrders(params: {
       status: params.status || undefined,
       supplierId: params.supplierId || undefined,
       warehouseId: params.warehouseId || undefined,
+      from: params.from || undefined,
+      to: params.to || undefined,
+      dateField: params.dateField || undefined,
     },
   });
   return data.data!;

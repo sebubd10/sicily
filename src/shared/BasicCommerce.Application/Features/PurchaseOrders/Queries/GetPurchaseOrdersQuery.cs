@@ -12,7 +12,10 @@ public record GetPurchaseOrdersQuery(
     int PageSize = 20,
     Guid? SupplierId = null,
     Guid? WarehouseId = null,
-    PurchaseOrderStatus? Status = null) : IRequest<PurchaseOrderListResponse>;
+    PurchaseOrderStatus? Status = null,
+    DateTime? From = null,
+    DateTime? To = null,
+    string? DateField = null) : IRequest<PurchaseOrderListResponse>;
 
 public record GetPurchaseOrderQuery(Guid PurchaseOrderId) : IRequest<PurchaseOrderResponse>;
 
@@ -31,7 +34,8 @@ public class GetPurchaseOrdersQueryHandler : IRequestHandler<GetPurchaseOrdersQu
     {
         var (items, total) = await _uow.PurchaseOrders.GetPagedAsync(
             _currentUser.TenantId, request.Page, request.PageSize,
-            request.SupplierId, request.WarehouseId, request.Status, ct);
+            request.SupplierId, request.WarehouseId, request.Status,
+            request.From, request.To, request.DateField, ct);
 
         return new PurchaseOrderListResponse(
             items.Select(PurchaseOrderMapper.ToSummary), total, request.Page, request.PageSize);

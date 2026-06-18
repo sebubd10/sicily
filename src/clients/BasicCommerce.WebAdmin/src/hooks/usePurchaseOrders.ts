@@ -10,6 +10,9 @@ export function usePurchaseOrders(params: {
   status?: string;
   supplierId?: string;
   warehouseId?: string;
+  from?: string;
+  to?: string;
+  dateField?: string;
 }) {
   return useQuery({
     queryKey: [...KEY, params],

@@ -25,10 +25,13 @@ public class PurchaseOrdersController : ControllerBase
         [FromQuery] Guid? supplierId = null,
         [FromQuery] Guid? warehouseId = null,
         [FromQuery] PurchaseOrderStatus? status = null,
+        [FromQuery] DateTime? from = null,
+        [FromQuery] DateTime? to = null,
+        [FromQuery] string? dateField = null,
         CancellationToken ct = default)
     {
         var result = await _mediator.Send(
-            new GetPurchaseOrdersQuery(page, pageSize, supplierId, warehouseId, status), ct);
+            new GetPurchaseOrdersQuery(page, pageSize, supplierId, warehouseId, status, from, to, dateField), ct);
         return Ok(ApiResponse<PurchaseOrderListResponse>.Ok(result));
     }
 

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   Plus, Eye, XCircle, Loader2, AlertCircle,
-  ShoppingCart, ChevronLeft, ChevronRight, Pencil,
+  ShoppingCart, ChevronLeft, ChevronRight, Pencil, CalendarDays, X,
 } from 'lucide-react';
 import { cn, extractApiError } from '../lib/utils';
 import {
@@ -54,6 +54,9 @@ export default function PurchaseOrdersPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('All');
   const [supplierFilter, setSupplierFilter] = useState('');
   const [warehouseFilter, setWarehouseFilter] = useState('');
+  const [dateField, setDateField] = useState<'order' | 'created'>('order');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
   const [createOpen, setCreateOpen]       = useState(false);
   const [editPoId, setEditPoId]           = useState<string | null>(null);
@@ -70,6 +73,9 @@ export default function PurchaseOrdersPage() {
     status: statusFilter !== 'All' ? statusFilter : undefined,
     supplierId: supplierFilter || undefined,
     warehouseId: warehouseFilter || undefined,
+    from: dateFrom || undefined,
+    to: dateTo || undefined,
+    dateField: (dateFrom || dateTo) ? dateField : undefined,
   });
 
   const { data: suppliers = [] } = useSuppliers();
@@ -96,6 +102,11 @@ export default function PurchaseOrdersPage() {
   function handleStatusFilter(s: StatusFilter) { setStatusFilter(s); setPage(1); }
   function handleSupplierFilter(id: string)    { setSupplierFilter(id); setPage(1); }
   function handleWarehouseFilter(id: string)   { setWarehouseFilter(id); setPage(1); }
+  function handleDateFrom(v: string)           { setDateFrom(v); setPage(1); }
+  function handleDateTo(v: string)             { setDateTo(v); setPage(1); }
+  function handleDateField(f: 'order' | 'created') { setDateField(f); setPage(1); }
+  function clearDates()                        { setDateFrom(''); setDateTo(''); setPage(1); }
+  const hasDateFilter = !!dateFrom || !!dateTo;
 
   function handleModalClose() {
     setCreateOpen(false);
@@ -213,6 +224,63 @@ export default function PurchaseOrdersPage() {
               <option key={w.id} value={w.id}>{w.name}</option>
             ))}
           </select>
+
+          {/* Date range filter */}
+          <div className={cn(
+            'flex items-center gap-2 rounded-lg border px-3 py-1.5 transition-colors',
+            hasDateFilter
+              ? 'border-primary-300 dark:border-primary-700 bg-primary-50 dark:bg-primary-900/20'
+              : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900',
+          )}>
+            <CalendarDays className={cn('w-3.5 h-3.5 flex-shrink-0', hasDateFilter ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400')} />
+
+            {/* Date field toggle */}
+            <div className="flex items-center gap-0.5 bg-gray-100 dark:bg-gray-800 rounded-md p-0.5">
+              <button
+                onClick={() => handleDateField('order')}
+                className={cn('px-2 py-0.5 text-xs font-medium rounded transition-colors whitespace-nowrap',
+                  dateField === 'order'
+                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300')}
+              >
+                Order Date
+              </button>
+              <button
+                onClick={() => handleDateField('created')}
+                className={cn('px-2 py-0.5 text-xs font-medium rounded transition-colors whitespace-nowrap',
+                  dateField === 'created'
+                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300')}
+              >
+                Created Date
+              </button>
+            </div>
+
+            <span className="text-xs text-gray-400">From</span>
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => handleDateFrom(e.target.value)}
+              className="text-xs border-0 bg-transparent text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-0 cursor-pointer"
+            />
+            <span className="text-xs text-gray-400">To</span>
+            <input
+              type="date"
+              value={dateTo}
+              min={dateFrom || undefined}
+              onChange={(e) => handleDateTo(e.target.value)}
+              className="text-xs border-0 bg-transparent text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-0 cursor-pointer"
+            />
+            {hasDateFilter && (
+              <button
+                onClick={clearDates}
+                className="p-0.5 rounded text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                title="Clear date filter"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            )}
+          </div>
 
           {isFetching && !isLoading && (
             <Loader2 className="w-4 h-4 animate-spin text-gray-400" />

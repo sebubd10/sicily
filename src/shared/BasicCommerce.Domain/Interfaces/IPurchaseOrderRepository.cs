@@ -9,7 +9,10 @@ public interface IPurchaseOrderRepository : ITenantRepository<PurchaseOrder>
     Task<(IEnumerable<PurchaseOrder> Items, int TotalCount)> GetPagedAsync(
         Guid tenantId, int page, int pageSize,
         Guid? supplierId = null, Guid? warehouseId = null,
-        PurchaseOrderStatus? status = null, CancellationToken ct = default);
+        PurchaseOrderStatus? status = null,
+        DateTime? from = null, DateTime? to = null,
+        string? dateField = null,
+        CancellationToken ct = default);
     Task<bool> OrderNumberExistsAsync(Guid tenantId, string orderNumber, CancellationToken ct = default);
     void RemoveItems(IEnumerable<PurchaseOrderItem> items);
     void AddItems(IEnumerable<PurchaseOrderItem> items);
