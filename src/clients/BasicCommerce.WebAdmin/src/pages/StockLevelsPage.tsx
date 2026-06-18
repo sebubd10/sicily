@@ -274,8 +274,18 @@ export default function StockLevelsPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-                      {['Product', 'Category', 'Total', 'Reserved', 'Available', 'Threshold', 'Status', 'Last Counted', 'Actions'].map((h) => (
-                        <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
+                      {([
+                        ['Product',      'text-left'],
+                        ['Category',     'text-left'],
+                        ['Total',        'text-right'],
+                        ['Reserved',     'text-right'],
+                        ['Available',    'text-right'],
+                        ['Threshold',    'text-right'],
+                        ['Status',       'text-left'],
+                        ['Last Counted', 'text-left'],
+                        ['Actions',      'text-left'],
+                      ] as const).map(([h, align]) => (
+                        <th key={h} className={cn('px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap', align)}>
                           {h}
                         </th>
                       ))}
