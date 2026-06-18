@@ -1,5 +1,6 @@
 using BasicCommerce.Contracts.SupplierReturns;
 using BasicCommerce.Domain.Entities;
+using BasicCommerce.Domain.Enums;
 
 namespace BasicCommerce.Application.Features.SupplierReturns;
 
@@ -44,6 +45,7 @@ internal static class SupplierReturnMapper
             i.ProductId,
             i.Product?.Name ?? string.Empty,
             i.Product?.Sku ?? string.Empty,
+            i.Product?.Status == EntityStatus.Active,
             i.Quantity,
             i.UnitCost,
             i.TotalCost,

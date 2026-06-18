@@ -10,6 +10,7 @@ export interface PurchaseOrderItem {
   productId: string;
   productName: string;
   sku: string;
+  isProductActive: boolean;
   orderedQuantity: number;
   receivedQuantity: number;
   remainingQuantity: number;
@@ -50,6 +51,7 @@ export interface CreatePOLineItem {
   productId: string;
   productName: string;
   sku: string;
+  isProductActive?: boolean;
   quantity: number;
   unitCost: number;
 }

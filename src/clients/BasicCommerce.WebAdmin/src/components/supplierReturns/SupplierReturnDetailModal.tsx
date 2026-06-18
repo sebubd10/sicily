@@ -419,7 +419,16 @@ export function SupplierReturnDetailModal({ open, srId, products, onClose }: Pro
                           <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                             {sr.items.map((item) => (
                               <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                                <td className="px-3 py-2.5 font-medium text-gray-900 dark:text-white">{item.productName}</td>
+                                <td className="px-3 py-2.5">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="font-medium text-gray-900 dark:text-white">{item.productName}</span>
+                                    {!item.isProductActive && (
+                                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700">
+                                        Inactive
+                                      </span>
+                                    )}
+                                  </div>
+                                </td>
                                 <td className="px-3 py-2.5 font-mono text-xs text-gray-500 dark:text-gray-400">{item.productSku}</td>
                                 <td className="px-3 py-2.5">
                                   <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400">

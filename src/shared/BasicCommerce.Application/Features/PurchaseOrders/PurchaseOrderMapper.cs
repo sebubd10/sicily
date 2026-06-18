@@ -1,5 +1,6 @@
 using BasicCommerce.Contracts.PurchaseOrders;
 using BasicCommerce.Domain.Entities;
+using BasicCommerce.Domain.Enums;
 
 namespace BasicCommerce.Application.Features.PurchaseOrders;
 
@@ -24,6 +25,7 @@ internal static class PurchaseOrderMapper
 
     internal static PurchaseOrderItemResponse ToItemResponse(PurchaseOrderItem i) =>
         new(i.Id, i.ProductId, i.Product?.Name ?? string.Empty, i.Product?.Sku ?? string.Empty,
+            i.Product?.Status == EntityStatus.Active,
             i.OrderedQuantity, i.ReceivedQuantity, i.RemainingQuantity,
             i.UnitCost, i.TotalCost, i.IsFullyReceived);
 }

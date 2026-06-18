@@ -41,6 +41,7 @@ public record PurchaseOrderItemResponse(
     Guid ProductId,
     string ProductName,
     string Sku,
+    bool IsProductActive,
     decimal OrderedQuantity,
     decimal ReceivedQuantity,
     decimal RemainingQuantity,

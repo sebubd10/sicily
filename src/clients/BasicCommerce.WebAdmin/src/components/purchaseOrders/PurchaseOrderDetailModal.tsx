@@ -185,7 +185,16 @@ export function PurchaseOrderDetailModal({ open, poId, onClose, onReceive, onEdi
                               : 0;
                             return (
                               <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                                <td className="px-3 py-2.5 font-medium text-gray-900 dark:text-white">{item.productName}</td>
+                                <td className="px-3 py-2.5">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="font-medium text-gray-900 dark:text-white">{item.productName}</span>
+                                    {!item.isProductActive && (
+                                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700">
+                                        Inactive
+                                      </span>
+                                    )}
+                                  </div>
+                                </td>
                                 <td className="px-3 py-2.5 font-mono text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">{item.sku}</td>
                                 <td className="px-3 py-2.5 text-center text-gray-600 dark:text-gray-400">{item.orderedQuantity}</td>
                                 <td className="px-3 py-2.5 text-center font-medium text-emerald-600 dark:text-emerald-400">{item.receivedQuantity}</td>

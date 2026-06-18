@@ -53,6 +53,8 @@ public class AddSupplierReturnItemCommandHandler
         var product = await _uow.Products.GetByIdAsync(request.ProductId, ct)
             ?? throw new NotFoundException("Product", request.ProductId);
         if (product.TenantId != tenantId) throw new NotFoundException("Product", request.ProductId);
+        if (product.Status != EntityStatus.Active)
+            throw new DomainException($"Cannot add '{product.Name}' to the return because the product is not active.");
 
         var item = sr.AddItem(request.ProductId, request.Quantity, request.UnitCost, request.Reason, request.Notes);
         _uow.SupplierReturns.AddItem(item);

@@ -70,6 +70,7 @@ export function CreatePurchaseOrderModal({ open, onSave, onClose, isSaving, edit
             productId: i.productId,
             productName: i.productName,
             sku: i.sku,
+            isProductActive: i.isProductActive,
             quantity: i.orderedQuantity,
             unitCost: i.unitCost,
           })),
@@ -422,9 +423,14 @@ export function CreatePurchaseOrderModal({ open, onSave, onClose, isSaving, edit
                         {form.items.map((item, idx) => (
                           <tr key={item.productId} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
                             <td className="px-3 py-2">
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-wrap">
                                 <Package className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
                                 <span className="font-medium text-gray-900 dark:text-white">{item.productName}</span>
+                                {item.isProductActive === false && (
+                                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700">
+                                    Inactive
+                                  </span>
+                                )}
                               </div>
                             </td>
                             <td className="px-3 py-2 font-mono text-xs text-gray-500 dark:text-gray-400">{item.sku}</td>

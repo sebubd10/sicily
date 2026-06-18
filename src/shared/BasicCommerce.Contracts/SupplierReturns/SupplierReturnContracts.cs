@@ -5,6 +5,7 @@ public record SupplierReturnItemResponse(
     Guid ProductId,
     string ProductName,
     string ProductSku,
+    bool IsProductActive,
     decimal Quantity,
     decimal UnitCost,
     decimal TotalCost,

@@ -18,6 +18,7 @@ export interface SupplierReturnItem {
   productId: string;
   productName: string;
   productSku: string;
+  isProductActive: boolean;
   quantity: number;
   unitCost: number;
   totalCost: number;
