@@ -14,6 +14,8 @@ import StoresPage from './pages/StoresPage';
 import TerminalsPage from './pages/TerminalsPage';
 import VatRatesPage from './pages/VatRatesPage';
 import WarehousesPage from './pages/WarehousesPage';
+import StockLevelsPage from './pages/StockLevelsPage';
+import StockMovementsPage from './pages/StockMovementsPage';
 import ManufacturersPage from './pages/ManufacturersPage';
 import ProductsPage from './pages/ProductsPage';
 import ProductTagsPage from './pages/ProductTagsPage';
@@ -49,8 +51,8 @@ export default function App() {
             <Route path="products/tags" element={<ProductTagsPage />} />
 
             {/* Inventory */}
-            <Route path="inventory/stock" element={<PlaceholderPage title="Stock Levels" />} />
-            <Route path="inventory/movements" element={<PlaceholderPage title="Stock Movements" />} />
+            <Route path="inventory/stock" element={<StockLevelsPage />} />
+            <Route path="inventory/movements" element={<StockMovementsPage />} />
             <Route path="inventory/warehouses" element={<WarehousesPage />} />
 
             {/* Purchasing */}
