@@ -196,14 +196,19 @@ public class DeleteVatRateCommandHandler : IRequestHandler<DeleteVatRateCommand>
             throw new NotFoundException("VatRate", request.VatRateId);
 
         if (vatRate.IsDefault)
-            throw new DomainException("Cannot delete the default VAT rate. Set another rate as default first.");
+            throw new DomainException("Cannot delete the default VAT rate — set another rate as default first.");
+
+        var reasons = new List<string>();
 
         var productCount = await _uow.Products.CountByVatRateAsync(tenantId, vatRate.Id, ct);
         if (productCount > 0)
-            throw new DomainException(
-                $"Cannot delete: {productCount} product{(productCount == 1 ? " is" : "s are")} using this VAT rate. Update those products first.");
+            reasons.Add($"{productCount} product{(productCount == 1 ? " is" : "s are")} using this VAT rate — update those products first");
 
-        _uow.VatRates.Remove(vatRate);
+        if (reasons.Count > 0)
+            throw new DomainException(
+                $"Cannot delete VAT rate '{vatRate.Name}': {string.Join("; ", reasons)}.");
+
+        vatRate.SoftDelete(_currentUser.UserId);
         await _uow.SaveChangesAsync(ct);
     }
 }
