@@ -277,10 +277,10 @@ export default function StockLevelsPage() {
                       {([
                         ['Product',      'text-left'],
                         ['Category',     'text-left'],
-                        ['Total',        'text-right'],
-                        ['Reserved',     'text-right'],
-                        ['Available',    'text-right'],
-                        ['Threshold',    'text-right'],
+                        ['Total',        'text-left'],
+                        ['Reserved',     'text-left'],
+                        ['Available',    'text-left'],
+                        ['Threshold',    'text-left'],
                         ['Status',       'text-left'],
                         ['Last Counted', 'text-left'],
                         ['Actions',      'text-left'],
@@ -326,17 +326,17 @@ export default function StockLevelsPage() {
                               <p className="text-xs font-mono text-gray-400 mt-0.5">{item.sku}</p>
                             </td>
                             <td className="px-4 py-3 text-gray-500 dark:text-gray-400 whitespace-nowrap">{item.categoryName || '—'}</td>
-                            <td className="px-4 py-3 text-right text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                            <td className="px-4 py-3 text-left text-gray-700 dark:text-gray-300 whitespace-nowrap">
                               <QtyCell value={item.quantity} />
                             </td>
-                            <td className="px-4 py-3 text-right text-gray-400 whitespace-nowrap">
+                            <td className="px-4 py-3 text-left text-gray-400 whitespace-nowrap">
                               <QtyCell value={item.reservedQuantity} />
                             </td>
-                            <td className="px-4 py-3 text-right whitespace-nowrap">
+                            <td className="px-4 py-3 text-left whitespace-nowrap">
                               <QtyCell value={item.availableQuantity}
                                 className={item.isOutOfStock ? 'text-red-600 dark:text-red-400 font-semibold' : 'text-emerald-700 dark:text-emerald-300 font-semibold'} />
                             </td>
-                            <td className="px-4 py-3 text-right text-gray-400 whitespace-nowrap">
+                            <td className="px-4 py-3 text-left text-gray-400 whitespace-nowrap">
                               <QtyCell value={item.lowStockThreshold} />
                             </td>
                             <td className="px-4 py-3 whitespace-nowrap">
