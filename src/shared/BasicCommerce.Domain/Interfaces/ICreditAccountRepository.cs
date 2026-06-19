@@ -10,4 +10,5 @@ public interface ICreditAccountRepository : ITenantRepository<CreditAccount>
         CancellationToken ct = default);
     Task<CreditAccount?> GetWithTransactionsAsync(Guid tenantId, Guid creditAccountId,
         CancellationToken ct = default);
+    Task<bool> HasOutstandingCreditForStoreAsync(Guid tenantId, Guid storeId, CancellationToken ct = default);
 }

@@ -46,4 +46,10 @@ public class PromotionRepository : TenantRepository<Promotion>, IPromotionReposi
         if (status.HasValue) q = q.Where(p => p.PromotionStatus == status.Value);
         return await q.CountAsync(ct);
     }
+
+    public async Task<bool> HasActivePromotionsForStoreAsync(Guid tenantId, Guid storeId,
+        CancellationToken ct = default) =>
+        await Db.Promotions.AnyAsync(
+            p => p.TenantId == tenantId && p.StoreId == storeId
+              && p.PromotionStatus == PromotionStatus.Active, ct);
 }

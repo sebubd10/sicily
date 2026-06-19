@@ -44,4 +44,12 @@ public class SupplierReturnRepository : TenantRepository<SupplierReturn>, ISuppl
 
     public void AddItem(SupplierReturnItem item) => Db.SupplierReturnItems.Add(item);
     public void RemoveItem(SupplierReturnItem item) => Db.SupplierReturnItems.Remove(item);
+
+    public async Task<bool> HasOpenReturnsForStoreAsync(Guid tenantId, Guid storeId,
+        CancellationToken ct = default) =>
+        await Db.SupplierReturns.AnyAsync(
+            r => r.TenantId == tenantId && r.StoreId == storeId
+              && (r.ReturnStatus == SupplierReturnStatus.Draft
+               || r.ReturnStatus == SupplierReturnStatus.Submitted
+               || r.ReturnStatus == SupplierReturnStatus.Shipped), ct);
 }

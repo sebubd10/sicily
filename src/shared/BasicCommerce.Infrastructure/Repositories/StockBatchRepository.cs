@@ -83,4 +83,12 @@ public class StockBatchRepository : TenantRepository<StockBatch>, IStockBatchRep
                 && b.ProductId == productId
                 && !b.IsExpired
                 && b.RemainingQuantity > 0, ct);
+
+    public async Task<bool> HasActiveBatchesForStoreAsync(Guid tenantId, Guid storeId,
+        CancellationToken ct = default) =>
+        await Db.StockBatches.AnyAsync(
+            b => b.TenantId == tenantId
+                && b.StoreId == storeId
+                && !b.IsExpired
+                && b.RemainingQuantity > 0, ct);
 }

@@ -13,4 +13,5 @@ public interface IRewardPointsAccountRepository : ITenantRepository<RewardPoints
         Guid? storeId = null, CancellationToken ct = default);
     Task<RewardPointsAccount?> GetWithEntriesAsync(Guid tenantId, Guid customerId,
         Guid? storeId = null, CancellationToken ct = default);
+    Task<bool> HasPointsForStoreAsync(Guid tenantId, Guid storeId, CancellationToken ct = default);
 }

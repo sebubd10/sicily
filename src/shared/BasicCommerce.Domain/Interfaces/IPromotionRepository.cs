@@ -13,4 +13,5 @@ public interface IPromotionRepository : ITenantRepository<Promotion>
         int page, int pageSize, CancellationToken ct = default);
     Task<int> GetTotalCountAsync(Guid tenantId, PromotionStatus? status,
         CancellationToken ct = default);
+    Task<bool> HasActivePromotionsForStoreAsync(Guid tenantId, Guid storeId, CancellationToken ct = default);
 }

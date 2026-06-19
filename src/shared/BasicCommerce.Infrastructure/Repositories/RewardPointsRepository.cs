@@ -31,4 +31,10 @@ public class RewardPointsAccountRepository
             .Include(r => r.Entries.OrderByDescending(e => e.CreatedAt).Take(100))
             .FirstOrDefaultAsync(r =>
                 r.TenantId == tenantId && r.CustomerId == customerId && r.StoreId == storeId, ct);
+
+    public async Task<bool> HasPointsForStoreAsync(Guid tenantId, Guid storeId,
+        CancellationToken ct = default) =>
+        await Db.RewardPointsAccounts.AnyAsync(
+            r => r.TenantId == tenantId && r.StoreId == storeId
+              && (r.TotalEarnedPoints - r.UsedPoints - r.ExpiredPoints) > 0, ct);
 }

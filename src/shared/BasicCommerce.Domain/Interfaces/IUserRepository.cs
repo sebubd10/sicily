@@ -10,6 +10,7 @@ public interface IUserRepository : ITenantRepository<User>
     Task<User?> GetByMicrosoftIdAsync(string microsoftId, CancellationToken ct = default);
     Task<User?> GetByEmployeeCodeAsync(Guid tenantId, string employeeCode, CancellationToken ct = default);
     Task<int> CountByUserTypeAsync(Guid tenantId, Guid userTypeId, CancellationToken ct = default);
+    Task<bool> HasUsersAssignedToStoreAsync(Guid tenantId, Guid storeId, CancellationToken ct = default);
 }
 
 public interface IUserRefreshTokenRepository : IRepository<UserRefreshToken>

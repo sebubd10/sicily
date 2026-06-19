@@ -29,4 +29,9 @@ public class CreditAccountRepository : TenantRepository<CreditAccount>, ICreditA
             .Include(a => a.Transactions.OrderByDescending(t => t.CreatedAt).Take(50))
             .FirstOrDefaultAsync(
                 a => a.TenantId == tenantId && a.Id == creditAccountId, ct);
+
+    public async Task<bool> HasOutstandingCreditForStoreAsync(Guid tenantId, Guid storeId,
+        CancellationToken ct = default) =>
+        await Db.CreditAccounts.AnyAsync(
+            a => a.TenantId == tenantId && a.StoreId == storeId && a.OutstandingBalance > 0, ct);
 }

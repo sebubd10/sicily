@@ -51,4 +51,10 @@ public class GiftCardRepository : TenantRepository<GiftCard>, IGiftCardRepositor
                 && g.ExpiryDate.HasValue
                 && g.ExpiryDate.Value < DateTime.UtcNow.Date)
             .ToListAsync(ct);
+
+    public async Task<bool> HasActiveGiftCardsForStoreAsync(Guid tenantId, Guid storeId,
+        CancellationToken ct = default) =>
+        await Db.GiftCards.AnyAsync(
+            g => g.TenantId == tenantId && g.StoreId == storeId
+              && g.CardStatus == GiftCardStatus.Active && g.Balance > 0, ct);
 }

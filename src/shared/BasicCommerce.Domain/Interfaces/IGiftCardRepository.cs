@@ -12,4 +12,5 @@ public interface IGiftCardRepository : ITenantRepository<GiftCard>
         CancellationToken ct = default);
     Task<IEnumerable<GiftCard>> GetExpiredUnprocessedAsync(Guid tenantId,
         CancellationToken ct = default);
+    Task<bool> HasActiveGiftCardsForStoreAsync(Guid tenantId, Guid storeId, CancellationToken ct = default);
 }

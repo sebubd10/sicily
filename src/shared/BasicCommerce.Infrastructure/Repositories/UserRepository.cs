@@ -36,6 +36,11 @@ public class UserRepository : TenantRepository<User>, IUserRepository
         CancellationToken ct = default) =>
         await Db.Users.CountAsync(
             u => u.TenantId == tenantId && u.UserTypeId == userTypeId, ct);
+
+    public async Task<bool> HasUsersAssignedToStoreAsync(Guid tenantId, Guid storeId,
+        CancellationToken ct = default) =>
+        await Db.Users.AnyAsync(
+            u => u.TenantId == tenantId && u.StoreId == storeId, ct);
 }
 
 public class UserRefreshTokenRepository : GenericRepository<UserRefreshToken>,

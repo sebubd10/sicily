@@ -231,4 +231,9 @@ public class StockLevelRepository : TenantRepository<StockLevel>, IStockLevelRep
         CancellationToken ct = default) =>
         await Db.StockLevels.AnyAsync(
             s => s.TenantId == tenantId && s.ProductId == productId && s.Quantity > 0, ct);
+
+    public async Task<bool> HasStockForStoreAsync(Guid tenantId, Guid storeId,
+        CancellationToken ct = default) =>
+        await Db.StockLevels.AnyAsync(
+            s => s.TenantId == tenantId && s.StoreId == storeId && s.Quantity > 0, ct);
 }

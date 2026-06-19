@@ -22,4 +22,6 @@ public interface IStockBatchRepository : ITenantRepository<StockBatch>
         Guid tenantId, CancellationToken ct = default);
 
     Task<bool> HasActiveBatchesForProductAsync(Guid tenantId, Guid productId, CancellationToken ct = default);
+
+    Task<bool> HasActiveBatchesForStoreAsync(Guid tenantId, Guid storeId, CancellationToken ct = default);
 }
