@@ -213,7 +213,7 @@ export default function UserTypesPage() {
                             {ut.allowedSubMenuIds?.length ?? 0}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-center text-gray-600 dark:text-gray-400">{ut.sortOrder}</td>
+                        <td className="px-4 py-3 text-left text-gray-600 dark:text-gray-400">{ut.sortOrder}</td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-1">
                             {/* Manage permissions */}

@@ -453,7 +453,7 @@ export default function PurchaseOrdersPage() {
                               ? fmtDate(po.expectedDate)
                               : <span className="text-gray-300 dark:text-gray-600">—</span>}
                           </td>
-                          <td className="px-4 py-3 text-center text-gray-500 dark:text-gray-400 tabular-nums">
+                          <td className="px-4 py-3 text-left text-gray-500 dark:text-gray-400 tabular-nums">
                             {po.itemsCount}
                           </td>
                           <td className="px-4 py-3 text-right font-medium text-gray-800 dark:text-gray-200 whitespace-nowrap tabular-nums">

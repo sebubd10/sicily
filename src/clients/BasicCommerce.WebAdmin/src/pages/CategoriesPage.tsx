@@ -299,8 +299,8 @@ export default function CategoriesPage() {
                             ? <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-xs">{cat.parentCategoryName}</span>
                             : <span className="text-gray-300 dark:text-gray-600">—</span>}
                         </td>
-                        <td className="px-4 py-3 text-center text-gray-600 dark:text-gray-400">{cat.childCount}</td>
-                        <td className="px-4 py-3 text-center text-gray-600 dark:text-gray-400">{cat.sortOrder}</td>
+                        <td className="px-4 py-3 text-left text-gray-600 dark:text-gray-400">{cat.childCount}</td>
+                        <td className="px-4 py-3 text-left text-gray-600 dark:text-gray-400">{cat.sortOrder}</td>
                         <td className="px-4 py-3">
                           <span className={cn(
                             'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium',
