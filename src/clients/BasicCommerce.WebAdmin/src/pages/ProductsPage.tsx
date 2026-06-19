@@ -8,6 +8,7 @@ import type { Product, ProductListItem, ProductFormData } from '../types/product
 import { ProductModal } from '../components/products/ProductModal';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { Pagination } from '../components/ui/Pagination';
+import { Combobox } from '../components/ui/Combobox';
 import { exportProductsPdf } from '../api/productsApi';
 import {
   useProducts,
@@ -220,18 +221,20 @@ export default function ProductsPage() {
           />
         </div>
 
-        <div className="relative flex items-center gap-1.5">
-          <Filter className="w-4 h-4 text-gray-400" />
-          <select
+        <div className="flex items-center gap-1.5">
+          <Filter className="w-4 h-4 text-gray-400 flex-shrink-0" />
+          <Combobox
             value={categoryId}
-            onChange={(e) => handleCategoryChange(e.target.value)}
-            className="py-2 pl-2 pr-8 text-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-700 dark:text-gray-300 appearance-none"
-          >
-            <option value="">All categories</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
+            options={categories.map((c) => ({
+              value: c.id,
+              label: `${c.parentCategoryId ? '↳ ' : ''}${c.name}`,
+            }))}
+            onChange={handleCategoryChange}
+            placeholder="All categories"
+            clearable
+            clearLabel="All categories"
+            className="w-48"
+          />
         </div>
 
         <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 cursor-pointer select-none">
