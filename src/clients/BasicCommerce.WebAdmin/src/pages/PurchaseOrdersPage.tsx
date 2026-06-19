@@ -456,7 +456,7 @@ export default function PurchaseOrdersPage() {
                           <td className="px-4 py-3 text-left text-gray-500 dark:text-gray-400 tabular-nums">
                             {po.itemsCount}
                           </td>
-                          <td className="px-4 py-3 text-right font-medium text-gray-800 dark:text-gray-200 whitespace-nowrap tabular-nums">
+                          <td className="px-4 py-3 text-left font-medium text-gray-800 dark:text-gray-200 whitespace-nowrap tabular-nums">
                             {po.currency}{' '}
                             {po.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </td>

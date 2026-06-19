@@ -233,13 +233,13 @@ export default function SupplierReturnsPage() {
                               {cfg.label}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-right font-medium text-gray-800 dark:text-gray-200 tabular-nums whitespace-nowrap">
+                          <td className="px-4 py-3 text-left font-medium text-gray-800 dark:text-gray-200 tabular-nums whitespace-nowrap">
                             {fmtMoney(sr.totalReturnValue)}
                           </td>
-                          <td className="px-4 py-3 text-right text-blue-600 dark:text-blue-400 tabular-nums whitespace-nowrap">
+                          <td className="px-4 py-3 text-left text-blue-600 dark:text-blue-400 tabular-nums whitespace-nowrap">
                             {fmtMoney(sr.expectedCreditAmount)}
                           </td>
-                          <td className="px-4 py-3 text-right text-emerald-600 dark:text-emerald-400 tabular-nums whitespace-nowrap">
+                          <td className="px-4 py-3 text-left text-emerald-600 dark:text-emerald-400 tabular-nums whitespace-nowrap">
                             {fmtMoney(sr.actualCreditAmount)}
                           </td>
                           <td className="px-4 py-3 text-gray-500 dark:text-gray-400 whitespace-nowrap">
