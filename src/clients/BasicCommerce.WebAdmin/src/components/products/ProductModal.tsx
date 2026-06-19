@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { Package, X, ChevronRight } from 'lucide-react';
+import { Combobox } from '../ui/Combobox';
 import { cn } from '../../lib/utils';
 import type { Product, ProductFormData, SimpleCategory } from '../../types/product';
 import { UNIT_TYPES } from '../../types/product';
@@ -315,25 +316,22 @@ export function ProductModal({ open, product, onSave, onClose, isSaving }: Props
                         const selected = visibleCategories.find((c) => c.id === form.categoryId);
                         const selectedInactive = !!selected && selected.status !== 'Active';
 
+                        const categoryOptions = visibleCategories.map((c) => ({
+                          value: c.id,
+                          label: `${c.parentCategoryId ? '↳ ' : ''}${c.name}${c.status !== 'Active' ? ` (${c.status})` : ''}`,
+                        }));
+
                         return (
                           <>
-                            <select
+                            <Combobox
                               value={form.categoryId}
-                              onChange={(e) => set('categoryId', e.target.value)}
+                              options={categoryOptions}
+                              onChange={(v) => set('categoryId', v)}
+                              placeholder="Select category…"
                               disabled={isSaving}
-                              className={cn(
-                                inputCls(errors.categoryId),
-                                selectedInactive && !errors.categoryId && 'border-amber-400 dark:border-amber-500',
-                              )}
-                            >
-                              <option value="">Select category…</option>
-                              {visibleCategories.map((c) => (
-                                <option key={c.id} value={c.id}>
-                                  {c.parentCategoryId ? '  ↳ ' : ''}{c.name}
-                                  {c.status !== 'Active' ? ` (${c.status})` : ''}
-                                </option>
-                              ))}
-                            </select>
+                              error={!!errors.categoryId}
+                              warning={selectedInactive && !errors.categoryId}
+                            />
                             {errors.categoryId && <p className="mt-1 text-xs text-red-500">{errors.categoryId}</p>}
                             {!errors.categoryId && selectedInactive && (
                               <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
@@ -346,17 +344,15 @@ export function ProductModal({ open, product, onSave, onClose, isSaving }: Props
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Manufacturer</label>
-                      <select
+                      <Combobox
                         value={form.manufacturerId}
-                        onChange={(e) => set('manufacturerId', e.target.value)}
+                        options={manufacturers.map((m) => ({ value: m.id, label: m.name }))}
+                        onChange={(v) => set('manufacturerId', v)}
+                        placeholder="None"
+                        clearable
+                        clearLabel="None"
                         disabled={isSaving}
-                        className={inputCls()}
-                      >
-                        <option value="">None</option>
-                        {manufacturers.map((m) => (
-                          <option key={m.id} value={m.id}>{m.name}</option>
-                        ))}
-                      </select>
+                      />
                     </div>
                   </div>
 
