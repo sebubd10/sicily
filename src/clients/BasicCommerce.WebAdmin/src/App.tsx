@@ -15,6 +15,7 @@ import TerminalsPage from './pages/TerminalsPage';
 import VatRatesPage from './pages/VatRatesPage';
 import WarehousesPage from './pages/WarehousesPage';
 import StockLevelsPage from './pages/StockLevelsPage';
+import StockBatchesPage from './pages/StockBatchesPage';
 import StockMovementsPage from './pages/StockMovementsPage';
 import ManufacturersPage from './pages/ManufacturersPage';
 import ProductsPage from './pages/ProductsPage';
@@ -52,6 +53,7 @@ export default function App() {
 
             {/* Inventory */}
             <Route path="inventory/stock" element={<StockLevelsPage />} />
+            <Route path="inventory/batches" element={<StockBatchesPage />} />
             <Route path="inventory/movements" element={<StockMovementsPage />} />
             <Route path="inventory/warehouses" element={<WarehousesPage />} />
 

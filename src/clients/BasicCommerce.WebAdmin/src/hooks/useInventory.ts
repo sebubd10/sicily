@@ -1,8 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as inventoryApi from '../api/inventoryApi';
+import type { ReceiveBatchRequest } from '../types/inventory';
 
 const STOCK_KEY     = ['inventory', 'stock'] as const;
 const MOVEMENTS_KEY = ['inventory', 'movements'] as const;
+const BATCHES_KEY   = ['inventory', 'batches'] as const;
 
 // ── Queries ───────────────────────────────────────────────────────────────────
 
@@ -107,6 +109,64 @@ export function useSetLowStockThreshold() {
       inventoryApi.setLowStockThreshold(args.storeId, args.productId, args.threshold),
     onSuccess: (_data, vars) => {
       qc.invalidateQueries({ queryKey: [...STOCK_KEY, vars.storeId] });
+    },
+  });
+}
+
+// ── Stock Batch Hooks ─────────────────────────────────────────────────────────
+
+export function useStockBatches(
+  storeId: string | null,
+  params?: { productId?: string; includeExpired?: boolean; page?: number; pageSize?: number },
+) {
+  return useQuery({
+    queryKey: [...BATCHES_KEY, storeId, params],
+    queryFn: () => inventoryApi.getStockBatches(storeId!, params),
+    enabled: !!storeId,
+    staleTime: 30_000,
+  });
+}
+
+export function useExpiringBatches(storeId: string | null, withinDays = 7) {
+  return useQuery({
+    queryKey: [...BATCHES_KEY, storeId, 'expiring', withinDays],
+    queryFn: () => inventoryApi.getExpiringBatches(storeId!, withinDays),
+    enabled: !!storeId,
+    staleTime: 60_000,
+  });
+}
+
+export function useReceiveBatch() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (args: { storeId: string; request: ReceiveBatchRequest }) =>
+      inventoryApi.receiveBatch(args.storeId, args.request),
+    onSuccess: (_data, vars) => {
+      qc.invalidateQueries({ queryKey: [...BATCHES_KEY, vars.storeId] });
+      qc.invalidateQueries({ queryKey: [...STOCK_KEY, vars.storeId] });
+    },
+  });
+}
+
+export function useExpireBatches() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (args: { storeId: string; notes?: string }) =>
+      inventoryApi.expireBatches(args.storeId, args.notes),
+    onSuccess: (_data, vars) => {
+      qc.invalidateQueries({ queryKey: [...BATCHES_KEY, vars.storeId] });
+      qc.invalidateQueries({ queryKey: [...STOCK_KEY, vars.storeId] });
+    },
+  });
+}
+
+export function useDeleteStockBatch() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (args: { batchId: string; storeId: string }) =>
+      inventoryApi.deleteStockBatch(args.batchId),
+    onSuccess: (_data, vars) => {
+      qc.invalidateQueries({ queryKey: [...BATCHES_KEY, vars.storeId] });
     },
   });
 }

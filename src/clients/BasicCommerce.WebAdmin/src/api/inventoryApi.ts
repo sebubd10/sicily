@@ -1,5 +1,5 @@
 import { api } from './axiosInstance';
-import type { StockLevel, StockMovement } from '../types/inventory';
+import type { StockLevel, StockMovement, StockBatch, StockBatchListResponse, ReceiveBatchRequest } from '../types/inventory';
 
 type ApiResponse<T> = { success: boolean; data: T; message?: string };
 
@@ -108,4 +108,51 @@ export async function setLowStockThreshold(
     threshold,
   });
   return data.data!;
+}
+
+// ── Stock Batches ─────────────────────────────────────────────────────────────
+
+export async function getStockBatches(
+  storeId: string,
+  params?: { productId?: string; includeExpired?: boolean; page?: number; pageSize?: number },
+): Promise<StockBatchListResponse> {
+  const { data } = await api.get<ApiResponse<StockBatchListResponse>>(
+    `/inventory/${storeId}/batches`,
+    { params: { ...params, page: params?.page ?? 1, pageSize: params?.pageSize ?? 20 } },
+  );
+  return data.data!;
+}
+
+export async function getExpiringBatches(
+  storeId: string,
+  withinDays = 30,
+): Promise<StockBatch[]> {
+  const { data } = await api.get<ApiResponse<StockBatch[]>>(
+    `/inventory/${storeId}/batches/expiring`,
+    { params: { withinDays } },
+  );
+  return data.data!;
+}
+
+export async function receiveBatch(
+  storeId: string,
+  request: ReceiveBatchRequest,
+): Promise<StockBatch> {
+  const { data } = await api.post<ApiResponse<StockBatch>>(
+    `/inventory/${storeId}/batches`,
+    request,
+  );
+  return data.data!;
+}
+
+export async function expireBatches(storeId: string, notes?: string): Promise<number> {
+  const { data } = await api.post<ApiResponse<number>>(
+    `/inventory/${storeId}/batches/expire`,
+    { storeId, notes: notes ?? null },
+  );
+  return data.data!;
+}
+
+export async function deleteStockBatch(batchId: string): Promise<void> {
+  await api.delete(`/inventory/batches/${batchId}`);
 }

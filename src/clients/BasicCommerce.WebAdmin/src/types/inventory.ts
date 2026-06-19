@@ -60,3 +60,50 @@ export const MOVEMENT_TYPE_CONFIG: Record<
 export const ALL_MOVEMENT_TYPES = Object.keys(MOVEMENT_TYPE_CONFIG) as StockMovementType[];
 
 export type StockActionType = 'receive' | 'adjust' | 'writeOff' | 'threshold';
+
+// ── Stock Batches ─────────────────────────────────────────────────────────────
+
+export interface StockBatch {
+  id: string;
+  storeId: string;
+  productId: string;
+  productName: string;
+  productSku: string;
+  lotNumber: string | null;
+  expiryDate: string | null;
+  receivedQuantity: number;
+  remainingQuantity: number;
+  unitCost: number | null;
+  isExpired: boolean;
+  createdAt: string;
+}
+
+export interface StockBatchListResponse {
+  items: StockBatch[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface ReceiveBatchRequest {
+  productId: string;
+  quantity: number;
+  expiryDate?: string | null;
+  lotNumber?: string | null;
+  unitCost?: number | null;
+  reference?: string | null;
+  notes?: string | null;
+}
+
+export type BatchStatus = 'active' | 'expiring' | 'expired' | 'depleted';
+
+export function getBatchStatus(batch: StockBatch): BatchStatus {
+  if (batch.isExpired) return 'expired';
+  if (batch.remainingQuantity <= 0) return 'depleted';
+  if (batch.expiryDate) {
+    const msUntilExpiry = new Date(batch.expiryDate).getTime() - Date.now();
+    if (msUntilExpiry <= 0) return 'expired';
+    if (msUntilExpiry <= 7 * 24 * 60 * 60 * 1000) return 'expiring';
+  }
+  return 'active';
+}

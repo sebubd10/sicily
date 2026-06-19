@@ -44,6 +44,7 @@ export const navItems: NavItem[] = [
     icon: Warehouse,
     children: [
       { label: 'Stock Levels',    path: '/inventory/stock' },
+      { label: 'Stock Batches',   path: '/inventory/batches' },
       { label: 'Movements',       path: '/inventory/movements' },
       { label: 'Warehouses',      path: '/inventory/warehouses' },
     ],

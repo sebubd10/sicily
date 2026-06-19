@@ -154,4 +154,11 @@ public class InventoryController : ControllerBase
         var count = await _mediator.Send(new ExpireStockBatchesCommand(storeId, request.Notes), ct);
         return Ok(ApiResponse<int>.Ok(count));
     }
+
+    [HttpDelete("batches/{batchId:guid}")]
+    public async Task<ActionResult<ApiResponse<bool>>> DeleteBatch(Guid batchId, CancellationToken ct)
+    {
+        await _mediator.Send(new DeleteStockBatchCommand(batchId), ct);
+        return Ok(ApiResponse<bool>.Ok(true));
+    }
 }
