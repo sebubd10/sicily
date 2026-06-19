@@ -48,4 +48,10 @@ public class TillSessionRepository : TenantRepository<TillSession>, ITillSession
         await Db.TillSessions.AnyAsync(
             s => s.TenantId == tenantId && s.StoreId == storeId
               && s.SessionStatus == TillSessionStatus.Open, ct);
+
+    public async Task<bool> HasOpenSessionForUserAsync(Guid tenantId, Guid userId,
+        CancellationToken ct = default) =>
+        await Db.TillSessions.AnyAsync(
+            s => s.TenantId == tenantId && s.OpenedBy == userId
+              && s.SessionStatus == TillSessionStatus.Open, ct);
 }

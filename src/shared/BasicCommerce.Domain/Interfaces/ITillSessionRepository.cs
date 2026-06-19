@@ -11,4 +11,5 @@ public interface ITillSessionRepository : ITenantRepository<TillSession>
     Task<int> GetTotalCountAsync(Guid tenantId, Guid? storeId, Guid? terminalId,
         bool openOnly, CancellationToken ct = default);
     Task<bool> HasOpenSessionsForStoreAsync(Guid tenantId, Guid storeId, CancellationToken ct = default);
+    Task<bool> HasOpenSessionForUserAsync(Guid tenantId, Guid userId, CancellationToken ct = default);
 }
