@@ -174,10 +174,10 @@ export default function RewardPointsPage() {
       setSaveError(null);
       await updateMutation.mutateAsync({
         isEnabled: form.isEnabled,
-        purchaseSpendPerPoint: parseFloat(form.purchaseSpendPerPoint) || 100,
+        purchaseSpendPerPoint: parseFloat(form.purchaseSpendPerPoint) || 50,
         pointsEarnedPerSpend: parseInt(form.pointsEarnedPerSpend) || 1,
-        exchangeRate: parseFloat(form.exchangeRate) || 0.75,
-        minimumPointsToUse: parseInt(form.minimumPointsToUse) || 1000,
+        exchangeRate: parseFloat(form.exchangeRate) || 1,
+        minimumPointsToUse: parseInt(form.minimumPointsToUse) || 200,
         maximumPointsPerOrder: parseInt(form.maximumPointsPerOrder) || 0,
         maximumRedeemedRate: (parseFloat(form.maximumRedeemedRate) || 100) / 100,
         purchasePointsValidityDays: parseInt(form.purchasePointsValidityDays) || 365,
@@ -217,11 +217,11 @@ export default function RewardPointsPage() {
   }
 
   // Live preview calculation
-  const spendPerPt = parseFloat(form?.purchaseSpendPerPoint ?? '100') || 100;
+  const spendPerPt = parseFloat(form?.purchaseSpendPerPoint ?? '50') || 50;
   const ptsPerSpend = parseInt(form?.pointsEarnedPerSpend ?? '1') || 1;
-  const exRate = parseFloat(form?.exchangeRate ?? '0.75') || 0.75;
-  const minPts = parseInt(form?.minimumPointsToUse ?? '1000') || 1000;
-  const exampleSpend = 500;
+  const exRate = parseFloat(form?.exchangeRate ?? '1') || 1;
+  const minPts = parseInt(form?.minimumPointsToUse ?? '200') || 200;
+  const exampleSpend = 1000;
   const examplePts = Math.floor(exampleSpend / spendPerPt) * ptsPerSpend;
   const exampleValue = examplePts * exRate;
 
@@ -276,8 +276,8 @@ export default function RewardPointsPage() {
                         <FieldLabel>Spend per point (৳)</FieldLabel>
                         <input type="number" min={1} step={1} value={form.purchaseSpendPerPoint}
                           onChange={(e) => setField('purchaseSpendPerPoint', e.target.value)}
-                          className={inputCls} placeholder="100" />
-                        <p className="mt-1 text-xs text-gray-400">Customer spends this amount to earn points</p>
+                          className={inputCls} placeholder="50" />
+                        <p className="mt-1 text-xs text-gray-400">Amount a customer must spend to earn one point</p>
                       </div>
                       <div>
                         <FieldLabel>Points earned per spend</FieldLabel>
@@ -338,15 +338,15 @@ export default function RewardPointsPage() {
                         <FieldLabel>Point value (৳ per point)</FieldLabel>
                         <input type="number" min={0.01} step={0.01} value={form.exchangeRate}
                           onChange={(e) => setField('exchangeRate', e.target.value)}
-                          className={inputCls} placeholder="0.75" />
-                        <p className="mt-1 text-xs text-gray-400">Shwapno standard: ৳0.75 per point</p>
+                          className={inputCls} placeholder="1.00" />
+                        <p className="mt-1 text-xs text-gray-400">How much each redeemed point is worth in taka</p>
                       </div>
                       <div>
                         <FieldLabel>Minimum points to redeem</FieldLabel>
                         <input type="number" min={1} step={1} value={form.minimumPointsToUse}
                           onChange={(e) => setField('minimumPointsToUse', e.target.value)}
-                          className={inputCls} placeholder="1000" />
-                        <p className="mt-1 text-xs text-gray-400">Shwapno standard: 1,000 pts</p>
+                          className={inputCls} placeholder="200" />
+                        <p className="mt-1 text-xs text-gray-400">Lower threshold encourages more frequent redemptions</p>
                       </div>
                       <div>
                         <FieldLabel>Max points per order (0 = unlimited)</FieldLabel>
