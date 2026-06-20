@@ -1,12 +1,12 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
-  UserPlus, Search, Users, Eye, Pencil, Ban,
+  UserPlus, Search, Users, Eye, Pencil, Power, PowerOff,
   ChevronLeft, ChevronRight, AlertCircle, Loader2,
   Phone, Mail, CreditCard, Star, X,
 } from 'lucide-react';
 import { cn, extractApiError } from '../lib/utils';
 import type { Customer } from '../types/customer';
-import { useCustomers, useDeactivateCustomer } from '../hooks/useCustomers';
+import { useCustomers, useDeactivateCustomer, useActivateCustomer } from '../hooks/useCustomers';
 import { CustomerFormModal } from '../components/customers/CustomerFormModal';
 import { CustomerDetailModal } from '../components/customers/CustomerDetailModal';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
@@ -14,6 +14,7 @@ import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 const PAGE_SIZE = 20;
 
 type StatusFilter = 'All' | 'Active' | 'Inactive';
+type ConfirmAction = { type: 'activate' | 'deactivate'; customer: Customer } | null;
 
 const STATUS_FILTERS: StatusFilter[] = ['All', 'Active', 'Inactive'];
 
@@ -37,7 +38,8 @@ export default function CustomersPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [editCustomer, setEditCustomer] = useState<Customer | null>(null);
   const [detailCustomer, setDetailCustomer] = useState<Customer | null>(null);
-  const [deactivateTarget, setDeactivateTarget] = useState<Customer | null>(null);
+  const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null);
+  const [confirmError, setConfirmError] = useState<string | null>(null);
 
   const debouncedSearch = useDebounce(search, 350);
 
@@ -48,6 +50,8 @@ export default function CustomersPage() {
   });
 
   const { mutate: deactivate, isPending: deactivating } = useDeactivateCustomer();
+  const { mutate: activate, isPending: activating } = useActivateCustomer();
+  const isMutating = deactivating || activating;
 
   const items = data?.items ?? [];
   const total = data?.totalCount ?? 0;
@@ -72,6 +76,19 @@ export default function CustomersPage() {
   function openEdit(c: Customer) {
     setDetailCustomer(null);
     setEditCustomer(c);
+  }
+
+  function handleToggleStatus(c: Customer) {
+    setConfirmError(null);
+    setConfirmAction({ type: c.status === 'Active' ? 'deactivate' : 'activate', customer: c });
+  }
+
+  function executeConfirm() {
+    if (!confirmAction) return;
+    setConfirmError(null);
+    const done = { onSuccess: () => setConfirmAction(null), onError: (err: unknown) => setConfirmError(extractApiError(err)) };
+    if (confirmAction.type === 'deactivate') deactivate(confirmAction.customer.id, done);
+    else activate(confirmAction.customer.id, done);
   }
 
   return (
@@ -317,26 +334,33 @@ export default function CustomersPage() {
                           <button
                             title="View"
                             onClick={() => openDetail(c)}
-                            className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                           >
                             <Eye className="w-4 h-4" />
                           </button>
                           <button
                             title="Edit"
                             onClick={() => openEdit(c)}
-                            className="p-1.5 rounded-lg text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors"
+                            disabled={isMutating}
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors disabled:opacity-40"
                           >
                             <Pencil className="w-4 h-4" />
                           </button>
-                          {c.status === 'Active' && (
-                            <button
-                              title="Deactivate"
-                              onClick={() => setDeactivateTarget(c)}
-                              className="p-1.5 rounded-lg text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                            >
-                              <Ban className="w-4 h-4" />
-                            </button>
-                          )}
+                          <button
+                            title={c.status === 'Active' ? 'Deactivate' : 'Activate'}
+                            onClick={() => handleToggleStatus(c)}
+                            disabled={isMutating}
+                            className={cn(
+                              'p-1.5 rounded-lg transition-colors disabled:opacity-40',
+                              c.status === 'Active'
+                                ? 'text-gray-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20'
+                                : 'text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20',
+                            )}
+                          >
+                            {c.status === 'Active'
+                              ? <PowerOff className="w-4 h-4" />
+                              : <Power className="w-4 h-4" />}
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -397,21 +421,19 @@ export default function CustomersPage() {
       />
 
       <ConfirmDialog
-        open={!!deactivateTarget}
-        title="Deactivate Customer"
+        open={!!confirmAction}
+        title={confirmAction?.type === 'activate' ? 'Activate Customer' : 'Deactivate Customer'}
         message={
-          deactivateTarget
-            ? `Deactivate "${deactivateTarget.name}"? They will no longer be able to transact.`
-            : ''
+          confirmAction?.type === 'activate'
+            ? `"${confirmAction.customer.name}" will be restored and able to transact again.`
+            : `Deactivate "${confirmAction?.customer.name}"? They will no longer be able to transact.`
         }
-        confirmLabel="Deactivate"
+        confirmLabel={confirmAction?.type === 'activate' ? 'Activate' : 'Deactivate'}
         variant="warning"
-        loading={deactivating}
-        onConfirm={() => {
-          if (!deactivateTarget) return;
-          deactivate(deactivateTarget.id, { onSuccess: () => setDeactivateTarget(null) });
-        }}
-        onClose={() => setDeactivateTarget(null)}
+        loading={isMutating}
+        error={confirmError}
+        onConfirm={executeConfirm}
+        onClose={() => { setConfirmAction(null); setConfirmError(null); }}
       />
     </div>
   );
