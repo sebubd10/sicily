@@ -217,19 +217,19 @@ export default function CustomersPage() {
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Contact
                     </th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Loyalty Pts
                     </th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Credit Limit
                     </th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Outstanding
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
@@ -273,9 +273,9 @@ export default function CustomersPage() {
                           )}
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-right">
+                      <td className="px-4 py-3 text-left">
                         {c.loyaltyPoints > 0 ? (
-                          <div className="flex items-center justify-end gap-1">
+                          <div className="flex items-center justify-start gap-1">
                             <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
                             <span className="font-medium text-gray-900 dark:text-gray-100">
                               {c.loyaltyPoints.toLocaleString()}
@@ -285,12 +285,12 @@ export default function CustomersPage() {
                           <span className="text-gray-300 dark:text-gray-600">—</span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-right font-medium text-gray-900 dark:text-gray-100">
+                      <td className="px-4 py-3 text-left font-medium text-gray-900 dark:text-gray-100">
                         {c.creditLimit > 0 ? fmtMoney(c.creditLimit) : (
                           <span className="text-gray-300 dark:text-gray-600">—</span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-right">
+                      <td className="px-4 py-3 text-left">
                         {c.currentBalance > 0 ? (
                           <span className="font-medium text-red-600 dark:text-red-400">
                             {fmtMoney(c.currentBalance)}
@@ -311,7 +311,7 @@ export default function CustomersPage() {
                       </td>
                       <td className="px-4 py-3">
                         <div
-                          className="flex items-center justify-end gap-1"
+                          className="flex items-center justify-start gap-1"
                           onClick={(e) => e.stopPropagation()}
                         >
                           <button
