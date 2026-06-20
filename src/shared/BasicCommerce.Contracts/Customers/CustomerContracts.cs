@@ -40,6 +40,27 @@ public record UpdateCustomerRequest(
     string? District = null,
     string? PostalCode = null);
 
+public record CreditAccountListResponse(
+    IEnumerable<CreditAccountSummary> Items,
+    int TotalCount,
+    int Page,
+    int PageSize,
+    decimal TotalOutstanding,
+    decimal TotalCreditExtended);
+
+public record CreditAccountSummary(
+    Guid Id,
+    Guid CustomerId,
+    string CustomerName,
+    string CustomerCode,
+    string StoreName,
+    decimal CreditLimit,
+    decimal OutstandingBalance,
+    decimal AvailableCredit,
+    string Status,
+    DateTime? LastPaymentAt,
+    DateTime CreatedAt);
+
 public record CreditAccountResponse(
     Guid Id,
     Guid CustomerId,

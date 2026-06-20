@@ -21,6 +21,7 @@ import TillSessionsPage from './pages/TillSessionsPage';
 import RewardPointsPage from './pages/RewardPointsPage';
 import PromotionsPage from './pages/PromotionsPage';
 import CustomersPage from './pages/CustomersPage';
+import CreditAccountsPage from './pages/CreditAccountsPage';
 import ManufacturersPage from './pages/ManufacturersPage';
 import ProductsPage from './pages/ProductsPage';
 import ProductTagsPage from './pages/ProductTagsPage';
@@ -72,7 +73,7 @@ export default function App() {
 
             {/* Customers */}
             <Route path="customers" element={<CustomersPage />} />
-            <Route path="customers/credit" element={<PlaceholderPage title="Credit Accounts" />} />
+            <Route path="customers/credit" element={<CreditAccountsPage />} />
             <Route path="customers/rewards" element={<RewardPointsPage />} />
 
             {/* Promotions */}

@@ -65,6 +65,29 @@ export interface CreditAccount {
   recentHistory: CreditTransactionRow[];
 }
 
+export interface CreditAccountSummary {
+  id: string;
+  customerId: string;
+  customerName: string;
+  customerCode: string;
+  storeName: string;
+  creditLimit: number;
+  outstandingBalance: number;
+  availableCredit: number;
+  status: string;
+  lastPaymentAt: string | null;
+  createdAt: string;
+}
+
+export interface CreditAccountListResponse {
+  items: CreditAccountSummary[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalOutstanding: number;
+  totalCreditExtended: number;
+}
+
 export interface CustomerFormState {
   name: string;
   email: string;

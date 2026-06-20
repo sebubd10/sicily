@@ -34,4 +34,39 @@ public class CreditAccountRepository : TenantRepository<CreditAccount>, ICreditA
         CancellationToken ct = default) =>
         await Db.CreditAccounts.AnyAsync(
             a => a.TenantId == tenantId && a.StoreId == storeId && a.OutstandingBalance > 0, ct);
+
+    public async Task<(IEnumerable<CreditAccount> Items, int TotalCount, decimal TotalOutstanding, decimal TotalCreditExtended)>
+        GetPagedAsync(Guid tenantId, string? term, bool? hasBalance, int page, int pageSize, CancellationToken ct = default)
+    {
+        var query = Db.CreditAccounts.Where(a => a.TenantId == tenantId).AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(term))
+        {
+            var customerIds = await Db.Customers
+                .Where(c => c.TenantId == tenantId &&
+                    (c.Name.Contains(term) || c.Code.Contains(term) ||
+                     (c.Phone != null && c.Phone.Contains(term))))
+                .Select(c => c.Id)
+                .ToListAsync(ct);
+            query = query.Where(a => customerIds.Contains(a.CustomerId));
+        }
+
+        if (hasBalance == true)
+            query = query.Where(a => a.OutstandingBalance > 0);
+        else if (hasBalance == false)
+            query = query.Where(a => a.OutstandingBalance == 0);
+
+        var totalCount      = await query.CountAsync(ct);
+        var totalOutstanding = totalCount > 0 ? await query.SumAsync(a => a.OutstandingBalance, ct) : 0m;
+        var totalCredit      = totalCount > 0 ? await query.SumAsync(a => a.CreditLimit, ct) : 0m;
+
+        var items = await query
+            .OrderByDescending(a => a.OutstandingBalance)
+            .ThenBy(a => a.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct);
+
+        return (items, totalCount, totalOutstanding, totalCredit);
+    }
 }

@@ -5,6 +5,7 @@ import type {
   RegisterCustomerPayload,
   UpdateCustomerPayload,
   CreditAccount,
+  CreditAccountListResponse,
 } from '../types/customer';
 
 type ApiResponse<T> = { success: boolean; data: T; message?: string };
@@ -46,6 +47,26 @@ export async function updateCreditLimit(id: string, creditLimit: number): Promis
   const { data } = await api.put<ApiResponse<Customer>>(`/customers/${id}/credit-limit`, {
     creditLimit,
   });
+  return data.data!;
+}
+
+export async function getAllCreditAccounts(params: {
+  term?: string;
+  hasBalance?: boolean;
+  page?: number;
+  pageSize?: number;
+}): Promise<CreditAccountListResponse> {
+  const { data } = await api.get<ApiResponse<CreditAccountListResponse>>(
+    '/customers/credit-accounts',
+    {
+      params: {
+        term: params.term || undefined,
+        hasBalance: params.hasBalance,
+        page: params.page ?? 1,
+        pageSize: params.pageSize ?? 20,
+      },
+    },
+  );
   return data.data!;
 }
 

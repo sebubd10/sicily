@@ -3,6 +3,7 @@ import * as customersApi from '../api/customersApi';
 import type { RegisterCustomerPayload, UpdateCustomerPayload } from '../types/customer';
 
 const KEY = ['customers'] as const;
+const CREDIT_KEY = ['credit-accounts'] as const;
 
 export function useCustomers(params: { term?: string; page?: number; pageSize?: number }) {
   return useQuery({
@@ -63,7 +64,33 @@ export function useUpdateCreditLimit() {
   return useMutation({
     mutationFn: ({ id, creditLimit }: { id: string; creditLimit: number }) =>
       customersApi.updateCreditLimit(id, creditLimit),
-    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: KEY });
+      qc.invalidateQueries({ queryKey: CREDIT_KEY });
+    },
+  });
+}
+
+export function useAllCreditAccounts(params: {
+  term?: string;
+  hasBalance?: boolean;
+  page?: number;
+  pageSize?: number;
+}) {
+  return useQuery({
+    queryKey: [...CREDIT_KEY, params],
+    queryFn: () => customersApi.getAllCreditAccounts(params),
+    placeholderData: keepPreviousData,
+    staleTime: 30_000,
+  });
+}
+
+export function useCreditAccountDetail(creditAccountId: string | null) {
+  return useQuery({
+    queryKey: [...CREDIT_KEY, 'detail', creditAccountId],
+    queryFn: () => customersApi.getCreditAccount(creditAccountId!),
+    enabled: !!creditAccountId,
+    staleTime: 0,
   });
 }
 
@@ -88,7 +115,10 @@ export function useRecordCreditPayment() {
       amount: number;
       reference?: string | null;
     }) => customersApi.recordCreditPayment(creditAccountId, amount, reference),
-    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: KEY });
+      qc.invalidateQueries({ queryKey: CREDIT_KEY });
+    },
   });
 }
 

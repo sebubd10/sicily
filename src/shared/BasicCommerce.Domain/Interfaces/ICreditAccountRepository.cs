@@ -11,4 +11,6 @@ public interface ICreditAccountRepository : ITenantRepository<CreditAccount>
     Task<CreditAccount?> GetWithTransactionsAsync(Guid tenantId, Guid creditAccountId,
         CancellationToken ct = default);
     Task<bool> HasOutstandingCreditForStoreAsync(Guid tenantId, Guid storeId, CancellationToken ct = default);
+    Task<(IEnumerable<CreditAccount> Items, int TotalCount, decimal TotalOutstanding, decimal TotalCreditExtended)>
+        GetPagedAsync(Guid tenantId, string? term, bool? hasBalance, int page, int pageSize, CancellationToken ct = default);
 }

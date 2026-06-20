@@ -78,6 +78,15 @@ public class CustomersController : ControllerBase
         return Ok(ApiResponse<CustomerResponse>.Ok(result));
     }
 
+    [HttpGet("credit-accounts")]
+    public async Task<ActionResult<ApiResponse<CreditAccountListResponse>>> GetAllCreditAccounts(
+        [FromQuery] string? term, [FromQuery] bool? hasBalance,
+        [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
+    {
+        var result = await _mediator.Send(new GetAllCreditAccountsQuery(term, hasBalance, page, pageSize), ct);
+        return Ok(ApiResponse<CreditAccountListResponse>.Ok(result));
+    }
+
     [HttpGet("{id:guid}/credit-accounts")]
     public async Task<ActionResult<ApiResponse<IEnumerable<CreditAccountResponse>>>> GetCreditAccounts(
         Guid id, CancellationToken ct)
