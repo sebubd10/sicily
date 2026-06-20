@@ -15,6 +15,7 @@ public interface IPurchaseOrderRepository : ITenantRepository<PurchaseOrder>
         CancellationToken ct = default);
     Task<bool> OrderNumberExistsAsync(Guid tenantId, string orderNumber, CancellationToken ct = default);
     Task<bool> HasOpenOrdersForProductAsync(Guid tenantId, Guid productId, CancellationToken ct = default);
+    Task<bool> HasOpenOrdersForSupplierAsync(Guid tenantId, Guid supplierId, CancellationToken ct = default);
     void RemoveItems(IEnumerable<PurchaseOrderItem> items);
     void AddItems(IEnumerable<PurchaseOrderItem> items);
 }

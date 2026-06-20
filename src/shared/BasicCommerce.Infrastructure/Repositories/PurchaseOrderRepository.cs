@@ -80,6 +80,16 @@ public class PurchaseOrderRepository : TenantRepository<PurchaseOrder>, IPurchas
                 && p.Items.Any(i => i.ProductId == productId),
             ct);
 
+    public async Task<bool> HasOpenOrdersForSupplierAsync(Guid tenantId, Guid supplierId,
+        CancellationToken ct = default) =>
+        await Db.PurchaseOrders.AnyAsync(
+            p => p.TenantId == tenantId
+                && p.SupplierId == supplierId
+                && (p.PurchaseOrderStatus == PurchaseOrderStatus.Draft
+                    || p.PurchaseOrderStatus == PurchaseOrderStatus.Submitted
+                    || p.PurchaseOrderStatus == PurchaseOrderStatus.PartiallyReceived),
+            ct);
+
     public void RemoveItems(IEnumerable<PurchaseOrderItem> items) =>
         Db.PurchaseOrderItems.RemoveRange(items);
 

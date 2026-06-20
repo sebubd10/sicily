@@ -18,4 +18,5 @@ public interface ISupplierReturnRepository : ITenantRepository<SupplierReturn>
     void AddItem(SupplierReturnItem item);
     void RemoveItem(SupplierReturnItem item);
     Task<bool> HasOpenReturnsForStoreAsync(Guid tenantId, Guid storeId, CancellationToken ct = default);
+    Task<bool> HasOpenReturnsForSupplierAsync(Guid tenantId, Guid supplierId, CancellationToken ct = default);
 }

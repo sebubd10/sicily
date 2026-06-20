@@ -26,10 +26,21 @@ public class DeleteSupplierCommandHandler : IRequestHandler<DeleteSupplierComman
         if (supplier.TenantId != tenantId)
             throw new NotFoundException("Supplier", request.SupplierId);
 
+        var reasons = new List<string>();
+
         var productCount = await _uow.SupplierProducts.GetCountBySupplierAsync(tenantId, supplier.Id, ct);
         if (productCount > 0)
+            reasons.Add($"{productCount} product link{(productCount == 1 ? "" : "s")} — remove them first");
+
+        if (await _uow.PurchaseOrders.HasOpenOrdersForSupplierAsync(tenantId, supplier.Id, ct))
+            reasons.Add("open purchase orders exist — complete or cancel them first");
+
+        if (await _uow.SupplierReturns.HasOpenReturnsForSupplierAsync(tenantId, supplier.Id, ct))
+            reasons.Add("open supplier returns exist — resolve them first");
+
+        if (reasons.Count > 0)
             throw new DomainException(
-                $"Cannot delete: {productCount} product{(productCount == 1 ? " is" : "s are")} linked to this supplier. Remove the links first.");
+                $"Cannot delete supplier '{supplier.Name}': {string.Join("; ", reasons)}.");
 
         supplier.SoftDelete(_currentUser.UserId);
         await _uow.SaveChangesAsync(ct);
