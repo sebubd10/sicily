@@ -27,8 +27,13 @@ public record TillSessionResponse(
 public record TillSessionSummaryResponse(
     Guid Id,
     Guid StoreId,
+    string? StoreName,
     Guid TerminalId,
+    string? TerminalName,
     Guid OpenedBy,
+    string? OpenedByName,
+    Guid? ClosedBy,
+    string? ClosedByName,
     decimal OpeningFloat,
     string SessionStatus,
     DateTime OpenedAt,

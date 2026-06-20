@@ -24,9 +24,17 @@ public static class TillMapper
                 p.Id, p.Type.ToString(), p.Amount, p.Reason, p.PerformedBy, p.CreatedAt
             )).ToList().AsReadOnly());
 
-    public static TillSessionSummaryResponse ToSummary(TillSession session)
-        => new(session.Id, session.StoreId, session.TerminalId,
-            session.OpenedBy, session.OpeningFloat,
+    public static TillSessionSummaryResponse ToSummary(
+        TillSession session,
+        string? storeName = null,
+        string? terminalName = null,
+        string? openedByName = null,
+        string? closedByName = null)
+        => new(session.Id, session.StoreId, storeName,
+            session.TerminalId, terminalName,
+            session.OpenedBy, openedByName,
+            session.ClosedBy, closedByName,
+            session.OpeningFloat,
             session.SessionStatus.ToString(), session.OpenedAt, session.ClosedAt);
 
     public static TillReportResponse ToReport(TillSessionSnapshot snap, decimal? actualCash)

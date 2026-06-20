@@ -74,13 +74,45 @@ public class GetTillSessionsQueryHandler
         GetTillSessionsQuery request, CancellationToken ct)
     {
         var tenantId = _currentUser.TenantId;
-        var items = await _uow.TillSessions.GetPagedAsync(tenantId,
+        var items = (await _uow.TillSessions.GetPagedAsync(tenantId,
             request.StoreId, request.TerminalId, request.OpenOnly,
-            request.Page, request.PageSize, ct);
+            request.Page, request.PageSize, ct)).ToList();
         var total = await _uow.TillSessions.GetTotalCountAsync(tenantId,
             request.StoreId, request.TerminalId, request.OpenOnly, ct);
+
+        // Collect unique IDs then batch-lookup names
+        var storeNames    = new Dictionary<Guid, string>();
+        var terminalNames = new Dictionary<Guid, string>();
+        var userNames     = new Dictionary<Guid, string>();
+
+        foreach (var sid in items.Select(s => s.StoreId).Distinct())
+        {
+            var store = await _uow.Stores.GetByIdForTenantAsync(tenantId, sid, ct);
+            if (store is not null) storeNames[sid] = store.Name;
+        }
+
+        foreach (var tid in items.Select(s => s.TerminalId).Distinct())
+        {
+            var terminal = await _uow.Terminals.GetByIdForTenantAsync(tenantId, tid, ct);
+            if (terminal is not null) terminalNames[tid] = terminal.Name;
+        }
+
+        var allUserIds = items.Select(s => s.OpenedBy)
+            .Concat(items.Where(s => s.ClosedBy.HasValue).Select(s => s.ClosedBy!.Value))
+            .Distinct();
+        foreach (var uid in allUserIds)
+        {
+            var user = await _uow.Users.GetByIdForTenantAsync(tenantId, uid, ct);
+            if (user is not null) userNames[uid] = user.FullName;
+        }
+
         return new TillSessionListResponse(
-            items.Select(TillMapper.ToSummary).ToList().AsReadOnly(),
+            items.Select(s => TillMapper.ToSummary(s,
+                storeNames.GetValueOrDefault(s.StoreId),
+                terminalNames.GetValueOrDefault(s.TerminalId),
+                userNames.GetValueOrDefault(s.OpenedBy),
+                s.ClosedBy.HasValue ? userNames.GetValueOrDefault(s.ClosedBy.Value) : null
+            )).ToList().AsReadOnly(),
             total, request.Page, request.PageSize);
     }
 }

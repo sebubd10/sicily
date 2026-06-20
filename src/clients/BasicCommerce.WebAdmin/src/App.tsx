@@ -17,6 +17,7 @@ import WarehousesPage from './pages/WarehousesPage';
 import StockLevelsPage from './pages/StockLevelsPage';
 import StockBatchesPage from './pages/StockBatchesPage';
 import StockMovementsPage from './pages/StockMovementsPage';
+import TillSessionsPage from './pages/TillSessionsPage';
 import ManufacturersPage from './pages/ManufacturersPage';
 import ProductsPage from './pages/ProductsPage';
 import ProductTagsPage from './pages/ProductTagsPage';
@@ -64,7 +65,7 @@ export default function App() {
 
             {/* Sales */}
             <Route path="sales/transactions" element={<PlaceholderPage title="Transactions" />} />
-            <Route path="sales/till-sessions" element={<PlaceholderPage title="Till Sessions" />} />
+            <Route path="sales/till-sessions" element={<TillSessionsPage />} />
 
             {/* Customers */}
             <Route path="customers" element={<PlaceholderPage title="All Customers" />} />
