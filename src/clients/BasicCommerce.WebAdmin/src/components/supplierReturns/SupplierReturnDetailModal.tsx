@@ -436,9 +436,9 @@ export function SupplierReturnDetailModal({ open, srId, products, onClose }: Pro
                                     {reasonLabel(item.reason)}
                                   </span>
                                 </td>
-                                <td className="px-3 py-2.5 text-center text-gray-600 dark:text-gray-400">{item.quantity}</td>
-                                <td className="px-3 py-2.5 text-right text-gray-600 dark:text-gray-400">{fmtMoney(item.unitCost)}</td>
-                                <td className="px-3 py-2.5 text-right font-semibold text-gray-800 dark:text-gray-200">{fmtMoney(item.totalCost)}</td>
+                                <td className="px-3 py-2.5 text-left text-gray-600 dark:text-gray-400">{item.quantity}</td>
+                                <td className="px-3 py-2.5 text-left text-gray-600 dark:text-gray-400">{fmtMoney(item.unitCost)}</td>
+                                <td className="px-3 py-2.5 text-left font-semibold text-gray-800 dark:text-gray-200">{fmtMoney(item.totalCost)}</td>
                                 <td className="px-3 py-2.5 text-xs text-gray-400 max-w-[120px] truncate">{item.notes ?? '—'}</td>
                                 {isDraft && (
                                   <td className="px-3 py-2.5">
@@ -457,10 +457,10 @@ export function SupplierReturnDetailModal({ open, srId, products, onClose }: Pro
                           </tbody>
                           <tfoot>
                             <tr className="bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
-                              <td colSpan={isDraft ? 5 : 4} className="px-3 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-300 text-right">
+                              <td colSpan={isDraft ? 5 : 4} className="px-3 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-300 text-left">
                                 Total Return Value
                               </td>
-                              <td className="px-3 py-2.5 text-right font-bold text-gray-900 dark:text-white">
+                              <td className="px-3 py-2.5 text-left font-bold text-gray-900 dark:text-white">
                                 {fmtMoney(sr.totalReturnValue)}
                               </td>
                               <td colSpan={isDraft ? 2 : 1} />
