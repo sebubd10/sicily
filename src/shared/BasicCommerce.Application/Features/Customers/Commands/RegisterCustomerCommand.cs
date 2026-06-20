@@ -76,11 +76,23 @@ public class RegisterCustomerCommandHandler : IRequestHandler<RegisterCustomerCo
 
         await _uow.Customers.AddAsync(customer, ct);
 
-        if (request.CreditLimit > 0 && _currentUser.StoreId.HasValue)
+        if (request.CreditLimit > 0)
         {
-            var creditAccount = CreditAccount.Create(tenantId, customer.Id,
-                _currentUser.StoreId.Value, request.CreditLimit);
-            await _uow.CreditAccounts.AddAsync(creditAccount, ct);
+            if (_currentUser.StoreId.HasValue)
+            {
+                var creditAccount = CreditAccount.Create(tenantId, customer.Id,
+                    _currentUser.StoreId.Value, request.CreditLimit);
+                await _uow.CreditAccounts.AddAsync(creditAccount, ct);
+            }
+            else
+            {
+                // Global admin (no store context): create an account per active store
+                var stores = await _uow.Stores.FindAsync(
+                    s => s.TenantId == tenantId && s.Status == EntityStatus.Active, ct);
+                foreach (var store in stores)
+                    await _uow.CreditAccounts.AddAsync(
+                        CreditAccount.Create(tenantId, customer.Id, store.Id, request.CreditLimit), ct);
+            }
         }
 
         var rewardSettings = await _uow.RewardPointsSettings.GetByTenantAsync(tenantId, ct);

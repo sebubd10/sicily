@@ -84,6 +84,8 @@ public record CreditTransactionRow(
 
 public record RecordCreditPaymentRequest(decimal Amount, string? Reference = null);
 
+public record CreateCreditAccountRequest(Guid CustomerId, Guid StoreId, decimal CreditLimit);
+
 public record UpdateCreditLimitRequest(decimal CreditLimit);
 
 public record AdjustLoyaltyPointsRequest(int Points, string Reason);

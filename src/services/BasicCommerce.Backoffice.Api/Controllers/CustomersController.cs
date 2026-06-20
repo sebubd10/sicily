@@ -86,6 +86,16 @@ public class CustomersController : ControllerBase
         return Ok(ApiResponse<CustomerResponse>.Ok(result));
     }
 
+    [HttpPost("credit-accounts")]
+    [Authorize(Policy = "StoreManagerAndAbove")]
+    public async Task<ActionResult<ApiResponse<CreditAccountSummary>>> CreateCreditAccount(
+        [FromBody] CreateCreditAccountRequest request, CancellationToken ct)
+    {
+        var result = await _mediator.Send(
+            new CreateCreditAccountCommand(request.CustomerId, request.StoreId, request.CreditLimit), ct);
+        return Ok(ApiResponse<CreditAccountSummary>.Ok(result));
+    }
+
     [HttpGet("credit-accounts")]
     public async Task<ActionResult<ApiResponse<CreditAccountListResponse>>> GetAllCreditAccounts(
         [FromQuery] string? term, [FromQuery] bool? hasBalance,

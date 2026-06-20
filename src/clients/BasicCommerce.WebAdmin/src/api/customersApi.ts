@@ -54,6 +54,18 @@ export async function updateCreditLimit(id: string, creditLimit: number): Promis
   return data.data!;
 }
 
+export async function createCreditAccount(
+  customerId: string,
+  storeId: string,
+  creditLimit: number,
+): Promise<CreditAccountSummary> {
+  const { data } = await api.post<ApiResponse<CreditAccountSummary>>(
+    '/customers/credit-accounts',
+    { customerId, storeId, creditLimit },
+  );
+  return data.data!;
+}
+
 export async function getAllCreditAccounts(params: {
   term?: string;
   hasBalance?: boolean;

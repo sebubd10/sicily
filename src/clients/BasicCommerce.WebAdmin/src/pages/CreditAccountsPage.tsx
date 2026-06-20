@@ -2,12 +2,13 @@ import { useState } from 'react';
 import {
   CreditCard, Search, X, ChevronLeft, ChevronRight,
   AlertCircle, Loader2, Eye, ArrowDownCircle, Users,
-  TrendingUp, Wallet, CheckCircle,
+  TrendingUp, Wallet, CheckCircle, Plus,
 } from 'lucide-react';
 import { cn, extractApiError } from '../lib/utils';
 import type { CreditAccountSummary } from '../types/customer';
 import { useAllCreditAccounts, useRecordCreditPayment } from '../hooks/useCustomers';
 import { CreditAccountDetailModal } from '../components/customers/CreditAccountDetailModal';
+import { AddCreditAccountModal } from '../components/customers/AddCreditAccountModal';
 import * as Dialog from '@radix-ui/react-dialog';
 
 const PAGE_SIZE = 20;
@@ -206,6 +207,7 @@ export default function CreditAccountsPage() {
   const [page, setPage] = useState(1);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [payTarget, setPayTarget] = useState<CreditAccountSummary | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
 
   // Debounce search
   const [searchTimer, setSearchTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
@@ -238,11 +240,20 @@ export default function CreditAccountsPage() {
   return (
     <div className="flex flex-col gap-6 p-6 min-h-0">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Credit Accounts</h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-          Track customer credit balances, record payments, and manage credit limits
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Credit Accounts</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+            Track customer credit balances, record payments, and manage credit limits
+          </p>
+        </div>
+        <button
+          onClick={() => setAddOpen(true)}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium shadow-sm transition-colors"
+        >
+          <Plus className="w-4 h-4" />
+          New Credit Account
+        </button>
       </div>
 
       {/* Stat cards */}
@@ -501,6 +512,12 @@ export default function CreditAccountsPage() {
       <QuickPaymentDialog
         account={payTarget}
         onClose={() => setPayTarget(null)}
+      />
+
+      {/* Add credit account modal */}
+      <AddCreditAccountModal
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
       />
     </div>
   );

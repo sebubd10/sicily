@@ -1,5 +1,7 @@
 using BasicCommerce.Application.Interfaces;
 using BasicCommerce.Contracts.Customers;
+using BasicCommerce.Domain.Entities;
+using BasicCommerce.Domain.Enums;
 using BasicCommerce.Domain.Exceptions;
 using BasicCommerce.Domain.Interfaces;
 using FluentValidation;
@@ -39,10 +41,23 @@ public class UpdateCreditLimitCommandHandler : IRequestHandler<UpdateCreditLimit
 
         customer.UpdateCreditLimit(request.CreditLimit);
 
-        var creditAccounts = await _uow.CreditAccounts.GetByCustomerAsync(
-            _currentUser.TenantId, customer.Id, ct);
-        foreach (var account in creditAccounts)
-            account.UpdateCreditLimit(request.CreditLimit);
+        var creditAccounts = (await _uow.CreditAccounts.GetByCustomerAsync(
+            _currentUser.TenantId, customer.Id, ct)).ToList();
+
+        if (creditAccounts.Count > 0)
+        {
+            foreach (var account in creditAccounts)
+                account.UpdateCreditLimit(request.CreditLimit);
+        }
+        else if (request.CreditLimit > 0)
+        {
+            // No accounts yet — create one per active store
+            var stores = await _uow.Stores.FindAsync(
+                s => s.TenantId == _currentUser.TenantId && s.Status == EntityStatus.Active, ct);
+            foreach (var store in stores)
+                await _uow.CreditAccounts.AddAsync(
+                    CreditAccount.Create(_currentUser.TenantId, customer.Id, store.Id, request.CreditLimit), ct);
+        }
 
         await _uow.SaveChangesAsync(ct);
         return RegisterCustomerCommandHandler.ToResponse(customer);

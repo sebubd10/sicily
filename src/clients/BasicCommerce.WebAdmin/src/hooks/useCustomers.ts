@@ -79,6 +79,25 @@ export function useUpdateCreditLimit() {
   });
 }
 
+export function useCreateCreditAccount() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      customerId,
+      storeId,
+      creditLimit,
+    }: {
+      customerId: string;
+      storeId: string;
+      creditLimit: number;
+    }) => customersApi.createCreditAccount(customerId, storeId, creditLimit),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: CREDIT_KEY });
+      qc.invalidateQueries({ queryKey: KEY });
+    },
+  });
+}
+
 export function useAllCreditAccounts(params: {
   term?: string;
   hasBalance?: boolean;
