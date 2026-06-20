@@ -57,7 +57,5 @@ public class SupplierReturnRepository : TenantRepository<SupplierReturn>, ISuppl
         CancellationToken ct = default) =>
         await Db.SupplierReturns.AnyAsync(
             r => r.TenantId == tenantId && r.SupplierId == supplierId
-              && (r.ReturnStatus == SupplierReturnStatus.Draft
-               || r.ReturnStatus == SupplierReturnStatus.Submitted
-               || r.ReturnStatus == SupplierReturnStatus.Shipped), ct);
+              && r.ReturnStatus != SupplierReturnStatus.Cancelled, ct);
 }

@@ -33,10 +33,10 @@ public class DeleteSupplierCommandHandler : IRequestHandler<DeleteSupplierComman
             reasons.Add($"{productCount} product link{(productCount == 1 ? "" : "s")} — remove them first");
 
         if (await _uow.PurchaseOrders.HasOpenOrdersForSupplierAsync(tenantId, supplier.Id, ct))
-            reasons.Add("open purchase orders exist — complete or cancel them first");
+            reasons.Add("purchase orders exist — cancel them or contact support to archive");
 
         if (await _uow.SupplierReturns.HasOpenReturnsForSupplierAsync(tenantId, supplier.Id, ct))
-            reasons.Add("open supplier returns exist — resolve them first");
+            reasons.Add("supplier returns exist — cancel them or contact support to archive");
 
         if (reasons.Count > 0)
             throw new DomainException(

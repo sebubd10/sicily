@@ -85,9 +85,7 @@ public class PurchaseOrderRepository : TenantRepository<PurchaseOrder>, IPurchas
         await Db.PurchaseOrders.AnyAsync(
             p => p.TenantId == tenantId
                 && p.SupplierId == supplierId
-                && (p.PurchaseOrderStatus == PurchaseOrderStatus.Draft
-                    || p.PurchaseOrderStatus == PurchaseOrderStatus.Submitted
-                    || p.PurchaseOrderStatus == PurchaseOrderStatus.PartiallyReceived),
+                && p.PurchaseOrderStatus != PurchaseOrderStatus.Cancelled,
             ct);
 
     public void RemoveItems(IEnumerable<PurchaseOrderItem> items) =>
