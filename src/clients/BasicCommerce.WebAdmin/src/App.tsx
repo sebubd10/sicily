@@ -18,6 +18,8 @@ import StockLevelsPage from './pages/StockLevelsPage';
 import StockBatchesPage from './pages/StockBatchesPage';
 import StockMovementsPage from './pages/StockMovementsPage';
 import TillSessionsPage from './pages/TillSessionsPage';
+import RewardPointsPage from './pages/RewardPointsPage';
+import PromotionsPage from './pages/PromotionsPage';
 import ManufacturersPage from './pages/ManufacturersPage';
 import ProductsPage from './pages/ProductsPage';
 import ProductTagsPage from './pages/ProductTagsPage';
@@ -70,10 +72,10 @@ export default function App() {
             {/* Customers */}
             <Route path="customers" element={<PlaceholderPage title="All Customers" />} />
             <Route path="customers/credit" element={<PlaceholderPage title="Credit Accounts" />} />
-            <Route path="customers/rewards" element={<PlaceholderPage title="Reward Points" />} />
+            <Route path="customers/rewards" element={<RewardPointsPage />} />
 
             {/* Promotions */}
-            <Route path="promotions" element={<PlaceholderPage title="Promotions" />} />
+            <Route path="promotions" element={<PromotionsPage />} />
             <Route path="promotions/gift-cards" element={<PlaceholderPage title="Gift Cards" />} />
 
             {/* Reports */}
