@@ -27,7 +27,7 @@ public class CustomersController : ControllerBase
         [FromQuery] string term, CancellationToken ct)
     {
         var result = await _mediator.Send(new SearchCustomersQuery(term, 1, 10), ct);
-        return Ok(ApiResponse<IEnumerable<CustomerResponse>>.Ok(result));
+        return Ok(ApiResponse<IEnumerable<CustomerResponse>>.Ok(result.Items));
     }
 
     [HttpGet("{id:guid}")]

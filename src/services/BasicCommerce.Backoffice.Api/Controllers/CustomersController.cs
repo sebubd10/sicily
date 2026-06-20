@@ -24,12 +24,12 @@ public class CustomersController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<IEnumerable<CustomerResponse>>>> Search(
+    public async Task<ActionResult<ApiResponse<CustomerListResponse>>> Search(
         [FromQuery] string? term, [FromQuery] int page = 1, [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
         var result = await _mediator.Send(new SearchCustomersQuery(term, page, pageSize), ct);
-        return Ok(ApiResponse<IEnumerable<CustomerResponse>>.Ok(result));
+        return Ok(ApiResponse<CustomerListResponse>.Ok(result));
     }
 
     [HttpGet("{id:guid}")]

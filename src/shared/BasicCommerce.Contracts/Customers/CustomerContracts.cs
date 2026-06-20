@@ -1,5 +1,11 @@
 namespace BasicCommerce.Contracts.Customers;
 
+public record CustomerListResponse(
+    IEnumerable<CustomerResponse> Items,
+    int TotalCount,
+    int Page,
+    int PageSize);
+
 public record CustomerResponse(
     Guid Id,
     string Code,

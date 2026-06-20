@@ -13,7 +13,7 @@ import {
   useManualAdjust,
 } from '../hooks/useRewardPoints';
 import { useCustomerSearch } from '../hooks/useCustomers';
-import type { Customer } from '../api/customersApi';
+import type { Customer } from '../types/customer';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

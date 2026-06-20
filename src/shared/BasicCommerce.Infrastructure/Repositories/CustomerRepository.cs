@@ -34,4 +34,32 @@ public class CustomerRepository : TenantRepository<Customer>, ICustomerRepositor
             .OrderBy(c => c.Name)
             .Take(limit)
             .ToListAsync(ct);
+
+    public async Task<int> GetCountAsync(Guid tenantId, string? term = null,
+        CancellationToken ct = default)
+    {
+        var query = Db.Customers.Where(c => c.TenantId == tenantId);
+        if (!string.IsNullOrWhiteSpace(term))
+            query = query.Where(c =>
+                c.Name.Contains(term) || c.Code.Contains(term) ||
+                (c.Phone != null && c.Phone.Contains(term)) ||
+                (c.Email != null && c.Email.Contains(term)));
+        return await query.CountAsync(ct);
+    }
+
+    public async Task<IEnumerable<Customer>> GetPagedAsync(Guid tenantId, string? term,
+        int page, int pageSize, CancellationToken ct = default)
+    {
+        var query = Db.Customers.Where(c => c.TenantId == tenantId).AsQueryable();
+        if (!string.IsNullOrWhiteSpace(term))
+            query = query.Where(c =>
+                c.Name.Contains(term) || c.Code.Contains(term) ||
+                (c.Phone != null && c.Phone.Contains(term)) ||
+                (c.Email != null && c.Email.Contains(term)));
+        return await query
+            .OrderBy(c => c.Name)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct);
+    }
 }
