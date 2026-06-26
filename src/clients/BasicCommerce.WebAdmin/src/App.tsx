@@ -20,6 +20,7 @@ import StockMovementsPage from './pages/StockMovementsPage';
 import TillSessionsPage from './pages/TillSessionsPage';
 import RewardPointsPage from './pages/RewardPointsPage';
 import PromotionsPage from './pages/PromotionsPage';
+import GiftCardsPage from './pages/GiftCardsPage';
 import CustomersPage from './pages/CustomersPage';
 import CreditAccountsPage from './pages/CreditAccountsPage';
 import ManufacturersPage from './pages/ManufacturersPage';
@@ -78,7 +79,7 @@ export default function App() {
 
             {/* Promotions */}
             <Route path="promotions" element={<PromotionsPage />} />
-            <Route path="promotions/gift-cards" element={<PlaceholderPage title="Gift Cards" />} />
+            <Route path="promotions/gift-cards" element={<GiftCardsPage />} />
 
             {/* Reports */}
             <Route path="reports/daily-sales" element={<PlaceholderPage title="Daily Sales Report" />} />
