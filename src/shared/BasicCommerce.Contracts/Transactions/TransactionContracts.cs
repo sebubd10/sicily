@@ -46,6 +46,11 @@ public record TransactionListResponse(
     int Page,
     int PageSize);
 
+public record BackofficeCreateTransactionRequest(
+    Guid StoreId,
+    Guid TerminalId,
+    Guid? CustomerId = null);
+
 public record BackofficeVoidRequest(string Reason);
 
 public record BackofficeReturnRequest(

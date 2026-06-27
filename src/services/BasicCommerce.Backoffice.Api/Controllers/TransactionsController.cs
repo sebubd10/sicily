@@ -24,6 +24,68 @@ public class TransactionsController : ControllerBase
         _currentUser = currentUser;
     }
 
+    [HttpPost]
+    public async Task<ActionResult<ApiResponse<TransactionResponse>>> Create(
+        [FromBody] BackofficeCreateTransactionRequest request, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new CreateTransactionCommand(
+            _currentUser.TenantId, request.StoreId, request.TerminalId,
+            _currentUser.UserId, request.CustomerId), ct);
+        return CreatedAtAction(nameof(GetById), new { id = result.Id },
+            ApiResponse<TransactionResponse>.Ok(result));
+    }
+
+    [HttpPost("{id:guid}/items")]
+    public async Task<ActionResult<ApiResponse<TransactionResponse>>> AddItem(
+        Guid id, [FromBody] AddLineItemRequest request, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new AddLineItemCommand(
+            _currentUser.TenantId, id, request.ProductId, request.Quantity,
+            request.OverridePrice, request.OverrideApprovedBy), ct);
+        return Ok(ApiResponse<TransactionResponse>.Ok(result));
+    }
+
+    [HttpDelete("{id:guid}/items/{lineItemId:guid}")]
+    public async Task<ActionResult<ApiResponse<TransactionResponse>>> VoidItem(
+        Guid id, Guid lineItemId, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new VoidLineItemCommand(
+            _currentUser.TenantId, id, lineItemId, _currentUser.UserId), ct);
+        return Ok(ApiResponse<TransactionResponse>.Ok(result));
+    }
+
+    [HttpPut("{id:guid}/customer")]
+    public async Task<ActionResult<ApiResponse<TransactionResponse>>> AttachCustomer(
+        Guid id, [FromBody] AttachCustomerRequest request, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new AttachCustomerCommand(
+            _currentUser.TenantId, id, request.CustomerId), ct);
+        return Ok(ApiResponse<TransactionResponse>.Ok(result));
+    }
+
+    [HttpPost("{id:guid}/payments")]
+    public async Task<ActionResult<ApiResponse<TransactionResponse>>> AddPayment(
+        Guid id, [FromBody] AddPaymentRequest request, CancellationToken ct)
+    {
+        if (!Enum.TryParse<PaymentMethod>(request.Method, ignoreCase: true, out var method))
+            return BadRequest(ApiResponse<TransactionResponse>.Fail(
+                $"Unknown payment method '{request.Method}'."));
+
+        var result = await _mediator.Send(new AddPaymentCommand(
+            _currentUser.TenantId, id, method, request.Amount,
+            request.MobileNumber, request.Reference, request.GiftCardCode), ct);
+        return Ok(ApiResponse<TransactionResponse>.Ok(result));
+    }
+
+    [HttpPost("{id:guid}/complete")]
+    public async Task<ActionResult<ApiResponse<TransactionResponse>>> Complete(
+        Guid id, CancellationToken ct)
+    {
+        var result = await _mediator.Send(
+            new CompleteTransactionCommand(_currentUser.TenantId, id), ct);
+        return Ok(ApiResponse<TransactionResponse>.Ok(result));
+    }
+
     [HttpGet]
     public async Task<ActionResult<ApiResponse<TransactionListResponse>>> Search(
         [FromQuery] string? term,

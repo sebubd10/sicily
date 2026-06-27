@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import {
   ShoppingCart, Search, X, RefreshCw, Eye, Loader2,
   AlertCircle, ArrowUpCircle, ArrowDownCircle, TrendingUp,
-  Receipt, Ban, RotateCcw, Clock, CheckCircle2,
+  Receipt, Ban, RotateCcw, Clock, CheckCircle2, Plus,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import type { TransactionStatus, TransactionType, TransactionSummary } from '../types/transaction';
@@ -159,13 +159,22 @@ export default function TransactionsListPage() {
             All sales, returns, and exchanges processed across your stores
           </p>
         </div>
-        <button
-          onClick={() => refetch()} disabled={isFetching}
-          className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors disabled:opacity-40"
-          title="Refresh"
-        >
-          <RefreshCw className={cn('w-4 h-4', isFetching && 'animate-spin')} />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => refetch()} disabled={isFetching}
+            className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors disabled:opacity-40"
+            title="Refresh"
+          >
+            <RefreshCw className={cn('w-4 h-4', isFetching && 'animate-spin')} />
+          </button>
+          <Link
+            to="/sales/transactions/new"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary-700 hover:bg-primary-800 rounded-xl transition shadow-sm"
+          >
+            <Plus className="w-4 h-4" />
+            New Transaction
+          </Link>
+        </div>
       </div>
 
       {/* Stats */}

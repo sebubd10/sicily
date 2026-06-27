@@ -30,6 +30,7 @@ import SuppliersPage from './pages/SuppliersPage';
 import PurchaseOrdersPage from './pages/PurchaseOrdersPage';
 import SupplierReturnsPage from './pages/SupplierReturnsPage';
 import TransactionsListPage from './pages/TransactionsListPage';
+import TransactionNewPage from './pages/TransactionNewPage';
 import TransactionDetailPage from './pages/TransactionDetailPage';
 import TransactionReturnPage from './pages/TransactionReturnPage';
 import PlaceholderPage from './pages/PlaceholderPage';
@@ -73,6 +74,7 @@ export default function App() {
 
             {/* Sales */}
             <Route path="sales/transactions" element={<TransactionsListPage />} />
+            <Route path="sales/transactions/new" element={<TransactionNewPage />} />
             <Route path="sales/transactions/:id" element={<TransactionDetailPage />} />
             <Route path="sales/transactions/:id/return" element={<TransactionReturnPage />} />
             <Route path="sales/till-sessions" element={<TillSessionsPage />} />

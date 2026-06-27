@@ -16,6 +16,16 @@ export function useProducts(params: ProductListParams) {
   });
 }
 
+export function useProductSearch(search: string, enabled = true) {
+  return useQuery({
+    queryKey: [...KEY, 'search', search],
+    queryFn: () => productsApi.getProducts({ search, page: 1, pageSize: 10 }),
+    enabled: enabled && search.length >= 2,
+    staleTime: 30_000,
+    select: (data) => data.items,
+  });
+}
+
 export function useProductDetail(id: string | null) {
   return useQuery({
     queryKey: [...KEY, 'detail', id],
