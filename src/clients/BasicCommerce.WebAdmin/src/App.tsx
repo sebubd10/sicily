@@ -29,6 +29,9 @@ import ProductTagsPage from './pages/ProductTagsPage';
 import SuppliersPage from './pages/SuppliersPage';
 import PurchaseOrdersPage from './pages/PurchaseOrdersPage';
 import SupplierReturnsPage from './pages/SupplierReturnsPage';
+import TransactionsListPage from './pages/TransactionsListPage';
+import TransactionDetailPage from './pages/TransactionDetailPage';
+import TransactionReturnPage from './pages/TransactionReturnPage';
 import PlaceholderPage from './pages/PlaceholderPage';
 import { useThemeStore } from './store/themeStore';
 
@@ -69,7 +72,9 @@ export default function App() {
             <Route path="purchasing/returns" element={<SupplierReturnsPage />} />
 
             {/* Sales */}
-            <Route path="sales/transactions" element={<PlaceholderPage title="Transactions" />} />
+            <Route path="sales/transactions" element={<TransactionsListPage />} />
+            <Route path="sales/transactions/:id" element={<TransactionDetailPage />} />
+            <Route path="sales/transactions/:id/return" element={<TransactionReturnPage />} />
             <Route path="sales/till-sessions" element={<TillSessionsPage />} />
 
             {/* Customers */}

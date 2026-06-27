@@ -5,6 +5,9 @@ public record TransactionResponse(
     string TransactionNumber,
     string Status,
     string Type,
+    Guid StoreId,
+    Guid TerminalId,
+    Guid CashierId,
     Guid? CustomerId,
     string? CustomerName,
     Guid? OriginalTransactionId,
@@ -16,8 +19,39 @@ public record TransactionResponse(
     decimal Total,
     decimal AmountPaid,
     decimal ChangeDue,
+    string? Notes,
+    DateTime CreatedAt,
+    DateTime? CompletedAt,
+    DateTime? VoidedAt,
+    string? VoidReason);
+
+public record TransactionSummary(
+    Guid Id,
+    string TransactionNumber,
+    string Status,
+    string Type,
+    Guid StoreId,
+    string? StoreName,
+    Guid? CustomerId,
+    string? CustomerName,
+    decimal Total,
+    decimal AmountPaid,
+    int ItemCount,
     DateTime CreatedAt,
     DateTime? CompletedAt);
+
+public record TransactionListResponse(
+    IEnumerable<TransactionSummary> Items,
+    int TotalCount,
+    int Page,
+    int PageSize);
+
+public record BackofficeVoidRequest(string Reason);
+
+public record BackofficeReturnRequest(
+    IEnumerable<ReturnLineItemRequest> Items,
+    string RefundMethod,
+    string? Notes = null);
 
 public record LineItemResponse(
     Guid Id,

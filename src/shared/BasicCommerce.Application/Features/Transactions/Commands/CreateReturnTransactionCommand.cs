@@ -17,7 +17,7 @@ public record ReturnItem(
 public record CreateReturnTransactionCommand(
     Guid TenantId,
     Guid OriginalTransactionId,
-    Guid TerminalId,
+    Guid? TerminalId,
     IEnumerable<ReturnItem> Items,
     PaymentMethod RefundMethod,
     string? Notes = null) : IRequest<TransactionResponse>;
@@ -44,6 +44,21 @@ public class CreateReturnTransactionCommandHandler
     public async Task<TransactionResponse> Handle(
         CreateReturnTransactionCommand request, CancellationToken ct)
     {
+        await _uow.BeginTransactionAsync(ct);
+        try
+        {
+            return await HandleInternalAsync(request, ct);
+        }
+        catch
+        {
+            await _uow.RollbackTransactionAsync(ct);
+            throw;
+        }
+    }
+
+    private async Task<TransactionResponse> HandleInternalAsync(
+        CreateReturnTransactionCommand request, CancellationToken ct)
+    {
         var original = await _uow.Transactions.GetWithItemsAsync(
             request.TenantId, request.OriginalTransactionId, ct)
             ?? throw new NotFoundException("Transaction", request.OriginalTransactionId);
@@ -52,9 +67,10 @@ public class CreateReturnTransactionCommandHandler
             throw new DomainException("Only completed transactions can be returned.");
 
         var returnItems = request.Items.ToList();
+        var terminalId = request.TerminalId ?? original.TerminalId;
 
         var returnTx = Transaction.CreateReturn(
-            request.TenantId, original.StoreId, request.TerminalId,
+            request.TenantId, original.StoreId, terminalId,
             original.CashierId, original.Id, original.CustomerId);
 
         await _uow.Transactions.AddAsync(returnTx, ct);
@@ -142,6 +158,7 @@ public class CreateReturnTransactionCommandHandler
         _uow.Transactions.Update(original);
         _uow.Transactions.Update(returnTx);
         await _uow.SaveChangesAsync(ct);
+        await _uow.CommitTransactionAsync(ct);
 
         string? customerName = null;
         if (original.CustomerId.HasValue)
@@ -153,3 +170,4 @@ public class CreateReturnTransactionCommandHandler
         return CreateTransactionCommandHandler.MapToResponse(returnTx, customerName);
     }
 }
+

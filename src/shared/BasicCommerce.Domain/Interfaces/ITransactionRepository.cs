@@ -1,4 +1,5 @@
 using BasicCommerce.Domain.Entities;
+using BasicCommerce.Domain.Enums;
 
 namespace BasicCommerce.Domain.Interfaces;
 
@@ -15,4 +16,16 @@ public interface ITransactionRepository : ITenantRepository<Transaction>
         DateTime from, DateTime to, CancellationToken ct = default);
     Task<IEnumerable<Transaction>> GetForReconciliationAsync(Guid tenantId, Guid terminalId,
         DateOnly date, CancellationToken ct = default);
+
+    Task<IEnumerable<Transaction>> SearchPagedAsync(
+        Guid tenantId, string? term, Guid? storeId,
+        TransactionStatus? status, TransactionType? type,
+        DateTime? from, DateTime? to, Guid? customerId,
+        int page, int pageSize, CancellationToken ct = default);
+
+    Task<int> SearchCountAsync(
+        Guid tenantId, string? term, Guid? storeId,
+        TransactionStatus? status, TransactionType? type,
+        DateTime? from, DateTime? to, Guid? customerId,
+        CancellationToken ct = default);
 }

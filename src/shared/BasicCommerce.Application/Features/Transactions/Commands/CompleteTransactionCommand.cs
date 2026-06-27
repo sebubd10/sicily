@@ -20,26 +20,36 @@ public class CompleteTransactionCommandHandler
     public async Task<TransactionResponse> Handle(
         CompleteTransactionCommand request, CancellationToken ct)
     {
-        var transaction = await _uow.Transactions.GetWithItemsAsync(
-            request.TenantId, request.TransactionId, ct)
-            ?? throw new NotFoundException("Transaction", request.TransactionId);
-
-        transaction.Complete();
-
-        await RecordSaleMovementsAsync(transaction, request.TenantId, ct);
-        await AwardLoyaltyPointsAsync(transaction, request.TenantId, ct);
-
-        _uow.Transactions.Update(transaction);
-        await _uow.SaveChangesAsync(ct);
-
-        string? customerName = null;
-        if (transaction.CustomerId.HasValue)
+        await _uow.BeginTransactionAsync(ct);
+        try
         {
-            var customer = await _uow.Customers.GetByIdAsync(transaction.CustomerId.Value, ct);
-            customerName = customer?.Name;
-        }
+            var transaction = await _uow.Transactions.GetWithItemsAsync(
+                request.TenantId, request.TransactionId, ct)
+                ?? throw new NotFoundException("Transaction", request.TransactionId);
 
-        return CreateTransactionCommandHandler.MapToResponse(transaction, customerName);
+            transaction.Complete();
+
+            await RecordSaleMovementsAsync(transaction, request.TenantId, ct);
+            await AwardLoyaltyPointsAsync(transaction, request.TenantId, ct);
+
+            _uow.Transactions.Update(transaction);
+            await _uow.SaveChangesAsync(ct);
+            await _uow.CommitTransactionAsync(ct);
+
+            string? customerName = null;
+            if (transaction.CustomerId.HasValue)
+            {
+                var customer = await _uow.Customers.GetByIdAsync(transaction.CustomerId.Value, ct);
+                customerName = customer?.Name;
+            }
+
+            return CreateTransactionCommandHandler.MapToResponse(transaction, customerName);
+        }
+        catch
+        {
+            await _uow.RollbackTransactionAsync(ct);
+            throw;
+        }
     }
 
     private async Task RecordSaleMovementsAsync(Transaction transaction,

@@ -51,6 +51,9 @@ public class CreateTransactionCommandHandler
             TransactionNumber: t.TransactionNumber,
             Status: t.TransactionStatus.ToString(),
             Type: t.Type.ToString(),
+            StoreId: t.StoreId,
+            TerminalId: t.TerminalId,
+            CashierId: t.CashierId,
             CustomerId: t.CustomerId,
             CustomerName: customerName,
             OriginalTransactionId: t.OriginalTransactionId,
@@ -68,6 +71,9 @@ public class CreateTransactionCommandHandler
             Total: t.Total,
             AmountPaid: t.AmountPaid,
             ChangeDue: t.ChangeDue,
+            Notes: t.Notes,
             CreatedAt: t.CreatedAt,
-            CompletedAt: t.CompletedAt);
+            CompletedAt: t.CompletedAt,
+            VoidedAt: t.VoidedAt,
+            VoidReason: t.VoidReason);
 }
