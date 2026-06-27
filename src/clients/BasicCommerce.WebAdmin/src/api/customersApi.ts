@@ -47,6 +47,10 @@ export async function activateCustomer(id: string): Promise<void> {
   await api.put(`/customers/${id}/activate`);
 }
 
+export async function deleteCustomer(id: string): Promise<void> {
+  await api.delete(`/customers/${id}`);
+}
+
 export async function updateCreditLimit(id: string, creditLimit: number): Promise<Customer> {
   const { data } = await api.put<ApiResponse<Customer>>(`/customers/${id}/credit-limit`, {
     creditLimit,

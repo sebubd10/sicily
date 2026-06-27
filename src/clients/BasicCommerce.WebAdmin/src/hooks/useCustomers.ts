@@ -67,6 +67,14 @@ export function useActivateCustomer() {
   });
 }
 
+export function useDeleteCustomer() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => customersApi.deleteCustomer(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+  });
+}
+
 export function useUpdateCreditLimit() {
   const qc = useQueryClient();
   return useMutation({

@@ -1,4 +1,5 @@
 using BasicCommerce.Domain.Entities;
+using BasicCommerce.Domain.Enums;
 using BasicCommerce.Domain.Interfaces;
 using BasicCommerce.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -9,24 +10,27 @@ public class CustomerRepository : TenantRepository<Customer>, ICustomerRepositor
 {
     public CustomerRepository(BasicCommerceDbContext db) : base(db) { }
 
+    private IQueryable<Customer> ActiveSet =>
+        Db.Customers.Where(c => c.Status != EntityStatus.Deleted);
+
     public async Task<Customer?> GetByCodeAsync(Guid tenantId, string code,
         CancellationToken ct = default) =>
-        await Db.Customers.FirstOrDefaultAsync(
+        await ActiveSet.FirstOrDefaultAsync(
             c => c.TenantId == tenantId && c.Code == code, ct);
 
     public async Task<Customer?> GetByPhoneAsync(Guid tenantId, string phone,
         CancellationToken ct = default) =>
-        await Db.Customers.FirstOrDefaultAsync(
+        await ActiveSet.FirstOrDefaultAsync(
             c => c.TenantId == tenantId && c.Phone == phone, ct);
 
     public async Task<Customer?> GetByEmailAsync(Guid tenantId, string email,
         CancellationToken ct = default) =>
-        await Db.Customers.FirstOrDefaultAsync(
+        await ActiveSet.FirstOrDefaultAsync(
             c => c.TenantId == tenantId && c.Email == email.ToLowerInvariant(), ct);
 
     public async Task<IEnumerable<Customer>> SearchAsync(Guid tenantId, string term,
         int limit = 20, CancellationToken ct = default) =>
-        await Db.Customers
+        await ActiveSet
             .Where(c => c.TenantId == tenantId &&
                 (c.Name.Contains(term) || c.Code.Contains(term) ||
                  (c.Phone != null && c.Phone.Contains(term)) ||
@@ -38,7 +42,7 @@ public class CustomerRepository : TenantRepository<Customer>, ICustomerRepositor
     public async Task<int> GetCountAsync(Guid tenantId, string? term = null,
         CancellationToken ct = default)
     {
-        var query = Db.Customers.Where(c => c.TenantId == tenantId);
+        var query = ActiveSet.Where(c => c.TenantId == tenantId);
         if (!string.IsNullOrWhiteSpace(term))
             query = query.Where(c =>
                 c.Name.Contains(term) || c.Code.Contains(term) ||
@@ -50,7 +54,7 @@ public class CustomerRepository : TenantRepository<Customer>, ICustomerRepositor
     public async Task<IEnumerable<Customer>> GetPagedAsync(Guid tenantId, string? term,
         int page, int pageSize, CancellationToken ct = default)
     {
-        var query = Db.Customers.Where(c => c.TenantId == tenantId).AsQueryable();
+        var query = ActiveSet.Where(c => c.TenantId == tenantId).AsQueryable();
         if (!string.IsNullOrWhiteSpace(term))
             query = query.Where(c =>
                 c.Name.Contains(term) || c.Code.Contains(term) ||
@@ -63,3 +67,4 @@ public class CustomerRepository : TenantRepository<Customer>, ICustomerRepositor
             .ToListAsync(ct);
     }
 }
+

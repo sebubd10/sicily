@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import {
-  UserPlus, Search, Users, Eye, Pencil, Power, PowerOff,
+  UserPlus, Search, Users, Eye, Pencil, Power, PowerOff, Trash2,
   ChevronLeft, ChevronRight, AlertCircle, Loader2,
   Phone, Mail, CreditCard, Star, X,
 } from 'lucide-react';
 import { cn, extractApiError } from '../lib/utils';
 import type { Customer } from '../types/customer';
-import { useCustomers, useDeactivateCustomer, useActivateCustomer } from '../hooks/useCustomers';
+import {
+  useCustomers, useDeactivateCustomer, useActivateCustomer, useDeleteCustomer,
+} from '../hooks/useCustomers';
 import { CustomerFormModal } from '../components/customers/CustomerFormModal';
 import { CustomerDetailModal } from '../components/customers/CustomerDetailModal';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
@@ -14,7 +16,10 @@ import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 const PAGE_SIZE = 20;
 
 type StatusFilter = 'All' | 'Active' | 'Inactive';
-type ConfirmAction = { type: 'activate' | 'deactivate'; customer: Customer } | null;
+type ConfirmAction =
+  | { type: 'activate' | 'deactivate'; customer: Customer }
+  | { type: 'delete'; customer: Customer }
+  | null;
 
 const STATUS_FILTERS: StatusFilter[] = ['All', 'Active', 'Inactive'];
 
@@ -51,7 +56,8 @@ export default function CustomersPage() {
 
   const { mutate: deactivate, isPending: deactivating } = useDeactivateCustomer();
   const { mutate: activate, isPending: activating } = useActivateCustomer();
-  const isMutating = deactivating || activating;
+  const { mutate: deleteCustomer, isPending: deleting } = useDeleteCustomer();
+  const isMutating = deactivating || activating || deleting;
 
   const items = data?.items ?? [];
   const total = data?.totalCount ?? 0;
@@ -86,9 +92,13 @@ export default function CustomersPage() {
   function executeConfirm() {
     if (!confirmAction) return;
     setConfirmError(null);
-    const done = { onSuccess: () => setConfirmAction(null), onError: (err: unknown) => setConfirmError(extractApiError(err)) };
+    const done = {
+      onSuccess: () => setConfirmAction(null),
+      onError: (err: unknown) => setConfirmError(extractApiError(err)),
+    };
     if (confirmAction.type === 'deactivate') deactivate(confirmAction.customer.id, done);
-    else activate(confirmAction.customer.id, done);
+    else if (confirmAction.type === 'activate') activate(confirmAction.customer.id, done);
+    else deleteCustomer(confirmAction.customer.id, done);
   }
 
   return (
@@ -361,6 +371,19 @@ export default function CustomersPage() {
                               ? <PowerOff className="w-4 h-4" />
                               : <Power className="w-4 h-4" />}
                           </button>
+                          {c.status === 'Inactive' && (
+                            <button
+                              title="Delete customer"
+                              onClick={() => {
+                                setConfirmError(null);
+                                setConfirmAction({ type: 'delete', customer: c });
+                              }}
+                              disabled={isMutating}
+                              className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-40"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -422,14 +445,28 @@ export default function CustomersPage() {
 
       <ConfirmDialog
         open={!!confirmAction}
-        title={confirmAction?.type === 'activate' ? 'Activate Customer' : 'Deactivate Customer'}
+        title={
+          confirmAction?.type === 'delete'
+            ? 'Delete Customer'
+            : confirmAction?.type === 'activate'
+            ? 'Activate Customer'
+            : 'Deactivate Customer'
+        }
         message={
-          confirmAction?.type === 'activate'
+          confirmAction?.type === 'delete'
+            ? `Permanently delete "${confirmAction.customer.name}"? Their record will be hidden from all lists. Transaction history is preserved but the customer cannot transact. This cannot be undone.`
+            : confirmAction?.type === 'activate'
             ? `"${confirmAction.customer.name}" will be restored and able to transact again.`
             : `Deactivate "${confirmAction?.customer.name}"? They will no longer be able to transact.`
         }
-        confirmLabel={confirmAction?.type === 'activate' ? 'Activate' : 'Deactivate'}
-        variant="warning"
+        confirmLabel={
+          confirmAction?.type === 'delete'
+            ? 'Delete'
+            : confirmAction?.type === 'activate'
+            ? 'Activate'
+            : 'Deactivate'
+        }
+        variant={confirmAction?.type === 'delete' ? 'danger' : 'warning'}
         loading={isMutating}
         error={confirmError}
         onConfirm={executeConfirm}

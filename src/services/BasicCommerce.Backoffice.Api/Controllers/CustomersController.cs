@@ -77,6 +77,14 @@ public class CustomersController : ControllerBase
         return Ok(ApiResponse<object>.Ok(null!));
     }
 
+    [HttpDelete("{id:guid}")]
+    [Authorize(Policy = "StoreManagerAndAbove")]
+    public async Task<ActionResult<ApiResponse<object>>> Delete(Guid id, CancellationToken ct)
+    {
+        await _mediator.Send(new DeleteCustomerCommand(id), ct);
+        return Ok(ApiResponse<object>.Ok(null!));
+    }
+
     [HttpPut("{id:guid}/credit-limit")]
     [Authorize(Policy = "StoreManagerAndAbove")]
     public async Task<ActionResult<ApiResponse<CustomerResponse>>> UpdateCreditLimit(
