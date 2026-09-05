@@ -53,6 +53,13 @@ public class AddPaymentCommandHandler : IRequestHandler<AddPaymentCommand, Trans
         switch (request.Method)
         {
             case PaymentMethod.Cash:
+            case PaymentMethod.Card:
+            case PaymentMethod.BKash:
+            case PaymentMethod.Nagad:
+            case PaymentMethod.Rocket:
+                // Manually recorded by the cashier at the register (no live gateway
+                // integration) — the cashier has already verified the funds, so
+                // approve immediately, same as cash.
                 payment.Approve();
                 break;
 
@@ -71,7 +78,8 @@ public class AddPaymentCommandHandler : IRequestHandler<AddPaymentCommand, Trans
                 payment.Approve();
                 break;
 
-            // Card / mobile wallet: mark pending — external gateway approves
+            // SslCommerz / AamarPay: online gateway checkout — stays Pending until
+            // the gateway's webhook confirms the payment.
         }
 
         transaction.RefreshAmountPaid();

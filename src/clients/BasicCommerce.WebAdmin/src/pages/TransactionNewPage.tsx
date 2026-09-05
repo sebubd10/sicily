@@ -4,6 +4,7 @@ import {
   ShoppingCart, ChevronRight, X, Plus, Minus,
   Trash2, User, Loader2, AlertCircle, Package,
   Receipt, ScanLine, Store as StoreIcon, Monitor, CheckCircle2, Delete,
+  SplitSquareHorizontal, ArrowLeftRight,
 } from 'lucide-react';
 import { cn, extractApiError } from '../lib/utils';
 import type { ProductListItem } from '../types/product';
@@ -15,6 +16,8 @@ import { useCustomerSearch } from '../hooks/useCustomers';
 import * as transactionsApi from '../api/transactionsApi';
 import { useQueryClient } from '@tanstack/react-query';
 import { PaymentMethodIcon } from '../components/transactions/PaymentMethodIcon';
+import { SplitPaymentPanel, type DraftPayment } from '../components/transactions/SplitPaymentPanel';
+import { PAYMENT_METHODS } from '../lib/paymentMethods';
 
 /* ── Types & constants ────────────────────────────────────────────────────── */
 
@@ -27,17 +30,6 @@ interface DraftItem {
   unitPrice: number;
   taxRate: number;
 }
-
-const PAYMENT_METHODS: { value: string; label: string; hint?: string }[] = [
-  { value: 'Cash',         label: 'Cash' },
-  { value: 'Card',         label: 'Card' },
-  { value: 'BKash',        label: 'bKash' },
-  { value: 'Nagad',        label: 'Nagad' },
-  { value: 'Rocket',       label: 'Rocket' },
-  { value: 'Credit',       label: 'Credit',  hint: 'Customer account' },
-  { value: 'GiftCard',     label: 'Gift Card' },
-  { value: 'RewardPoints', label: 'Points',  hint: 'Loyalty points' },
-];
 
 const SETUP_STORAGE_KEY = 'pos-new-txn-setup';
 
@@ -277,6 +269,8 @@ export default function TransactionNewPage() {
   const [payRef,       setPayRef]       = useState('');
   const [giftCardCode, setGiftCardCode] = useState('');
   const [mobileNum,    setMobileNum]    = useState('');
+  const [splitMode,    setSplitMode]    = useState(false);
+  const [splitPayments, setSplitPayments] = useState<DraftPayment[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError,  setSubmitError]  = useState('');
 
@@ -353,11 +347,20 @@ export default function TransactionNewPage() {
     return [...new Set(ups)].slice(0, 3);
   }, [total]);
 
+  const splitPaidSoFar  = splitPayments.reduce((s, p) => s + p.amount, 0);
+  const splitBalanceDue = Math.round((total - splitPaidSoFar) * 100) / 100;
+
   const setupOk   = !!storeId && !!terminalId;
   const canSubmit = setupOk && items.length > 0 && !isSubmitting
-    && !(needsMobile && !mobileNum)
-    && !(needsGiftCard && !giftCardCode)
-    && !cashShort;
+    && (splitMode
+      ? splitPayments.length > 0 && splitBalanceDue <= 0.005
+      : !(needsMobile && !mobileNum) && !(needsGiftCard && !giftCardCode) && !cashShort);
+
+  function toggleSplitMode() {
+    setSplitMode((v) => !v);
+    setSplitPayments([]);
+    setSubmitError('');
+  }
 
   /* ── Submit ── */
 
@@ -365,6 +368,18 @@ export default function TransactionNewPage() {
     if (!canSubmit) return;
     setIsSubmitting(true);
     setSubmitError('');
+
+    const paymentsToSend: DraftPayment[] = splitMode
+      ? splitPayments
+      : [{
+          tempId:       'single',
+          method:       payMethod,
+          // For cash send the tendered amount so the backend records change due
+          amount:       isCash && tenderedNum > total ? tenderedNum : total,
+          reference:    payRef || undefined,
+          mobileNumber: needsMobile ? mobileNum : undefined,
+          giftCardCode: needsGiftCard ? giftCardCode : undefined,
+        }];
 
     let txnId: string | null = null;
     try {
@@ -377,13 +392,11 @@ export default function TransactionNewPage() {
         await transactionsApi.addLineItem(txn.id, item.productId, item.quantity);
       }
 
-      // For cash send the tendered amount so the backend records change due
-      const payAmount = isCash && tenderedNum > total ? tenderedNum : total;
-      await transactionsApi.addPayment(
-        txn.id, payMethod, payAmount,
-        payRef || undefined,
-        needsGiftCard ? giftCardCode : undefined,
-      );
+      for (const p of paymentsToSend) {
+        await transactionsApi.addPayment(
+          txn.id, p.method, p.amount, p.reference, p.giftCardCode, p.mobileNumber,
+        );
+      }
 
       await transactionsApi.completeTransaction(txn.id);
 
@@ -567,34 +580,57 @@ export default function TransactionNewPage() {
               </div>
             </div>
 
-            {/* Payment method chips — sized to content, wraps instead of stretching into a rigid grid */}
+            {/* Payment */}
             <div className="px-5 pb-4">
-              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Payment</p>
-              <div className="flex flex-wrap gap-2">
-                {PAYMENT_METHODS.map((m) => (
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Payment</p>
+                {items.length > 0 && (
                   <button
-                    key={m.value}
-                    onClick={() => {
-                      setPayMethod(m.value);
-                      setGiftCardCode(''); setMobileNum(''); setTendered('');
-                    }}
-                    title={m.hint}
-                    className={cn(
-                      'flex items-center gap-1.5 pl-2 pr-3 py-1.5 rounded-full border-2 text-xs font-semibold transition-all',
-                      payMethod === m.value
-                        ? 'border-primary-600 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 shadow-sm'
-                        : 'border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-300',
-                    )}
+                    onClick={toggleSplitMode}
+                    className="flex items-center gap-1 text-xs font-semibold text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-300 transition-colors"
                   >
-                    <PaymentMethodIcon method={m.value} size={18} />
-                    {m.label}
+                    {splitMode
+                      ? <><ArrowLeftRight className="w-3 h-3" /> Single payment</>
+                      : <><SplitSquareHorizontal className="w-3 h-3" /> Split payment</>
+                    }
                   </button>
-                ))}
+                )}
               </div>
+
+              {splitMode ? (
+                <SplitPaymentPanel
+                  total={total}
+                  payments={splitPayments}
+                  onAdd={(p) => setSplitPayments((prev) => [...prev, p])}
+                  onRemove={(id) => setSplitPayments((prev) => prev.filter((p) => p.tempId !== id))}
+                />
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {PAYMENT_METHODS.map((m) => (
+                    <button
+                      key={m.value}
+                      onClick={() => {
+                        setPayMethod(m.value);
+                        setGiftCardCode(''); setMobileNum(''); setTendered('');
+                      }}
+                      title={m.hint}
+                      className={cn(
+                        'flex items-center gap-1.5 pl-2 pr-3 py-1.5 rounded-full border-2 text-xs font-semibold transition-all',
+                        payMethod === m.value
+                          ? 'border-primary-600 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 shadow-sm'
+                          : 'border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-300',
+                      )}
+                    >
+                      <PaymentMethodIcon method={m.value} size={18} />
+                      {m.label}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Cash tendering */}
-            {isCash && total > 0 && (
+            {/* Cash tendering — single-payment mode only */}
+            {!splitMode && isCash && total > 0 && (
               <div className="px-5 pb-4 space-y-2">
                 <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider block">
                   Cash received
@@ -647,8 +683,8 @@ export default function TransactionNewPage() {
               </div>
             )}
 
-            {/* Conditional payment fields */}
-            {needsMobile && (
+            {/* Conditional payment fields — single-payment mode only */}
+            {!splitMode && needsMobile && (
               <div className="px-5 pb-4">
                 <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5 block">
                   Mobile number *
@@ -662,7 +698,7 @@ export default function TransactionNewPage() {
                 />
               </div>
             )}
-            {needsGiftCard && (
+            {!splitMode && needsGiftCard && (
               <div className="px-5 pb-4">
                 <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5 block">
                   Gift card code *
@@ -676,7 +712,7 @@ export default function TransactionNewPage() {
                 />
               </div>
             )}
-            {!isCash && (
+            {!splitMode && !isCash && (
               <div className="px-5 pb-4">
                 <input
                   type="text"
@@ -699,6 +735,14 @@ export default function TransactionNewPage() {
               <div className="mx-5 mb-4 flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
                 <AlertCircle className="w-4 h-4 text-amber-500 flex-shrink-0" />
                 <p className="text-xs text-amber-700 dark:text-amber-400">Select store and terminal (top right) to start selling.</p>
+              </div>
+            )}
+            {setupOk && splitMode && splitBalanceDue > 0.005 && items.length > 0 && (
+              <div className="mx-5 mb-4 flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
+                <AlertCircle className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                <p className="text-xs text-amber-700 dark:text-amber-400">
+                  Add {fmtMoney(splitBalanceDue)} more in payments to complete the sale.
+                </p>
               </div>
             )}
 

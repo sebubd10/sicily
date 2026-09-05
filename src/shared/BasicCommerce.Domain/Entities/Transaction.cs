@@ -85,6 +85,18 @@ public class Transaction : TenantEntity
         if (TransactionStatus != TransactionStatus.Open)
             throw new DomainException("Cannot add payment to a non-open transaction.");
 
+        // Split-tender guard: only cash may be tendered above the outstanding
+        // balance (to produce change). Every other method — card, mobile wallet,
+        // gift card, credit, points — must be capped at what's actually owed.
+        if (method != PaymentMethod.Cash)
+        {
+            var outstanding = Total - AmountPaid;
+            if (outstanding > 0.01m && amount > outstanding + 0.01m)
+                throw new DomainException(
+                    $"Payment of {amount:F2} exceeds the outstanding balance of {outstanding:F2}. " +
+                    "Only cash payments may exceed the balance to give change.");
+        }
+
         var payment = Payment.Create(Id, TenantId, method, amount, reference);
         _payments.Add(payment);
         return payment;

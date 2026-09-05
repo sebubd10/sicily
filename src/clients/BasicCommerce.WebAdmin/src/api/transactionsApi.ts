@@ -101,10 +101,17 @@ export async function addPayment(
   amount: number,
   reference?: string,
   giftCardCode?: string,
+  mobileNumber?: string,
 ): Promise<Transaction> {
   const { data } = await api.post<ApiResponse<Transaction>>(
     `/transactions/${txnId}/payments`,
-    { method, amount, reference: reference || undefined, giftCardCode: giftCardCode || undefined },
+    {
+      method,
+      amount,
+      reference: reference || undefined,
+      giftCardCode: giftCardCode || undefined,
+      mobileNumber: mobileNumber || undefined,
+    },
   );
   return data.data!;
 }
