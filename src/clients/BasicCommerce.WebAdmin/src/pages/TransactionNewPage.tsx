@@ -567,10 +567,10 @@ export default function TransactionNewPage() {
               </div>
             </div>
 
-            {/* Payment method grid */}
+            {/* Payment method chips — sized to content, wraps instead of stretching into a rigid grid */}
             <div className="px-5 pb-4">
               <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Payment</p>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="flex flex-wrap gap-2">
                 {PAYMENT_METHODS.map((m) => (
                   <button
                     key={m.value}
@@ -580,13 +580,13 @@ export default function TransactionNewPage() {
                     }}
                     title={m.hint}
                     className={cn(
-                      'flex flex-col items-center gap-1 px-2 py-2.5 rounded-xl border-2 text-xs font-semibold transition-all',
+                      'flex items-center gap-1.5 pl-2 pr-3 py-1.5 rounded-full border-2 text-xs font-semibold transition-all',
                       payMethod === m.value
                         ? 'border-primary-600 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 shadow-sm'
                         : 'border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-300',
                     )}
                   >
-                    <PaymentMethodIcon method={m.value} size={20} />
+                    <PaymentMethodIcon method={m.value} size={18} />
                     {m.label}
                   </button>
                 ))}
