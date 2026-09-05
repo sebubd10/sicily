@@ -96,7 +96,16 @@ public class RewardPointsSettings : TenantEntity
     /// Given the customer's available points and order total, returns how many points
     /// are actually redeemable respecting all configured limits.
     /// </summary>
-    public int CalculateMaxRedeemablePoints(int availablePoints, decimal orderTotal)
+    /// <param name="alreadyRedeemedThisOrder">
+    /// Points already redeemed against this same order in an earlier split-payment
+    /// call. The per-order caps (<see cref="MaximumPointsPerOrder"/>,
+    /// <see cref="MaximumRedeemedRate"/>, and the order-total ceiling) apply to the
+    /// order as a whole, so this amount is subtracted from each of them — otherwise a
+    /// customer could exceed a per-order cap by splitting the points payment into
+    /// several smaller calls.
+    /// </param>
+    public int CalculateMaxRedeemablePoints(int availablePoints, decimal orderTotal,
+        int alreadyRedeemedThisOrder = 0)
     {
         if (availablePoints <= 0) return 0;
         if (MinimumPointsToUse > 0 && availablePoints < MinimumPointsToUse) return 0;
@@ -104,20 +113,20 @@ public class RewardPointsSettings : TenantEntity
         var redeemable = availablePoints;
 
         if (MaximumPointsPerOrder > 0)
-            redeemable = Math.Min(redeemable, MaximumPointsPerOrder);
+            redeemable = Math.Min(redeemable, Math.Max(0, MaximumPointsPerOrder - alreadyRedeemedThisOrder));
 
         if (MaximumRedeemedRate > 0 && ExchangeRate > 0)
         {
             var maxCurrency = orderTotal * MaximumRedeemedRate;
             var maxByRate = (int)Math.Floor(maxCurrency / ExchangeRate);
-            redeemable = Math.Min(redeemable, maxByRate);
+            redeemable = Math.Min(redeemable, Math.Max(0, maxByRate - alreadyRedeemedThisOrder));
         }
 
         // Cannot redeem more than the order total in currency terms
         if (ExchangeRate > 0)
         {
             var pointsWorthOrderTotal = (int)Math.Ceiling(orderTotal / ExchangeRate);
-            redeemable = Math.Min(redeemable, pointsWorthOrderTotal);
+            redeemable = Math.Min(redeemable, Math.Max(0, pointsWorthOrderTotal - alreadyRedeemedThisOrder));
         }
 
         return Math.Max(0, redeemable);

@@ -121,12 +121,22 @@ public class AddPaymentCommandHandler : IRequestHandler<AddPaymentCommand, Trans
 
         var pointsToRedeem = (int)Math.Ceiling(request.Amount / settings.ExchangeRate);
 
+        // Points already redeemed against this same order (an earlier split-payment
+        // line) count toward the per-order caps — otherwise a customer could exceed
+        // MaximumPointsPerOrder / MaximumRedeemedRate by splitting the redemption.
+        var pointsAlreadyRedeemedThisOrder = transaction.Payments
+            .Where(p => p.Method == PaymentMethod.RewardPoints && p.PaymentStatus == PaymentStatus.Approved)
+            .Sum(p => (int)Math.Ceiling(p.Amount / settings.ExchangeRate));
+
         var maxRedeemable = settings.CalculateMaxRedeemablePoints(
-            account.AvailablePoints, transaction.Total);
+            account.AvailablePoints, transaction.Total, pointsAlreadyRedeemedThisOrder);
 
         if (pointsToRedeem > maxRedeemable)
             throw new DomainException(
-                $"Cannot redeem {pointsToRedeem} points. Maximum redeemable: {maxRedeemable}.");
+                $"Cannot redeem {pointsToRedeem} points. Maximum redeemable: {maxRedeemable}" +
+                (pointsAlreadyRedeemedThisOrder > 0
+                    ? $" ({pointsAlreadyRedeemedThisOrder} already redeemed on this order)."
+                    : "."));
 
         account.RedeemPoints(pointsToRedeem, transaction.Id,
             $"Redemption: {transaction.TransactionNumber}");
