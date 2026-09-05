@@ -35,6 +35,7 @@ const PAYMENT_METHODS: {
   { value: 'Card',         label: 'Card',          icon: <CreditCard className="w-5 h-5" /> },
   { value: 'BKash',        label: 'bKash',         icon: <Smartphone className="w-5 h-5" /> },
   { value: 'Nagad',        label: 'Nagad',         icon: <Smartphone className="w-5 h-5" /> },
+  { value: 'Rocket',       label: 'Rocket',        icon: <Smartphone className="w-5 h-5" /> },
   { value: 'Credit',       label: 'Credit',        icon: <Wallet className="w-5 h-5" />,  hint: 'Customer account' },
   { value: 'GiftCard',     label: 'Gift Card',     icon: <Gift className="w-5 h-5" /> },
   { value: 'RewardPoints', label: 'Points',        icon: <Star className="w-5 h-5" />,    hint: 'Loyalty points' },

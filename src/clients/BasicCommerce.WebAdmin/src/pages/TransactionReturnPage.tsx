@@ -13,6 +13,7 @@ const REFUND_METHODS = [
   { value: 'Card',         label: 'Card' },
   { value: 'BKash',        label: 'bKash' },
   { value: 'Nagad',        label: 'Nagad' },
+  { value: 'Rocket',       label: 'Rocket' },
   { value: 'Credit',       label: 'Credit Account' },
   { value: 'GiftCard',     label: 'Gift Card' },
   { value: 'RewardPoints', label: 'Reward Points' },
