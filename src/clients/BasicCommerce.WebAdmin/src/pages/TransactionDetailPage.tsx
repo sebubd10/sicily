@@ -3,12 +3,13 @@ import { useNavigate, useParams, Link } from 'react-router-dom';
 import {
   ArrowLeft, ShoppingCart, CheckCircle2, Ban, Clock, RotateCcw,
   User, Store, Terminal, CreditCard, AlertCircle, Loader2,
-  Receipt, Package, Tag, Copy, Check, XCircle, RefreshCw,
+  Receipt, Package, Copy, Check, XCircle, RefreshCw,
   ChevronRight, AlertTriangle,
 } from 'lucide-react';
 import { cn, extractApiError } from '../lib/utils';
 import type { Transaction, TransactionStatus, TransactionType, LineItem, Payment } from '../types/transaction';
 import { useTransactionDetail, useVoidTransaction } from '../hooks/useTransactions';
+import { PaymentMethodIcon } from '../components/transactions/PaymentMethodIcon';
 
 /* ── helpers ──────────────────────────────────────────────────────────────── */
 
@@ -398,7 +399,7 @@ export default function TransactionDetailPage() {
                 {txn.payments.map((p: Payment) => (
                   <tr key={p.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
                     <td className="px-4 py-3 font-medium text-gray-900 dark:text-white flex items-center gap-2">
-                      <Tag className="w-3.5 h-3.5 text-primary-500" />
+                      <PaymentMethodIcon method={p.method} size={16} />
                       {PAYMENT_METHOD_LABELS[p.method] ?? p.method}
                     </td>
                     <td className="px-4 py-3 tabular-nums font-semibold text-gray-900 dark:text-white">{fmtMoney(p.amount)}</td>

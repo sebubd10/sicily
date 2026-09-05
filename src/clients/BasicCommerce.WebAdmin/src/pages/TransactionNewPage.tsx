@@ -2,9 +2,8 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
   ShoppingCart, ChevronRight, X, Plus, Minus,
-  Trash2, User, CreditCard, Loader2, AlertCircle, Package,
-  Receipt, ScanLine, Banknote, Smartphone, Gift, Star,
-  Wallet, Store as StoreIcon, Monitor, CheckCircle2, Delete,
+  Trash2, User, Loader2, AlertCircle, Package,
+  Receipt, ScanLine, Store as StoreIcon, Monitor, CheckCircle2, Delete,
 } from 'lucide-react';
 import { cn, extractApiError } from '../lib/utils';
 import type { ProductListItem } from '../types/product';
@@ -15,6 +14,7 @@ import { useProductSearch } from '../hooks/useProducts';
 import { useCustomerSearch } from '../hooks/useCustomers';
 import * as transactionsApi from '../api/transactionsApi';
 import { useQueryClient } from '@tanstack/react-query';
+import { PaymentMethodIcon } from '../components/transactions/PaymentMethodIcon';
 
 /* ── Types & constants ────────────────────────────────────────────────────── */
 
@@ -28,17 +28,15 @@ interface DraftItem {
   taxRate: number;
 }
 
-const PAYMENT_METHODS: {
-  value: string; label: string; icon: React.ReactNode; hint?: string;
-}[] = [
-  { value: 'Cash',         label: 'Cash',          icon: <Banknote className="w-5 h-5" /> },
-  { value: 'Card',         label: 'Card',          icon: <CreditCard className="w-5 h-5" /> },
-  { value: 'BKash',        label: 'bKash',         icon: <Smartphone className="w-5 h-5" /> },
-  { value: 'Nagad',        label: 'Nagad',         icon: <Smartphone className="w-5 h-5" /> },
-  { value: 'Rocket',       label: 'Rocket',        icon: <Smartphone className="w-5 h-5" /> },
-  { value: 'Credit',       label: 'Credit',        icon: <Wallet className="w-5 h-5" />,  hint: 'Customer account' },
-  { value: 'GiftCard',     label: 'Gift Card',     icon: <Gift className="w-5 h-5" /> },
-  { value: 'RewardPoints', label: 'Points',        icon: <Star className="w-5 h-5" />,    hint: 'Loyalty points' },
+const PAYMENT_METHODS: { value: string; label: string; hint?: string }[] = [
+  { value: 'Cash',         label: 'Cash' },
+  { value: 'Card',         label: 'Card' },
+  { value: 'BKash',        label: 'bKash' },
+  { value: 'Nagad',        label: 'Nagad' },
+  { value: 'Rocket',       label: 'Rocket' },
+  { value: 'Credit',       label: 'Credit',  hint: 'Customer account' },
+  { value: 'GiftCard',     label: 'Gift Card' },
+  { value: 'RewardPoints', label: 'Points',  hint: 'Loyalty points' },
 ];
 
 const SETUP_STORAGE_KEY = 'pos-new-txn-setup';
@@ -588,7 +586,7 @@ export default function TransactionNewPage() {
                         : 'border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-300',
                     )}
                   >
-                    {m.icon}
+                    <PaymentMethodIcon method={m.value} size={20} />
                     {m.label}
                   </button>
                 ))}
