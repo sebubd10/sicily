@@ -41,7 +41,14 @@ public class GenericRepository<T> : IRepository<T> where T : BaseEntity
     public async Task AddRangeAsync(IEnumerable<T> entities, CancellationToken ct = default) =>
         await Set.AddRangeAsync(entities, ct);
 
-    public void Update(T entity) => Set.Update(entity);
+    // DbSet.Update walks the whole graph and forces every reachable entity to Modified,
+    // including children that were just added. Tracked entities are already change-tracked,
+    // so only attach when the entity is detached.
+    public void Update(T entity)
+    {
+        if (Db.Entry(entity).State == EntityState.Detached)
+            Set.Update(entity);
+    }
 
     public void Remove(T entity) => Set.Remove(entity);
 

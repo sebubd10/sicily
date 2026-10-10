@@ -81,6 +81,14 @@ public class BasicCommerceDbContext : DbContext
                 .Property<EntityStatus>(nameof(BaseEntity.Status))
                 .HasDefaultValue(EntityStatus.Active)
                 .ValueGeneratedNever();
+
+            // Ids are assigned client-side in BaseEntity (Guid.NewGuid()). With the default
+            // ValueGeneratedOnAdd convention EF treats any entity with a set key as already
+            // persisted, so new children added to a tracked aggregate (line items, payments)
+            // get UPDATEd instead of INSERTed.
+            builder.Entity(entityType.ClrType)
+                .Property<Guid>(nameof(BaseEntity.Id))
+                .ValueGeneratedNever();
         }
     }
 
