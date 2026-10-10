@@ -471,7 +471,7 @@ export function CreatePromotionModal({ open, onClose }: Props) {
                   {needsAmount && (
                     <div className={form.type === 'CartDiscount' ? '' : 'col-span-2'}>
                       <label className={labelCls}>
-                        Discount Amount {form.type !== 'CartDiscount' && '*'}
+                        {form.type === 'FixedAmountOff' ? 'Discount per Unit *' : 'Discount Amount'}
                       </label>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">৳</span>
@@ -484,8 +484,10 @@ export function CreatePromotionModal({ open, onClose }: Props) {
                           onChange={(e) => set('discountAmount', e.target.value)}
                         />
                       </div>
-                      {errors.discountAmount && (
+                      {errors.discountAmount ? (
                         <p className="text-xs text-red-500 mt-1">{errors.discountAmount}</p>
+                      ) : form.type === 'FixedAmountOff' && (
+                        <p className="text-xs text-gray-400 mt-1">Taken off each unit sold — buying 2 gets twice the discount.</p>
                       )}
                     </div>
                   )}

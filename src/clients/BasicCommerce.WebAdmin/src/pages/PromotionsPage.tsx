@@ -81,7 +81,7 @@ function discountSummary(p: PromotionSummary): string {
     if (p.discountAmount) return `৳${p.discountAmount} off`;
   }
   if (type === 'FixedAmountOff') {
-    if (p.discountAmount) return `৳${p.discountAmount} off`;
+    if (p.discountAmount) return `৳${p.discountAmount} off each`;
   }
   if (type === 'BuyXGetYFree') return 'Buy X Get Y Free';
   return '—';

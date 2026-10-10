@@ -122,8 +122,10 @@ public class Promotion : TenantEntity
         {
             PromotionType.PercentageOff when DiscountPercentage.HasValue =>
                 Math.Round(lineTotal * DiscountPercentage.Value / 100m, 4),
+            // Product-level fixed discount applies to every unit (৳4 off × 2 = ৳8),
+            // never more than the line itself.
             PromotionType.FixedAmountOff when DiscountAmount.HasValue =>
-                Math.Min(DiscountAmount.Value, lineTotal),
+                Math.Min(DiscountAmount.Value * quantity, lineTotal),
             PromotionType.BuyXGetYFree when BuyQuantity.HasValue && GetQuantity.HasValue =>
                 CalculateBxGy(lineTotal, quantity),
             PromotionType.CategoryPercentageOff when DiscountPercentage.HasValue =>
