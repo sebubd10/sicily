@@ -48,60 +48,27 @@ public class AddLineItemCommandHandler : IRequestHandler<AddLineItemCommand, Tra
             request.TenantId, request.ProductId, ct)
             ?? throw new NotFoundException("Product", request.ProductId);
 
+        var taxRate = await CartPricing.GetVatRateAsync(_uow, request.TenantId, product, ct);
+
         var lineItem = transaction.AddItem(product, request.Quantity,
-            request.OverridePrice, request.OverrideApprovedBy);
+            request.OverridePrice, request.OverrideApprovedBy, taxRate);
 
         // Auto-apply best matching promotion (non-coupon only)
         if (request.OverridePrice is null)
-            await TryApplyPromotionAsync(transaction, lineItem, product, request, ct);
-
-        _uow.Transactions.Update(transaction);
-        await _uow.SaveChangesAsync(ct);
-
-        return CreateTransactionCommandHandler.MapToResponse(transaction);
-    }
-
-    private async Task TryApplyPromotionAsync(
-        Domain.Entities.Transaction transaction,
-        LineItem lineItem,
-        Domain.Entities.Product product,
-        AddLineItemCommand request,
-        CancellationToken ct)
-    {
-        var promotions = await _uow.Promotions.GetActivePromotionsAsync(
-            request.TenantId, transaction.StoreId, ct);
-
-        // Find the best non-coupon promotion applicable to this product
-        Promotion? best = null;
-        decimal bestDiscount = 0;
-
-        foreach (var promo in promotions.Where(p => !p.RequiresCoupon))
         {
-            bool applies = promo.Type switch
-            {
-                PromotionType.PercentageOff => promo.ProductId == product.Id,
-                PromotionType.FixedAmountOff => promo.ProductId == product.Id,
-                PromotionType.BuyXGetYFree => promo.ProductId == product.Id,
-                PromotionType.CategoryPercentageOff => promo.CategoryId == product.CategoryId,
-                _ => false
-            };
+            var promotions = await _uow.Promotions.GetActivePromotionsAsync(
+                request.TenantId, transaction.StoreId, ct);
+            var (best, discount) = CartPricing.FindBestPromotion(promotions, product, lineItem);
 
-            if (!applies) continue;
-
-            var discount = promo.CalculateDiscount(lineItem.LineTotal, lineItem.Quantity);
-            if (discount > bestDiscount)
+            if (best is not null && discount > 0)
             {
-                bestDiscount = discount;
-                best = promo;
+                transaction.ApplyPromotionToLineItem(lineItem.Id, discount, best.Id, best.Name);
+                best.RecordUse();
             }
         }
 
-        if (best is not null && bestDiscount > 0)
-        {
-            transaction.ApplyPromotionToLineItem(
-                lineItem.Id, bestDiscount, best.Id, best.Name);
-            best.RecordUse();
-            _uow.Promotions.Update(best);
-        }
+        await _uow.SaveChangesAsync(ct);
+
+        return CreateTransactionCommandHandler.MapToResponse(transaction);
     }
 }

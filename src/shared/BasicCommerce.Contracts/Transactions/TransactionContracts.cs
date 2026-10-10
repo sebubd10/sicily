@@ -115,3 +115,29 @@ public record CreateReturnTransactionRequest(
     string? Notes = null);
 
 public record ApplyDiscountRequest(decimal DiscountAmount);
+
+public record CartPreviewItemRequest(Guid ProductId, decimal Quantity);
+
+public record CartPreviewRequest(Guid StoreId, IEnumerable<CartPreviewItemRequest> Items);
+
+/// <summary>LineTotal is what the customer pays for the line: price − discount + VAT.</summary>
+public record CartPreviewLine(
+    Guid ProductId,
+    string ProductName,
+    string ProductSku,
+    decimal Quantity,
+    decimal UnitPrice,
+    decimal LineSubTotal,
+    decimal DiscountAmount,
+    decimal TaxRate,
+    decimal TaxAmount,
+    decimal LineTotal,
+    Guid? PromotionId,
+    string? PromotionName);
+
+public record CartPreviewResponse(
+    IEnumerable<CartPreviewLine> Lines,
+    decimal SubTotal,
+    decimal DiscountTotal,
+    decimal TaxTotal,
+    decimal Total);

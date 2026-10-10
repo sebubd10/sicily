@@ -4,7 +4,7 @@ import {
   ShoppingCart, ChevronRight, X, Plus, Minus,
   Trash2, User, Loader2, AlertCircle, Package,
   Receipt, ScanLine, Store as StoreIcon, Monitor, CheckCircle2, Delete,
-  SplitSquareHorizontal, ArrowLeftRight,
+  SplitSquareHorizontal, ArrowLeftRight, BadgePercent,
 } from 'lucide-react';
 import { cn, extractApiError } from '../lib/utils';
 import type { ProductListItem } from '../types/product';
@@ -14,6 +14,7 @@ import { useTerminals } from '../hooks/useTerminals';
 import { useProductSearch } from '../hooks/useProducts';
 import { useCustomerSearch } from '../hooks/useCustomers';
 import * as transactionsApi from '../api/transactionsApi';
+import { useCartPreview } from '../hooks/useTransactions';
 import { useQueryClient } from '@tanstack/react-query';
 import { PaymentMethodIcon } from '../components/transactions/PaymentMethodIcon';
 import { SplitPaymentPanel, type DraftPayment } from '../components/transactions/SplitPaymentPanel';
@@ -318,15 +319,47 @@ export default function TransactionNewPage() {
 
   /* ── Totals ── */
 
+  // Prices come from the server (same promotion + VAT logic as the real sale), so the
+  // amount the cashier quotes is exactly what gets charged.
+  const previewItems = useMemo(
+    () => items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
+    [items],
+  );
+  const { data: preview, isError: previewError } = useCartPreview(storeId, previewItems);
+
+  const previewLines = new Map((preview?.lines ?? []).map((l) => [l.productId, l]));
+  // keepPreviousData can briefly hand back pricing for the previous cart — only trust
+  // the preview when it matches the cart line for line.
+  const pricingReady = items.length === 0 || (
+    !!preview
+    && preview.lines.length === items.length
+    && items.every((i) => previewLines.get(i.productId)?.quantity === i.quantity)
+  );
+
   const lineItems = items.map((i) => {
+    const p = pricingReady ? previewLines.get(i.productId) : undefined;
+    if (p) {
+      return {
+        ...i,
+        lineSubTotal: p.lineSubTotal,
+        discount: p.discountAmount,
+        promotionName: p.promotionName,
+        taxAmt: p.taxAmount,
+        lineTotal: p.lineTotal,
+      };
+    }
     const lineSubTotal = i.unitPrice * i.quantity;
     const taxAmt       = lineSubTotal * (i.taxRate / 100);
-    return { ...i, lineSubTotal, taxAmt, lineTotal: lineSubTotal + taxAmt };
+    return {
+      ...i, lineSubTotal, discount: 0, promotionName: null as string | null,
+      taxAmt, lineTotal: lineSubTotal + taxAmt,
+    };
   });
-  const subTotal  = lineItems.reduce((s, i) => s + i.lineSubTotal, 0);
-  const taxTotal  = lineItems.reduce((s, i) => s + i.taxAmt, 0);
-  const total     = subTotal + taxTotal;
-  const itemCount = items.reduce((s, i) => s + i.quantity, 0);
+  const subTotal      = lineItems.reduce((s, i) => s + i.lineSubTotal, 0);
+  const discountTotal = lineItems.reduce((s, i) => s + i.discount, 0);
+  const taxTotal      = lineItems.reduce((s, i) => s + i.taxAmt, 0);
+  const total         = pricingReady && preview ? preview.total : subTotal - discountTotal + taxTotal;
+  const itemCount     = items.reduce((s, i) => s + i.quantity, 0);
 
   const isCash        = payMethod === 'Cash';
   const needsMobile   = ['BKash', 'Nagad', 'Rocket'].includes(payMethod);
@@ -351,7 +384,7 @@ export default function TransactionNewPage() {
   const splitBalanceDue = Math.round((total - splitPaidSoFar) * 100) / 100;
 
   const setupOk   = !!storeId && !!terminalId;
-  const canSubmit = setupOk && items.length > 0 && !isSubmitting
+  const canSubmit = setupOk && items.length > 0 && !isSubmitting && pricingReady
     && (splitMode
       ? splitPayments.length > 0 && splitBalanceDue <= 0.005
       : !(needsMobile && !mobileNum) && !(needsGiftCard && !giftCardCode) && !cashShort);
@@ -510,6 +543,12 @@ export default function TransactionNewPage() {
                         <span className="font-sans text-gray-400"> · {fmtMoney(item.unitPrice)} each</span>
                         {item.taxRate > 0 && <span className="font-sans"> · {item.taxRate}% VAT</span>}
                       </p>
+                      {item.promotionName && item.discount > 0 && (
+                        <span className="inline-flex items-center gap-1 mt-1 px-1.5 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                          <BadgePercent className="w-3 h-3" />
+                          {item.promotionName} · −{fmtMoney(item.discount)}
+                        </span>
+                      )}
                     </div>
 
                     {/* Qty stepper — large hit targets */}
@@ -541,9 +580,14 @@ export default function TransactionNewPage() {
 
                     {/* Line total */}
                     <div className="w-24 text-right flex-shrink-0">
+                      {item.discount > 0 && (
+                        <p className="text-xs text-gray-400 line-through tabular-nums">
+                          {fmtMoney(item.lineSubTotal * (1 + item.taxRate / 100))}
+                        </p>
+                      )}
                       <p className="text-sm font-bold text-gray-900 dark:text-white tabular-nums">{fmtMoney(item.lineTotal)}</p>
                       {item.taxAmt > 0 && (
-                        <p className="text-xs text-gray-400 tabular-nums">incl. {fmtMoney(item.taxAmt)} tax</p>
+                        <p className="text-xs text-gray-400 tabular-nums">incl. {fmtMoney(item.taxAmt)} VAT</p>
                       )}
                     </div>
                   </div>
@@ -570,6 +614,27 @@ export default function TransactionNewPage() {
                 <span className="tabular-nums font-medium text-gray-700 dark:text-gray-300">{fmtMoney(subTotal)}</span>
               </div>
               <div className="flex justify-between text-sm">
+                <span className={cn(
+                  'flex items-center gap-1.5',
+                  discountTotal > 0 ? 'text-emerald-600 dark:text-emerald-400 font-medium' : 'text-gray-500 dark:text-gray-400',
+                )}>
+                  <BadgePercent className="w-3.5 h-3.5" />
+                  Discount
+                  {discountTotal > 0 && (
+                    <span className="text-xs font-normal text-gray-400">
+                      ({lineItems.filter((i) => i.discount > 0).length} promo
+                      {lineItems.filter((i) => i.discount > 0).length === 1 ? '' : 's'})
+                    </span>
+                  )}
+                </span>
+                <span className={cn(
+                  'tabular-nums font-medium',
+                  discountTotal > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-700 dark:text-gray-300',
+                )}>
+                  {discountTotal > 0 ? `−${fmtMoney(discountTotal)}` : fmtMoney(0)}
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
                 <span className="text-gray-500 dark:text-gray-400">VAT</span>
                 <span className="tabular-nums font-medium text-gray-700 dark:text-gray-300">{fmtMoney(taxTotal)}</span>
               </div>
@@ -578,6 +643,13 @@ export default function TransactionNewPage() {
                 <span className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wide">Total</span>
                 <span className="text-3xl font-extrabold tabular-nums text-gray-900 dark:text-white">{fmtMoney(total)}</span>
               </div>
+              {items.length > 0 && !pricingReady && (
+                <p className="flex items-center justify-end gap-1.5 text-xs text-gray-400">
+                  {previewError
+                    ? <><AlertCircle className="w-3 h-3 text-red-500" /> Couldn't fetch prices — check the store selection</>
+                    : <><Loader2 className="w-3 h-3 animate-spin" /> Updating prices…</>}
+                </p>
+              )}
             </div>
 
             {/* Payment */}

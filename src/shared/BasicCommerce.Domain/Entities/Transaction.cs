@@ -57,14 +57,16 @@ public class Transaction : TenantEntity
         return transaction;
     }
 
+    /// <param name="taxRate">VAT percentage (0–100) added on top of the discounted line price.</param>
     public LineItem AddItem(Product product, decimal quantity, decimal? overridePrice = null,
-        Guid? overrideApprovedBy = null)
+        Guid? overrideApprovedBy = null, decimal taxRate = 0m)
     {
         if (TransactionStatus != TransactionStatus.Open)
             throw new DomainException("Cannot add items to a non-open transaction.");
 
         var unitPrice = overridePrice ?? product.Price.Amount;
         var lineItem = LineItem.Create(Id, product, quantity, unitPrice, overrideApprovedBy);
+        lineItem.ApplyTax(taxRate);
 
         _lineItems.Add(lineItem);
         RecalculateTotals();

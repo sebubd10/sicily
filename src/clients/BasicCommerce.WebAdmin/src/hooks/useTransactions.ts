@@ -22,6 +22,20 @@ export function useTransactionDetail(id: string | null) {
   });
 }
 
+/** Server-side pricing of the cart (promotions, discount, VAT). Nothing is saved. */
+export function useCartPreview(
+  storeId: string,
+  items: { productId: string; quantity: number }[],
+) {
+  return useQuery({
+    queryKey: [...KEY, 'preview', storeId, items],
+    queryFn: () => transactionsApi.previewCart(storeId, items),
+    enabled: !!storeId && items.length > 0,
+    placeholderData: keepPreviousData,
+    staleTime: 15_000,
+  });
+}
+
 export function useVoidTransaction() {
   const qc = useQueryClient();
   return useMutation({

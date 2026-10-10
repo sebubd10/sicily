@@ -3,6 +3,7 @@ import type {
   Transaction,
   TransactionListResponse,
   BackofficeReturnPayload,
+  CartPreview,
 } from '../types/transaction';
 
 type ApiResponse<T> = { success: boolean; data: T; message?: string };
@@ -120,5 +121,16 @@ export async function completeTransaction(txnId: string): Promise<Transaction> {
   const { data } = await api.post<ApiResponse<Transaction>>(
     `/transactions/${txnId}/complete`,
   );
+  return data.data!;
+}
+
+export async function previewCart(
+  storeId: string,
+  items: { productId: string; quantity: number }[],
+): Promise<CartPreview> {
+  const { data } = await api.post<ApiResponse<CartPreview>>('/transactions/preview', {
+    storeId,
+    items,
+  });
   return data.data!;
 }

@@ -49,20 +49,27 @@ public class LineItem : BaseEntity
     internal void ApplyTax(decimal taxRate)
     {
         TaxRate = taxRate;
-        TaxAmount = LineTotal * (taxRate / 100);
+        RecalculateTax();
     }
 
     internal void ApplyDiscount(decimal discountAmount)
     {
-        DiscountAmount = discountAmount;
+        DiscountAmount = Math.Clamp(discountAmount, 0, LineTotal);
+        RecalculateTax();
     }
 
     internal void ApplyPromotionDiscount(decimal discountAmount, Guid promotionId, string promotionName)
     {
-        DiscountAmount = discountAmount;
+        DiscountAmount = Math.Clamp(discountAmount, 0, LineTotal);
         AppliedPromotionId = promotionId;
         AppliedPromotionName = promotionName;
+        RecalculateTax();
     }
+
+    // VAT is charged on the price the customer actually pays, i.e. after discounts.
+    private void RecalculateTax() =>
+        TaxAmount = Math.Round((LineTotal - DiscountAmount) * TaxRate / 100m, 2,
+            MidpointRounding.AwayFromZero);
 
     internal static LineItem CreateReturnItem(Guid transactionId, Guid productId,
         string productName, string productSku, decimal quantity, decimal unitPrice,

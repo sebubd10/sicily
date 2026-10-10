@@ -92,3 +92,27 @@ export interface BackofficeReturnPayload {
   refundMethod: string;
   notes?: string;
 }
+
+export interface CartPreviewLine {
+  productId: string;
+  productName: string;
+  productSku: string;
+  quantity: number;
+  unitPrice: number;
+  lineSubTotal: number;
+  discountAmount: number;
+  taxRate: number;
+  taxAmount: number;
+  /** What the customer pays for this line: price − discount + VAT. */
+  lineTotal: number;
+  promotionId: string | null;
+  promotionName: string | null;
+}
+
+export interface CartPreview {
+  lines: CartPreviewLine[];
+  subTotal: number;
+  discountTotal: number;
+  taxTotal: number;
+  total: number;
+}

@@ -35,6 +35,16 @@ public class TransactionsController : ControllerBase
             ApiResponse<TransactionResponse>.Ok(result));
     }
 
+    /// <summary>Price a cart (promotions, discount, VAT) without saving anything.</summary>
+    [HttpPost("preview")]
+    public async Task<ActionResult<ApiResponse<CartPreviewResponse>>> Preview(
+        [FromBody] CartPreviewRequest request, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new PreviewCartQuery(
+            _currentUser.TenantId, request.StoreId, request.Items.ToList()), ct);
+        return Ok(ApiResponse<CartPreviewResponse>.Ok(result));
+    }
+
     [HttpPost("{id:guid}/items")]
     public async Task<ActionResult<ApiResponse<TransactionResponse>>> AddItem(
         Guid id, [FromBody] AddLineItemRequest request, CancellationToken ct)
