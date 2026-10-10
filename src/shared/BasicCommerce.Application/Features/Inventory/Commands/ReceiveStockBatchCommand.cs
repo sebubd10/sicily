@@ -63,7 +63,8 @@ public class ReceiveStockBatchCommandHandler : IRequestHandler<ReceiveStockBatch
         await _uow.StockBatches.AddAsync(batch, ct);
 
         var stockLevel = await _uow.StockLevels.GetAsync(tenantId, request.StoreId, request.ProductId, ct);
-        if (stockLevel is null)
+        var isNewStockLevel = stockLevel is null;
+        if (isNewStockLevel)
         {
             stockLevel = StockLevel.Create(tenantId, request.StoreId, request.ProductId);
             await _uow.StockLevels.AddAsync(stockLevel, ct);
@@ -71,7 +72,11 @@ public class ReceiveStockBatchCommandHandler : IRequestHandler<ReceiveStockBatch
 
         var before = stockLevel.Quantity;
         stockLevel.Increment(request.Quantity);
-        _uow.StockLevels.Update(stockLevel);
+        // Only Update() an existing stock level — calling it on one just added in
+        // this request flips its tracked state from Added to Modified, which makes
+        // EF issue an UPDATE for a row that isn't in the database yet.
+        if (!isNewStockLevel)
+            _uow.StockLevels.Update(stockLevel);
 
         var movement = StockMovement.Create(tenantId, request.StoreId, request.ProductId,
             StockMovementType.Receive, request.Quantity, before,

@@ -113,7 +113,8 @@ public class CompleteTransactionCommandHandler
         var account = await _uow.RewardPointsAccounts.GetByCustomerAsync(
             tenantId, transaction.CustomerId.Value, storeId, ct);
 
-        if (account is null)
+        var isNewAccount = account is null;
+        if (isNewAccount)
         {
             account = RewardPointsAccount.Create(tenantId, transaction.CustomerId.Value, storeId);
             await _uow.RewardPointsAccounts.AddAsync(account, ct);
@@ -125,7 +126,12 @@ public class CompleteTransactionCommandHandler
             transaction.Id,
             $"Purchase: {transaction.TransactionNumber}");
 
-        _uow.RewardPointsAccounts.Update(account);
+        // Only call Update() on an account that already existed — calling it on one
+        // just added in this same request flips its tracked state from Added to
+        // Modified, which makes EF issue an UPDATE for a row that isn't in the
+        // database yet (DbUpdateConcurrencyException: 0 rows affected).
+        if (!isNewAccount)
+            _uow.RewardPointsAccounts.Update(account);
 
         var customer = await _uow.Customers.GetByIdAsync(transaction.CustomerId.Value, ct);
         if (customer is not null)

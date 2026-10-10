@@ -60,7 +60,8 @@ public class UpdateRewardPointsSettingsCommandHandler
         var tenantId = _currentUser.TenantId;
         var settings = await _uow.RewardPointsSettings.GetByTenantAsync(tenantId, ct);
 
-        if (settings is null)
+        var isNewSettings = settings is null;
+        if (isNewSettings)
         {
             settings = RewardPointsSettings.CreateDefault(tenantId);
             await _uow.RewardPointsSettings.AddAsync(settings, ct);
@@ -84,7 +85,11 @@ public class UpdateRewardPointsSettingsCommandHandler
         if (request.IsEnabled) settings.Activate();
         else settings.Deactivate();
 
-        _uow.RewardPointsSettings.Update(settings);
+        // Only Update() existing settings — calling it on a record just added in
+        // this request flips its tracked state from Added to Modified, which makes
+        // EF issue an UPDATE for a row that isn't in the database yet.
+        if (!isNewSettings)
+            _uow.RewardPointsSettings.Update(settings);
         await _uow.SaveChangesAsync(ct);
 
         return GetRewardPointsSettingsQueryHandler.MapToResponse(settings);

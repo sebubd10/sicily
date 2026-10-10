@@ -48,7 +48,8 @@ public class ManualAdjustRewardPointsCommandHandler
         var account = await _uow.RewardPointsAccounts.GetWithEntriesAsync(
             tenantId, request.CustomerId, storeId, ct);
 
-        if (account is null)
+        var isNewAccount = account is null;
+        if (isNewAccount)
         {
             account = RewardPointsAccount.Create(tenantId, request.CustomerId, storeId);
             await _uow.RewardPointsAccounts.AddAsync(account, ct);
@@ -64,7 +65,11 @@ public class ManualAdjustRewardPointsCommandHandler
             _uow.Customers.Update(customer);
         }
 
-        _uow.RewardPointsAccounts.Update(account);
+        // Only Update() an existing account — calling it on one just added in this
+        // request flips its tracked state from Added to Modified, which makes EF
+        // issue an UPDATE for a row that isn't in the database yet.
+        if (!isNewAccount)
+            _uow.RewardPointsAccounts.Update(account);
         await _uow.SaveChangesAsync(ct);
 
         return GetCustomerRewardPointsQueryHandler.MapToResponse(account);

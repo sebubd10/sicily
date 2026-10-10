@@ -53,6 +53,8 @@ public class ExternalLoginCommandHandler : IRequestHandler<ExternalLoginCommand,
             ? await _uow.Users.GetByGoogleIdAsync(request.ExternalId, ct)
             : await _uow.Users.GetByMicrosoftIdAsync(request.ExternalId, ct);
 
+        var isNewUser = false;
+
         if (user is null)
         {
             // Check if an account with this email already exists — link the provider
@@ -68,8 +70,6 @@ public class ExternalLoginCommandHandler : IRequestHandler<ExternalLoginCommand,
                 else
                     throw new UnauthorizedException(
                         "An account with this email already exists with a different sign-in method.");
-
-                _uow.Users.Update(user);
             }
             else
             {
@@ -94,6 +94,7 @@ public class ExternalLoginCommandHandler : IRequestHandler<ExternalLoginCommand,
                     request.Email, provider, request.ExternalId);
 
                 await _uow.Users.AddAsync(user, ct);
+                isNewUser = true;
             }
         }
 
@@ -101,7 +102,13 @@ public class ExternalLoginCommandHandler : IRequestHandler<ExternalLoginCommand,
             throw new UnauthorizedException("Account is deactivated.");
 
         user.RecordLogin();
-        _uow.Users.Update(user);
+
+        // Only call Update() on a user that already existed — calling it on one
+        // just added in this same request flips its tracked state from Added to
+        // Modified, which makes EF issue an UPDATE for a row that isn't in the
+        // database yet (DbUpdateConcurrencyException: 0 rows affected).
+        if (!isNewUser)
+            _uow.Users.Update(user);
 
         var accessToken = _jwt.GenerateAccessToken(user);
         var refreshToken = _jwt.GenerateRefreshToken();
