@@ -10,6 +10,8 @@ import { cn, extractApiError } from '../lib/utils';
 import type { Transaction, TransactionStatus, TransactionType, LineItem, Payment } from '../types/transaction';
 import { useTransactionDetail, useVoidTransaction } from '../hooks/useTransactions';
 import { PaymentMethodIcon } from '../components/transactions/PaymentMethodIcon';
+import { useStoreList } from '../hooks/useStoreAdmin';
+import { useTerminals } from '../hooks/useTerminals';
 
 /* ── helpers ──────────────────────────────────────────────────────────────── */
 
@@ -146,6 +148,8 @@ export default function TransactionDetailPage() {
   const [showVoid, setShowVoid] = useState(false);
 
   const { data: txn, isLoading, isError, refetch, isFetching } = useTransactionDetail(id ?? null);
+  const { data: stores = [] }    = useStoreList();
+  const { data: terminals = [] } = useTerminals();
 
   if (isLoading) {
     return (
@@ -170,6 +174,8 @@ export default function TransactionDetailPage() {
   }
 
   const statusCfg = STATUS_CONFIG[txn.status] ?? STATUS_CONFIG.Open;
+  const store     = stores.find((s) => s.id === txn.storeId);
+  const terminal  = terminals.find((t) => t.id === txn.terminalId);
   const activeItems = txn.lineItems.filter(l => !l.isVoided);
   const voidedItems = txn.lineItems.filter(l => l.isVoided);
 
@@ -273,12 +279,12 @@ export default function TransactionDetailPage() {
 
         {/* Store */}
         <InfoCard icon={<Store className="w-4 h-4 text-emerald-600" />} label="Store">
-          <p className="font-mono text-xs text-gray-600 dark:text-gray-400">{txn.storeId.slice(0, 8)}…</p>
+          <NamedRef name={store?.name} code={store?.code} id={txn.storeId} />
         </InfoCard>
 
         {/* Terminal */}
         <InfoCard icon={<Terminal className="w-4 h-4 text-violet-600" />} label="Terminal">
-          <p className="font-mono text-xs text-gray-600 dark:text-gray-400">{txn.terminalId.slice(0, 8)}…</p>
+          <NamedRef name={terminal?.name} code={terminal?.code} id={txn.terminalId} />
         </InfoCard>
       </div>
 
@@ -496,6 +502,18 @@ function InfoCard({ icon, label, children }: {
         <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{label}</span>
       </div>
       {children}
+    </div>
+  );
+}
+
+function NamedRef({ name, code, id }: { name?: string; code?: string; id: string }) {
+  if (!name) {
+    return <p className="font-mono text-xs text-gray-400" title={id}>{id.slice(0, 8)}…</p>;
+  }
+  return (
+    <div>
+      <p className="font-medium text-gray-900 dark:text-white">{name}</p>
+      {code && <p className="text-xs text-gray-500 dark:text-gray-400 font-mono">{code}</p>}
     </div>
   );
 }
