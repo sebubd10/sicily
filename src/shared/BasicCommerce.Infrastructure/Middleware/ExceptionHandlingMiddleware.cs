@@ -4,6 +4,8 @@ using BasicCommerce.Contracts.Common;
 using BasicCommerce.Domain.Exceptions;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -63,6 +65,15 @@ public class ExceptionHandlingMiddleware
                 HttpStatusCode.BadRequest,
                 ApiResponse<object>.Fail(de.Message)),
 
+            DbUpdateConcurrencyException dce => (
+                HttpStatusCode.Conflict,
+                ApiResponse<object>.Fail(
+                    _env.IsDevelopment()
+                        ? $"{dce.Message} Entities involved: " +
+                          string.Join(", ", dce.Entries.Select(entry =>
+                              $"{entry.Metadata.ClrType.Name}[{DescribeKey(entry)}] (state: {entry.State})"))
+                        : "This record was changed by another operation. Please retry.")),
+
             _ => (
                 HttpStatusCode.InternalServerError,
                 ApiResponse<object>.Fail(
@@ -74,7 +85,7 @@ public class ExceptionHandlingMiddleware
                         : "An unexpected error occurred."))
         };
 
-        if (statusCode == HttpStatusCode.InternalServerError)
+        if (statusCode is HttpStatusCode.InternalServerError or HttpStatusCode.Conflict)
             _logger.LogError(exception, "Unhandled exception on {Method} {Path}",
                 context.Request.Method, context.Request.Path);
 
@@ -83,5 +94,11 @@ public class ExceptionHandlingMiddleware
 
         await context.Response.WriteAsync(
             JsonSerializer.Serialize(response, JsonOptions));
+    }
+
+    private static string DescribeKey(EntityEntry entry)
+    {
+        var keyProps = entry.Properties.Where(p => p.Metadata.IsPrimaryKey());
+        return string.Join(",", keyProps.Select(p => $"{p.Metadata.Name}={p.CurrentValue}"));
     }
 }
