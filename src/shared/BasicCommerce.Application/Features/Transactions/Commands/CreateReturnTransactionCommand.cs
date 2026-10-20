@@ -1,3 +1,4 @@
+using BasicCommerce.Application.Features.RewardPoints;
 using BasicCommerce.Contracts.Transactions;
 using BasicCommerce.Domain.Entities;
 using BasicCommerce.Domain.Enums;
@@ -88,10 +89,18 @@ public class CreateReturnTransactionCommandHandler
                     $"Cannot return {returnItem.Quantity} of '{originalLine.ProductName}' " +
                     $"— original quantity was {originalLine.Quantity}.");
 
+            // Refund exactly what was paid for these units: their share of the original
+            // discount, plus the VAT charged on them.
+            var discountShare = originalLine.Quantity > 0
+                ? Math.Round(originalLine.DiscountAmount * returnItem.Quantity / originalLine.Quantity, 2,
+                    MidpointRounding.AwayFromZero)
+                : 0m;
+
             returnTx.AddReturnLineItem(
                 originalLine.ProductId, originalLine.ProductName, originalLine.ProductSku,
                 returnItem.Quantity, originalLine.UnitPrice,
-                returnItem.Reason, returnItem.Disposition);
+                returnItem.Reason, returnItem.Disposition,
+                discountShare, originalLine.TaxRate);
 
             var stockLevel = await _uow.StockLevels.GetAsync(
                 request.TenantId, original.StoreId, originalLine.ProductId, ct);
@@ -139,20 +148,7 @@ public class CreateReturnTransactionCommandHandler
         returnTx.RefreshAmountPaid();
         returnTx.Complete();
 
-        // Reverse loyalty points proportional to refund
-        if (original.CustomerId.HasValue)
-        {
-            var customer = await _uow.Customers.GetByIdAsync(original.CustomerId.Value, ct);
-            if (customer is not null)
-            {
-                var pointsToReverse = (int)(returnTotal / 100);
-                if (pointsToReverse > 0 && customer.LoyaltyPoints >= pointsToReverse)
-                {
-                    customer.RedeemLoyaltyPoints(pointsToReverse);
-                    _uow.Customers.Update(customer);
-                }
-            }
-        }
+        await SettleRewardPointsAsync(request, original, returnTx, returnTotal, ct);
 
         original.MarkRefunded();
         _uow.Transactions.Update(original);
@@ -169,5 +165,66 @@ public class CreateReturnTransactionCommandHandler
 
         return CreateTransactionCommandHandler.MapToResponse(returnTx, customerName);
     }
-}
 
+    /// <summary>
+    /// Takes back the points earned on the returned portion of the sale, and — when the
+    /// refund is paid in points — credits the refund to the customer's points balance.
+    /// </summary>
+    private async Task SettleRewardPointsAsync(CreateReturnTransactionCommand request,
+        Domain.Entities.Transaction original, Domain.Entities.Transaction returnTx,
+        decimal returnTotal, CancellationToken ct)
+    {
+        var refundInPoints = request.RefundMethod == PaymentMethod.RewardPoints;
+
+        if (!original.CustomerId.HasValue)
+        {
+            if (refundInPoints)
+                throw new DomainException("A refund in reward points needs a customer on the original sale.");
+            return;
+        }
+
+        var settings = await _uow.RewardPointsSettings.GetByTenantAsync(request.TenantId, ct);
+        if (settings is null)
+        {
+            if (refundInPoints)
+                throw new DomainException("Reward points programme is not configured.");
+            return;
+        }
+
+        var customerId = original.CustomerId.Value;
+        var account = await RewardPointsLedger.GetAccountAsync(
+            _uow, settings, request.TenantId, customerId, original.StoreId, ct);
+
+        if (account is not null && original.Total > 0)
+        {
+            var entries = await _uow.RewardPointsAccounts.GetEntriesForTransactionAsync(original.Id, ct);
+            var earned = RewardPointsLedger.NetEarned(entries);
+            var share = Math.Min(1m, returnTotal / original.Total);
+            var toReverse = (int)Math.Ceiling(earned * share);
+
+            if (toReverse > 0)
+            {
+                var reversed = account.ReversePoints(toReverse, original.Id,
+                    $"Return {returnTx.TransactionNumber}");
+                await RewardPointsLedger.AdjustCustomerSummaryAsync(_uow, customerId, -reversed, ct);
+            }
+        }
+
+        if (refundInPoints)
+        {
+            if (settings.ExchangeRate <= 0)
+                throw new DomainException("Invalid reward points exchange rate.");
+
+            if (account is null)
+            {
+                account = RewardPointsAccount.Create(request.TenantId, customerId,
+                    RewardPointsLedger.AccountStoreId(settings, original.StoreId));
+                await _uow.RewardPointsAccounts.AddAsync(account, ct);
+            }
+
+            var credit = (int)Math.Floor(returnTotal / settings.ExchangeRate);
+            account.CreditRefund(credit, returnTx.Id, $"Refund for {original.TransactionNumber}");
+            await RewardPointsLedger.AdjustCustomerSummaryAsync(_uow, customerId, credit, ct);
+        }
+    }
+}

@@ -1,3 +1,4 @@
+using BasicCommerce.Application.Features.RewardPoints;
 using BasicCommerce.Contracts.Transactions;
 using BasicCommerce.Domain.Exceptions;
 using BasicCommerce.Domain.Interfaces;
@@ -46,9 +47,38 @@ public class VoidTransactionCommandHandler
 
         transaction.Void(request.SupervisorId, request.Reason);
 
-        _uow.Transactions.Update(transaction);
+        await SettleRewardPointsAsync(transaction, request.TenantId, ct);
+
         await _uow.SaveChangesAsync(ct);
 
         return CreateTransactionCommandHandler.MapToResponse(transaction);
+    }
+
+    /// <summary>
+    /// A voided sale didn't happen: give back any points redeemed on it, and take back
+    /// any points it earned.
+    /// </summary>
+    private async Task SettleRewardPointsAsync(Domain.Entities.Transaction transaction,
+        Guid tenantId, CancellationToken ct)
+    {
+        if (!transaction.CustomerId.HasValue) return;
+
+        var settings = await _uow.RewardPointsSettings.GetByTenantAsync(tenantId, ct);
+        if (settings is null) return;
+
+        var customerId = transaction.CustomerId.Value;
+        var account = await RewardPointsLedger.GetAccountAsync(
+            _uow, settings, tenantId, customerId, transaction.StoreId, ct);
+        if (account is null) return;
+
+        var entries = await _uow.RewardPointsAccounts.GetEntriesForTransactionAsync(transaction.Id, ct);
+        var note = $"Void {transaction.TransactionNumber}";
+
+        var restored = account.RestoreRedeemedPoints(
+            RewardPointsLedger.NetRedeemed(entries), transaction.Id, note);
+        var reversed = account.ReversePoints(
+            RewardPointsLedger.NetEarned(entries), transaction.Id, note);
+
+        await RewardPointsLedger.AdjustCustomerSummaryAsync(_uow, customerId, restored - reversed, ct);
     }
 }

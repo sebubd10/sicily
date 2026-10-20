@@ -1,3 +1,4 @@
+using BasicCommerce.Application.Features.RewardPoints;
 using BasicCommerce.Contracts.Transactions;
 using BasicCommerce.Domain.Entities;
 using BasicCommerce.Domain.Enums;
@@ -105,19 +106,27 @@ public class CompleteTransactionCommandHandler
         var settings = await _uow.RewardPointsSettings.GetByTenantAsync(tenantId, ct);
         if (settings is null || settings.Status != EntityStatus.Active) return;
 
-        var points = settings.CalculatePurchasePoints(transaction.Total);
+        // Points are earned on what the customer actually spent — not on the part
+        // they paid for with points.
+        var paidWithPoints = transaction.Payments
+            .Where(p => p.Method == PaymentMethod.RewardPoints && p.PaymentStatus == PaymentStatus.Approved)
+            .Sum(p => p.Amount);
+        var points = settings.CalculatePurchasePoints(Math.Max(0, transaction.Total - paidWithPoints));
         if (points <= 0) return;
 
-        var storeId = settings.PointsAccumulatedForAllStores ? (Guid?)null : transaction.StoreId;
+        var customerId = transaction.CustomerId.Value;
+        var account = await RewardPointsLedger.GetAccountAsync(
+            _uow, settings, tenantId, customerId, transaction.StoreId, ct);
 
-        var account = await _uow.RewardPointsAccounts.GetByCustomerAsync(
-            tenantId, transaction.CustomerId.Value, storeId, ct);
-
-        var isNewAccount = account is null;
-        if (isNewAccount)
+        if (account is null)
         {
-            account = RewardPointsAccount.Create(tenantId, transaction.CustomerId.Value, storeId);
+            account = RewardPointsAccount.Create(tenantId, customerId,
+                RewardPointsLedger.AccountStoreId(settings, transaction.StoreId));
             await _uow.RewardPointsAccounts.AddAsync(account, ct);
+        }
+        else
+        {
+            await RewardPointsLedger.ApplyExpiryAsync(_uow, account, ct);
         }
 
         account.EarnPoints(points, RewardPointsEntryType.PurchaseEarned,
@@ -126,18 +135,8 @@ public class CompleteTransactionCommandHandler
             transaction.Id,
             $"Purchase: {transaction.TransactionNumber}");
 
-        // Only call Update() on an account that already existed — calling it on one
-        // just added in this same request flips its tracked state from Added to
-        // Modified, which makes EF issue an UPDATE for a row that isn't in the
-        // database yet (DbUpdateConcurrencyException: 0 rows affected).
-        if (!isNewAccount)
-            _uow.RewardPointsAccounts.Update(account);
-
-        var customer = await _uow.Customers.GetByIdAsync(transaction.CustomerId.Value, ct);
-        if (customer is not null)
-        {
-            customer.AddLoyaltyPoints(points);
-            _uow.Customers.Update(customer);
-        }
+        // Pending (not yet activated) points aren't spendable, so don't count them yet.
+        if (settings.ActivatePointsImmediately)
+            await RewardPointsLedger.AdjustCustomerSummaryAsync(_uow, customerId, points, ct);
     }
 }

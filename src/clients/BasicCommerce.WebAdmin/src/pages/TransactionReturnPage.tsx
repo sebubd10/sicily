@@ -72,9 +72,15 @@ export default function TransactionReturnPage() {
   const activeItems = txn?.lineItems.filter(l => !l.isVoided) ?? [];
   const selectedItems = activeItems.filter(l => getItemState(l.id, l.quantity).selected);
 
+  const round2 = (n: number) => Math.round(n * 100) / 100;
+  // Mirrors the backend: the returned units' share of the line discount, plus the VAT
+  // charged on them — i.e. exactly what the customer paid for those units.
   const returnTotal = selectedItems.reduce((sum, l) => {
     const s = getItemState(l.id, l.quantity);
-    return sum + l.unitPrice * s.qty;
+    const gross    = l.unitPrice * s.qty;
+    const discount = l.quantity > 0 ? round2(l.discountAmount * s.qty / l.quantity) : 0;
+    const tax      = round2((gross - discount) * l.taxRate / 100);
+    return sum + gross - discount + tax;
   }, 0);
 
   function handleSubmit() {
@@ -289,7 +295,9 @@ export default function TransactionReturnPage() {
               onChange={(e) => setRefundMethod(e.target.value)}
               className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
-              {REFUND_METHODS.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+              {REFUND_METHODS
+                .filter(m => m.value !== 'RewardPoints' || !!txn.customerId)
+                .map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
             </select>
           </div>
           <div>

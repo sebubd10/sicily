@@ -1,5 +1,5 @@
 import { api } from './axiosInstance';
-import type { RewardPointsSettings, RewardPointsAccount } from '../types/rewardPoints';
+import type { RewardPointsSettings, RewardPointsAccount, CheckoutRewardPoints } from '../types/rewardPoints';
 
 type ApiResponse<T> = { success: boolean; data: T; message?: string };
 
@@ -36,5 +36,24 @@ export async function manualAdjust(payload: {
     points: payload.points,
     notes: payload.notes,
   });
+  return data.data!;
+}
+
+export async function getCheckoutPoints(params: {
+  customerId: string;
+  storeId: string;
+  orderTotal: number;
+  pointsAmount?: number;
+}): Promise<CheckoutRewardPoints> {
+  const { data } = await api.get<ApiResponse<CheckoutRewardPoints>>(
+    `/reward-points/customers/${params.customerId}/checkout`,
+    {
+      params: {
+        storeId: params.storeId,
+        orderTotal: params.orderTotal,
+        pointsAmount: params.pointsAmount ?? 0,
+      },
+    },
+  );
   return data.data!;
 }

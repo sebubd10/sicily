@@ -22,12 +22,26 @@ interface Props {
   payments: DraftPayment[];
   onAdd: (payment: DraftPayment) => void;
   onRemove: (tempId: string) => void;
+  /** Methods that can't be used right now, mapped to the reason (shown as a tooltip). */
+  disabledMethods?: Record<string, string>;
+  /** Most that can be paid with reward points on this order; undefined while unknown. */
+  pointsMaxAmount?: number;
 }
 
-export function SplitPaymentPanel({ total, payments, onAdd, onRemove }: Props) {
+export function SplitPaymentPanel({
+  total, payments, onAdd, onRemove, disabledMethods = {}, pointsMaxAmount,
+}: Props) {
   const paidSoFar   = payments.reduce((s, p) => s + p.amount, 0);
   const balanceDue  = Math.round((total - paidSoFar) * 100) / 100;
   const isPaidInFull = balanceDue <= 0.005;
+
+  // Points already used on earlier lines count against the per-order limit.
+  const pointsUsed = payments
+    .filter((p) => p.method === 'RewardPoints')
+    .reduce((s, p) => s + p.amount, 0);
+  const pointsRemaining = pointsMaxAmount === undefined
+    ? undefined
+    : Math.max(0, Math.round((pointsMaxAmount - pointsUsed) * 100) / 100);
 
   const [method,   setMethod]   = useState('Cash');
   const [amount,   setAmount]   = useState(total > 0 ? total.toFixed(2) : '');
@@ -41,9 +55,12 @@ export function SplitPaymentPanel({ total, payments, onAdd, onRemove }: Props) {
   const amountNum     = parseFloat(amount) || 0;
 
   function pickMethod(m: string) {
+    if (disabledMethods[m]) return;
     setMethod(m);
     setError('');
-    setAmount(Math.max(balanceDue, 0).toFixed(2));
+    const due = Math.max(balanceDue, 0);
+    setAmount((m === 'RewardPoints' && pointsRemaining !== undefined
+      ? Math.min(due, pointsRemaining) : due).toFixed(2));
     setMobile('');
     setGiftCode('');
   }
@@ -55,6 +72,12 @@ export function SplitPaymentPanel({ total, payments, onAdd, onRemove }: Props) {
     }
     if (!isCash && amountNum > balanceDue + 0.01) {
       setError(`Amount exceeds the balance due (${fmtMoney(Math.max(balanceDue, 0))}). Only cash can exceed the balance to give change.`);
+      return;
+    }
+    if (method === 'RewardPoints' && pointsRemaining !== undefined && amountNum > pointsRemaining + 0.005) {
+      setError(pointsRemaining > 0
+        ? `Points can cover at most ${fmtMoney(pointsRemaining)} more on this sale.`
+        : 'No more points can be used on this sale.');
       return;
     }
     if (needsMobile && !mobile.trim()) {
@@ -138,9 +161,11 @@ export function SplitPaymentPanel({ total, payments, onAdd, onRemove }: Props) {
               <button
                 key={m.value}
                 onClick={() => pickMethod(m.value)}
-                title={m.hint}
+                disabled={!!disabledMethods[m.value]}
+                title={disabledMethods[m.value] ?? m.hint}
                 className={cn(
                   'flex items-center gap-1.5 pl-1.5 pr-2.5 py-1 rounded-full border text-xs font-semibold transition-all',
+                  'disabled:opacity-40 disabled:cursor-not-allowed',
                   method === m.value
                     ? 'border-primary-600 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400'
                     : 'border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600',
@@ -174,6 +199,11 @@ export function SplitPaymentPanel({ total, payments, onAdd, onRemove }: Props) {
             </button>
           </div>
 
+          {method === 'RewardPoints' && pointsRemaining !== undefined && (
+            <p className="text-xs text-amber-600 dark:text-amber-400">
+              Points can cover up to {fmtMoney(pointsRemaining)} on this sale.
+            </p>
+          )}
           {needsMobile && (
             <input
               type="tel"

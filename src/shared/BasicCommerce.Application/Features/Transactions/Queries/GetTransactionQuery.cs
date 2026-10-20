@@ -1,3 +1,4 @@
+using BasicCommerce.Application.Features.RewardPoints;
 using BasicCommerce.Application.Features.Transactions.Commands;
 using BasicCommerce.Contracts.Transactions;
 using BasicCommerce.Domain.Exceptions;
@@ -27,6 +28,14 @@ public class GetTransactionQueryHandler : IRequestHandler<GetTransactionQuery, T
             customerName = customer?.Name;
         }
 
-        return CreateTransactionCommandHandler.MapToResponse(transaction, customerName);
+        var response = CreateTransactionCommandHandler.MapToResponse(transaction, customerName);
+        if (!transaction.CustomerId.HasValue) return response;
+
+        var entries = await _uow.RewardPointsAccounts.GetEntriesForTransactionAsync(transaction.Id, ct);
+        return response with
+        {
+            PointsEarned = RewardPointsLedger.NetEarned(entries),
+            PointsRedeemed = RewardPointsLedger.NetRedeemed(entries),
+        };
     }
 }

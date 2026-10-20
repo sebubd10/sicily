@@ -56,6 +56,20 @@ public class RewardPointsController : ControllerBase
         return Ok(ApiResponse<RewardPointsAccountResponse>.Ok(result));
     }
 
+    /// <summary>
+    /// Points snapshot for checkout: balance, value, the most usable on this order, and
+    /// what the order will earn.
+    /// </summary>
+    [HttpGet("customers/{customerId:guid}/checkout")]
+    public async Task<ActionResult<ApiResponse<CheckoutRewardPointsResponse>>> GetCheckoutPoints(
+        Guid customerId, [FromQuery] Guid storeId, [FromQuery] decimal orderTotal,
+        [FromQuery] decimal pointsAmount = 0, CancellationToken ct = default)
+    {
+        var result = await _mediator.Send(
+            new GetCheckoutRewardPointsQuery(customerId, storeId, orderTotal, pointsAmount), ct);
+        return Ok(ApiResponse<CheckoutRewardPointsResponse>.Ok(result));
+    }
+
     [HttpPost("adjust")]
     [Authorize(Policy = "StoreManagerAndAbove")]
     public async Task<ActionResult<ApiResponse<RewardPointsAccountResponse>>> ManualAdjust(

@@ -47,7 +47,11 @@ public enum RewardPointsEntryType
     RegistrationEarned = 2,
     Redeemed = 3,
     Expired = 4,
-    ManualAdjustment = 5
+    ManualAdjustment = 5,
+    /// <summary>Earned points taken back because the sale was returned or voided.</summary>
+    Reversed = 6,
+    /// <summary>Points given back: redeemed points on a voided sale, or a refund paid in points.</summary>
+    Refunded = 7
 }
 
 public enum ReturnReason

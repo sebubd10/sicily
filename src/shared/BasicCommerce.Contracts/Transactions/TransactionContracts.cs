@@ -23,7 +23,9 @@ public record TransactionResponse(
     DateTime CreatedAt,
     DateTime? CompletedAt,
     DateTime? VoidedAt,
-    string? VoidReason);
+    string? VoidReason,
+    int PointsEarned = 0,
+    int PointsRedeemed = 0);
 
 public record TransactionSummary(
     Guid Id,

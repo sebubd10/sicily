@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import * as rewardPointsApi from '../api/rewardPointsApi';
 import type { RewardPointsSettings } from '../types/rewardPoints';
 
@@ -38,5 +38,28 @@ export function useManualAdjust() {
     onSuccess: (_data, vars) => {
       qc.invalidateQueries({ queryKey: [...ACCOUNT_KEY, vars.customerId] });
     },
+  });
+}
+
+/** Customer's points at checkout: balance, max usable on this order, points to earn. */
+export function useCheckoutRewardPoints(params: {
+  customerId: string | null;
+  storeId: string;
+  orderTotal: number;
+  pointsAmount?: number;
+}) {
+  const orderTotal = Math.round(params.orderTotal * 100) / 100;
+  const pointsAmount = Math.round((params.pointsAmount ?? 0) * 100) / 100;
+  return useQuery({
+    queryKey: [...ACCOUNT_KEY, 'checkout', params.customerId, params.storeId, orderTotal, pointsAmount],
+    queryFn: () => rewardPointsApi.getCheckoutPoints({
+      customerId: params.customerId!,
+      storeId: params.storeId,
+      orderTotal,
+      pointsAmount,
+    }),
+    enabled: !!params.customerId && !!params.storeId,
+    placeholderData: keepPreviousData,
+    staleTime: 10_000,
   });
 }

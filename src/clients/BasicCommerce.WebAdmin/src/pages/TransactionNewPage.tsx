@@ -4,7 +4,7 @@ import {
   ShoppingCart, ChevronRight, X, Plus, Minus,
   Trash2, User, Loader2, AlertCircle, Package,
   Receipt, ScanLine, Store as StoreIcon, Monitor, CheckCircle2, Delete,
-  SplitSquareHorizontal, ArrowLeftRight, BadgePercent,
+  SplitSquareHorizontal, ArrowLeftRight, BadgePercent, Star,
 } from 'lucide-react';
 import { cn, extractApiError } from '../lib/utils';
 import type { ProductListItem } from '../types/product';
@@ -15,6 +15,8 @@ import { useProductSearch } from '../hooks/useProducts';
 import { useCustomerSearch } from '../hooks/useCustomers';
 import * as transactionsApi from '../api/transactionsApi';
 import { useCartPreview } from '../hooks/useTransactions';
+import { useCheckoutRewardPoints } from '../hooks/useRewardPoints';
+import type { CheckoutRewardPoints } from '../types/rewardPoints';
 import { useQueryClient } from '@tanstack/react-query';
 import { PaymentMethodIcon } from '../components/transactions/PaymentMethodIcon';
 import { SplitPaymentPanel, type DraftPayment } from '../components/transactions/SplitPaymentPanel';
@@ -197,7 +199,6 @@ function CustomerPicker({
           <p className="text-sm font-semibold text-blue-900 dark:text-blue-300 truncate">{value.name}</p>
           <p className="text-xs text-blue-500 dark:text-blue-400">
             {value.phone ?? '—'}
-            {(value.loyaltyPoints ?? 0) > 0 && ` · ${value.loyaltyPoints} pts`}
           </p>
         </div>
         <button onClick={() => onChange(null)}
@@ -243,6 +244,61 @@ function CustomerPicker({
               )}
             </button>
           ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Reward points summary for the attached customer ─────────────────────── */
+
+function RewardPointsStrip({ points, hasItems }: {
+  points: CheckoutRewardPoints | undefined;
+  hasItems: boolean;
+}) {
+  if (!points) {
+    return (
+      <div className="mt-3 h-12 rounded-xl bg-gray-50 dark:bg-gray-800/60 animate-pulse" />
+    );
+  }
+  if (!points.programEnabled) return null;
+
+  return (
+    <div className="mt-3 px-3 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-900/15 border border-amber-200/70 dark:border-amber-800/60">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2 min-w-0">
+          <Star className="w-4 h-4 text-amber-500 fill-amber-400 flex-shrink-0" />
+          <div className="min-w-0">
+            <p className="text-sm font-bold text-amber-900 dark:text-amber-300 tabular-nums">
+              {points.availablePoints.toLocaleString()} pts
+            </p>
+            <p className="text-[11px] text-amber-700/80 dark:text-amber-400/80">
+              Reward balance
+              {points.pendingPoints > 0 && ` · +${points.pendingPoints.toLocaleString()} pending`}
+            </p>
+          </div>
+        </div>
+        <div className="text-right flex-shrink-0">
+          <p className="text-sm font-bold text-amber-900 dark:text-amber-300 tabular-nums">
+            {fmtMoney(points.availableValue)}
+          </p>
+          <p className="text-[11px] text-amber-700/80 dark:text-amber-400/80">worth</p>
+        </div>
+      </div>
+      {hasItems && (
+        <div className="mt-2 pt-2 border-t border-amber-200/70 dark:border-amber-800/60 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[11px]">
+          <span className="text-amber-800 dark:text-amber-300">
+            {points.maxRedeemableAmount > 0
+              ? <>Can use up to <b className="tabular-nums">{fmtMoney(points.maxRedeemableAmount)}</b> on this sale</>
+              : points.availablePoints > 0 && points.availablePoints < points.minimumPointsToUse
+                ? `Needs ${points.minimumPointsToUse} pts to redeem`
+                : 'No points usable on this sale'}
+          </span>
+          {points.pointsToEarn > 0 && (
+            <span className="font-semibold text-emerald-700 dark:text-emerald-400 tabular-nums">
+              +{points.pointsToEarn.toLocaleString()} pts {points.pointsActivateImmediately ? 'earned' : 'pending'} on this sale
+            </span>
+          )}
         </div>
       )}
     </div>
@@ -383,15 +439,67 @@ export default function TransactionNewPage() {
   const splitPaidSoFar  = splitPayments.reduce((s, p) => s + p.amount, 0);
   const splitBalanceDue = Math.round((total - splitPaidSoFar) * 100) / 100;
 
+  /* ── Reward points ── */
+
+  const pointsPaying = splitMode
+    ? splitPayments.filter((p) => p.method === 'RewardPoints').reduce((s, p) => s + p.amount, 0)
+    : payMethod === 'RewardPoints' ? total : 0;
+
+  const { data: points } = useCheckoutRewardPoints({
+    customerId:   customer?.id ?? null,
+    storeId,
+    orderTotal:   items.length > 0 ? total : 0,
+    pointsAmount: pointsPaying,
+  });
+
+  const pointsMaxAmount = !customer
+    ? 0
+    : points ? (points.programEnabled ? points.maxRedeemableAmount : 0) : undefined;
+  const pointsCoverWholeSale = pointsMaxAmount !== undefined && pointsMaxAmount >= total - 0.005;
+
+  const disabledMethods: Record<string, string> = {};
+  if (!customer) {
+    disabledMethods.Credit       = 'Attach a customer to sell on credit';
+    disabledMethods.RewardPoints = 'Attach a customer to pay with points';
+  } else if (points && !points.programEnabled) {
+    disabledMethods.RewardPoints = 'The reward points programme is turned off';
+  } else if (points && points.maxRedeemableAmount <= 0) {
+    disabledMethods.RewardPoints =
+      points.availablePoints > 0 && points.availablePoints < points.minimumPointsToUse
+        ? `Needs at least ${points.minimumPointsToUse} points to redeem`
+        : 'No points available to use on this sale';
+  }
+
+  // Detaching the customer (or the customer having no usable points) must not leave a
+  // points/credit payment selected.
+  useEffect(() => {
+    if (disabledMethods[payMethod]) setPayMethod('Cash');
+    setSplitPayments((prev) => {
+      const kept = prev.filter((p) => !disabledMethods[p.method]);
+      return kept.length === prev.length ? prev : kept;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [customer?.id, disabledMethods.RewardPoints, disabledMethods.Credit]);
+
   const setupOk   = !!storeId && !!terminalId;
   const canSubmit = setupOk && items.length > 0 && !isSubmitting && pricingReady
     && (splitMode
       ? splitPayments.length > 0 && splitBalanceDue <= 0.005
-      : !(needsMobile && !mobileNum) && !(needsGiftCard && !giftCardCode) && !cashShort);
+      : !(needsMobile && !mobileNum) && !(needsGiftCard && !giftCardCode) && !cashShort
+        && !(payMethod === 'RewardPoints' && !pointsCoverWholeSale));
 
   function toggleSplitMode() {
     setSplitMode((v) => !v);
     setSplitPayments([]);
+    setSubmitError('');
+  }
+
+  /** Points can't cover the whole sale: use the max in points and pay the rest another way. */
+  function splitWithPoints() {
+    if (!pointsMaxAmount) return;
+    setSplitMode(true);
+    setPayMethod('Cash');
+    setSplitPayments([{ tempId: crypto.randomUUID(), method: 'RewardPoints', amount: pointsMaxAmount }]);
     setSubmitError('');
   }
 
@@ -434,6 +542,8 @@ export default function TransactionNewPage() {
       await transactionsApi.completeTransaction(txn.id);
 
       qc.invalidateQueries({ queryKey: ['transactions'] });
+      qc.invalidateQueries({ queryKey: ['reward-points'] });
+      qc.invalidateQueries({ queryKey: ['customers'] });
       navigate(`/sales/transactions/${txn.id}`);
     } catch (e) {
       const base = extractApiError(e);
@@ -603,6 +713,7 @@ export default function TransactionNewPage() {
           {/* Customer */}
           <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-4">
             <CustomerPicker value={customer} onChange={setCustomer} />
+            {customer && <RewardPointsStrip points={points} hasItems={items.length > 0} />}
           </div>
 
           {/* Checkout */}
@@ -674,6 +785,8 @@ export default function TransactionNewPage() {
                   total={total}
                   payments={splitPayments}
                   onAdd={(p) => setSplitPayments((prev) => [...prev, p])}
+                  disabledMethods={disabledMethods}
+                  pointsMaxAmount={pointsMaxAmount}
                   onRemove={(id) => setSplitPayments((prev) => prev.filter((p) => p.tempId !== id))}
                 />
               ) : (
@@ -685,9 +798,11 @@ export default function TransactionNewPage() {
                         setPayMethod(m.value);
                         setGiftCardCode(''); setMobileNum(''); setTendered('');
                       }}
-                      title={m.hint}
+                      disabled={!!disabledMethods[m.value]}
+                      title={disabledMethods[m.value] ?? m.hint}
                       className={cn(
                         'flex items-center gap-1.5 pl-2 pr-3 py-1.5 rounded-full border-2 text-xs font-semibold transition-all',
+                        'disabled:opacity-40 disabled:cursor-not-allowed',
                         payMethod === m.value
                           ? 'border-primary-600 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 shadow-sm'
                           : 'border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-300',
@@ -750,6 +865,34 @@ export default function TransactionNewPage() {
                   <div className="flex items-center justify-between px-3.5 py-2.5 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl">
                     <span className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">Change due</span>
                     <span className="text-xl font-extrabold tabular-nums text-emerald-700 dark:text-emerald-400">{fmtMoney(changeDue)}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Paying with points — single-payment mode */}
+            {!splitMode && payMethod === 'RewardPoints' && total > 0 && points && (
+              <div className="px-5 pb-4">
+                {pointsCoverWholeSale ? (
+                  <div className="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-900/15 border border-amber-200 dark:border-amber-800">
+                    <span className="text-sm text-amber-800 dark:text-amber-300">
+                      Uses <b className="tabular-nums">{Math.ceil(total / points.exchangeRate).toLocaleString()}</b> of {points.availablePoints.toLocaleString()} pts
+                    </span>
+                    <Star className="w-4 h-4 text-amber-500 fill-amber-400" />
+                  </div>
+                ) : (
+                  <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-900/15 border border-amber-200 dark:border-amber-800 space-y-2">
+                    <p className="text-sm text-amber-800 dark:text-amber-300">
+                      Points can cover <b className="tabular-nums">{fmtMoney(pointsMaxAmount ?? 0)}</b> of this {fmtMoney(total)} sale.
+                    </p>
+                    <button
+                      onClick={splitWithPoints}
+                      disabled={!pointsMaxAmount}
+                      className="w-full flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg bg-amber-500 hover:bg-amber-600 text-white transition disabled:opacity-40"
+                    >
+                      <SplitSquareHorizontal className="w-4 h-4" />
+                      Use {fmtMoney(pointsMaxAmount ?? 0)} in points, pay the rest
+                    </button>
                   </div>
                 )}
               </div>

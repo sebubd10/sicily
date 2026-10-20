@@ -14,4 +14,11 @@ public interface IRewardPointsAccountRepository : ITenantRepository<RewardPoints
     Task<RewardPointsAccount?> GetWithEntriesAsync(Guid tenantId, Guid customerId,
         Guid? storeId = null, CancellationToken ct = default);
     Task<bool> HasPointsForStoreAsync(Guid tenantId, Guid storeId, CancellationToken ct = default);
+
+    /// <summary>Sum of activated earned points on the account whose expiry date has passed.</summary>
+    Task<int> GetExpiredEarnedTotalAsync(Guid accountId, DateTime asOf, CancellationToken ct = default);
+
+    /// <summary>All ledger entries recorded against a sale transaction.</summary>
+    Task<IReadOnlyList<RewardPointsEntry>> GetEntriesForTransactionAsync(Guid transactionId,
+        CancellationToken ct = default);
 }

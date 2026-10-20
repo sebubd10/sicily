@@ -63,6 +63,65 @@ public class RewardPointsAccount : TenantEntity
         return entry;
     }
 
+    /// <summary>
+    /// Takes back points earned on a sale that was returned or voided. Capped at what is
+    /// still available — points the customer already spent can't be clawed back.
+    /// Returns the number of points actually reversed.
+    /// </summary>
+    public int ReversePoints(int points, Guid transactionId, string notes)
+    {
+        var toReverse = Math.Min(points, Math.Max(0, AvailablePoints));
+        if (toReverse <= 0) return 0;
+
+        _entries.Add(RewardPointsEntry.Create(Id, -toReverse, RewardPointsEntryType.Reversed,
+            true, null, transactionId, notes));
+        UsedPoints += toReverse;
+        UpdatedAt = DateTime.UtcNow;
+        return toReverse;
+    }
+
+    /// <summary>Gives back points that were redeemed on a sale that has since been voided.</summary>
+    public int RestoreRedeemedPoints(int points, Guid transactionId, string notes)
+    {
+        var toRestore = Math.Min(points, UsedPoints);
+        if (toRestore <= 0) return 0;
+
+        _entries.Add(RewardPointsEntry.Create(Id, toRestore, RewardPointsEntryType.Refunded,
+            true, null, transactionId, notes));
+        UsedPoints -= toRestore;
+        UpdatedAt = DateTime.UtcNow;
+        return toRestore;
+    }
+
+    /// <summary>Credits points as the refund method for a return.</summary>
+    public void CreditRefund(int points, Guid transactionId, string notes)
+    {
+        if (points <= 0) return;
+        _entries.Add(RewardPointsEntry.Create(Id, points, RewardPointsEntryType.Refunded,
+            true, null, transactionId, notes));
+        TotalEarnedPoints += points;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Expires points whose validity has lapsed. Points are spent oldest-expiry first, so
+    /// the unspent part of everything that has expired is <c>expiredEarned − used</c>.
+    /// </summary>
+    /// <param name="earnedExpiredTotal">Sum of activated earned points whose ExpiresAt has passed.</param>
+    /// <returns>Points newly expired by this call.</returns>
+    public int ApplyExpiry(int earnedExpiredTotal)
+    {
+        var shouldBeExpired = Math.Max(0, earnedExpiredTotal - UsedPoints);
+        var newlyExpired = Math.Min(shouldBeExpired - ExpiredPoints, Math.Max(0, AvailablePoints));
+        if (newlyExpired <= 0) return 0;
+
+        _entries.Add(RewardPointsEntry.Create(Id, -newlyExpired, RewardPointsEntryType.Expired,
+            true, null, null, "Points expired"));
+        ExpiredPoints += newlyExpired;
+        UpdatedAt = DateTime.UtcNow;
+        return newlyExpired;
+    }
+
     public void ActivatePendingPoints(int points)
     {
         var toActivate = Math.Min(points, PendingPoints);

@@ -38,3 +38,23 @@ export interface RewardPointsAccount {
   availablePoints: number;
   recentEntries: RewardPointsEntry[];
 }
+
+/** Reward points snapshot for a customer at checkout. */
+export interface CheckoutRewardPoints {
+  programEnabled: boolean;
+  /** Spendable now — expired points already excluded. */
+  availablePoints: number;
+  /** Currency value of availablePoints. */
+  availableValue: number;
+  /** Earned but not yet activated. */
+  pendingPoints: number;
+  exchangeRate: number;
+  minimumPointsToUse: number;
+  /** Most points usable on this order after programme limits. */
+  maxRedeemablePoints: number;
+  /** Currency value of maxRedeemablePoints, never above the order total. */
+  maxRedeemableAmount: number;
+  /** Points this order earns on the part not paid with points. */
+  pointsToEarn: number;
+  pointsActivateImmediately: boolean;
+}

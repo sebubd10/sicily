@@ -167,11 +167,16 @@ public class Transaction : TenantEntity
         RecalculateTotals();
     }
 
+    /// <param name="discountAmount">Share of the original line's discount for the returned units.</param>
+    /// <param name="taxRate">Original line's VAT rate, so the VAT paid is refunded too.</param>
     public LineItem AddReturnLineItem(Guid productId, string productName, string productSku,
-        decimal quantity, decimal unitPrice, ReturnReason reason, DamageDisposition disposition)
+        decimal quantity, decimal unitPrice, ReturnReason reason, DamageDisposition disposition,
+        decimal discountAmount = 0m, decimal taxRate = 0m)
     {
         var item = LineItem.CreateReturnItem(
             Id, productId, productName, productSku, quantity, unitPrice, reason, disposition);
+        item.ApplyDiscount(discountAmount);
+        item.ApplyTax(taxRate);
         _lineItems.Add(item);
         RecalculateTotals();
         return item;

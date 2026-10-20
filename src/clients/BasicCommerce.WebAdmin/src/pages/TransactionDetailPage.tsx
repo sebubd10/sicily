@@ -4,7 +4,7 @@ import {
   ArrowLeft, ShoppingCart, CheckCircle2, Ban, Clock, RotateCcw,
   User, Store, Terminal, CreditCard, AlertCircle, Loader2,
   Receipt, Package, Copy, Check, XCircle, RefreshCw,
-  ChevronRight, AlertTriangle,
+  ChevronRight, AlertTriangle, Star,
 } from 'lucide-react';
 import { cn, extractApiError } from '../lib/utils';
 import type { Transaction, TransactionStatus, TransactionType, LineItem, Payment } from '../types/transaction';
@@ -275,6 +275,20 @@ export default function TransactionDetailPage() {
             ? <p className="font-medium text-gray-900 dark:text-white">{txn.customerName}</p>
             : <p className="text-gray-400 italic text-sm">Walk-in customer</p>
           }
+          {txn.customerId && (txn.pointsEarned > 0 || txn.pointsRedeemed > 0) && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {txn.pointsEarned > 0 && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                  <Star className="w-3 h-3" /> +{txn.pointsEarned.toLocaleString()} pts earned
+                </span>
+              )}
+              {txn.pointsRedeemed > 0 && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                  <Star className="w-3 h-3" /> {txn.pointsRedeemed.toLocaleString()} pts redeemed
+                </span>
+              )}
+            </div>
+          )}
         </InfoCard>
 
         {/* Store */}

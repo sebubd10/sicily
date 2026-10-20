@@ -1,3 +1,4 @@
+using BasicCommerce.Application.Features.RewardPoints;
 using BasicCommerce.Contracts.Transactions;
 using BasicCommerce.Domain.Entities;
 using BasicCommerce.Domain.Enums;
@@ -109,11 +110,12 @@ public class AddPaymentCommandHandler : IRequestHandler<AddPaymentCommand, Trans
         if (settings.Status != EntityStatus.Active)
             throw new DomainException("Reward points programme is not enabled.");
 
-        var storeId = settings.PointsAccumulatedForAllStores ? (Guid?)null : transaction.StoreId;
+        var account = await RewardPointsLedger.GetAccountAsync(_uow, settings,
+            request.TenantId, transaction.CustomerId.Value, transaction.StoreId, ct)
+            ?? throw new DomainException("Customer has no reward points to redeem.");
 
-        var account = await _uow.RewardPointsAccounts.GetByCustomerAsync(
-            request.TenantId, transaction.CustomerId.Value, storeId, ct)
-            ?? throw new DomainException("Customer has no reward points account.");
+        // Lapsed points must not be spendable.
+        await RewardPointsLedger.ApplyExpiryAsync(_uow, account, ct);
 
         // Convert currency amount to points
         if (settings.ExchangeRate <= 0)
@@ -141,11 +143,8 @@ public class AddPaymentCommandHandler : IRequestHandler<AddPaymentCommand, Trans
         account.RedeemPoints(pointsToRedeem, transaction.Id,
             $"Redemption: {transaction.TransactionNumber}");
 
-        var customer = await _uow.Customers.GetByIdAsync(transaction.CustomerId.Value, ct);
-        customer?.RedeemLoyaltyPoints(pointsToRedeem);
-        if (customer is not null) _uow.Customers.Update(customer);
-
-        _uow.RewardPointsAccounts.Update(account);
+        await RewardPointsLedger.AdjustCustomerSummaryAsync(
+            _uow, transaction.CustomerId.Value, -pointsToRedeem, ct);
     }
 
     private async Task RedeemGiftCardAsync(

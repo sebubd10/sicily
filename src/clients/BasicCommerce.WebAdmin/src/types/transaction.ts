@@ -55,6 +55,10 @@ export interface Transaction {
   completedAt: string | null;
   voidedAt: string | null;
   voidReason: string | null;
+  /** Net points this sale earned (after any reversals). */
+  pointsEarned: number;
+  /** Net points redeemed as payment on this sale (after any refunds). */
+  pointsRedeemed: number;
 }
 
 export interface TransactionSummary {

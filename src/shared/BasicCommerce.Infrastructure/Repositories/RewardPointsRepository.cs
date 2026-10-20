@@ -37,4 +37,18 @@ public class RewardPointsAccountRepository
         await Db.RewardPointsAccounts.AnyAsync(
             r => r.TenantId == tenantId && r.StoreId == storeId
               && (r.TotalEarnedPoints - r.UsedPoints - r.ExpiredPoints) > 0, ct);
+
+    public async Task<int> GetExpiredEarnedTotalAsync(Guid accountId, DateTime asOf,
+        CancellationToken ct = default) =>
+        await Db.RewardPointsEntries
+            .Where(e => e.RewardPointsAccountId == accountId
+                && e.IsActivated && e.Points > 0
+                && e.ExpiresAt != null && e.ExpiresAt <= asOf)
+            .SumAsync(e => e.Points, ct);
+
+    public async Task<IReadOnlyList<RewardPointsEntry>> GetEntriesForTransactionAsync(
+        Guid transactionId, CancellationToken ct = default) =>
+        await Db.RewardPointsEntries
+            .Where(e => e.TransactionId == transactionId)
+            .ToListAsync(ct);
 }
