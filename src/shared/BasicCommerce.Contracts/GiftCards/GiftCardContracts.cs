@@ -9,15 +9,17 @@ public record GiftCardTransactionResponse(
     string? Notes,
     DateTime CreatedAt);
 
+/// <param name="StoreId">Store the card is restricted to; null = usable at any store.</param>
 public record GiftCardResponse(
     Guid Id,
     string Code,
-    Guid StoreId,
+    Guid? StoreId,
     decimal InitialBalance,
     decimal Balance,
     string CardStatus,
     DateTime? ExpiryDate,
     Guid? IssuedToCustomerId,
+    string? CustomerName,
     Guid? IssuedInTransactionId,
     string? Notes,
     DateTime CreatedAt,
@@ -26,7 +28,9 @@ public record GiftCardResponse(
 public record GiftCardSummaryResponse(
     Guid Id,
     string Code,
-    Guid StoreId,
+    Guid? StoreId,
+    Guid? IssuedToCustomerId,
+    string? CustomerName,
     decimal Balance,
     string CardStatus,
     DateTime? ExpiryDate,
@@ -38,17 +42,20 @@ public record GiftCardListResponse(
     int Page,
     int PageSize);
 
+/// <param name="StoreId">Leave empty to make the card usable at every store.</param>
 public record IssueGiftCardRequest(
-    Guid StoreId,
+    Guid? StoreId,
     decimal Amount,
     DateTime? ExpiryDate,
-    Guid? IssuedToCustomerId,
+    Guid IssuedToCustomerId,
     string? Notes);
 
 public record ReloadGiftCardRequest(decimal Amount, string? Notes);
 
+/// <param name="StoreId">Store the card is restricted to; null = usable at any store.</param>
 public record CheckBalanceResponse(
     string Code,
     decimal Balance,
     string CardStatus,
-    DateTime? ExpiryDate);
+    DateTime? ExpiryDate,
+    Guid? StoreId = null);

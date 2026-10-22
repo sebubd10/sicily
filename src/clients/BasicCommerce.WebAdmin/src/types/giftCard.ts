@@ -13,12 +13,14 @@ export interface GiftCardTransactionItem {
 export interface GiftCard {
   id: string;
   code: string;
-  storeId: string;
+  /** Store the card is restricted to; null = usable at any store. */
+  storeId: string | null;
   initialBalance: number;
   balance: number;
   cardStatus: GiftCardStatus;
   expiryDate: string | null;
   issuedToCustomerId: string | null;
+  customerName: string | null;
   issuedInTransactionId: string | null;
   notes: string | null;
   createdAt: string;
@@ -28,7 +30,10 @@ export interface GiftCard {
 export interface GiftCardSummary {
   id: string;
   code: string;
-  storeId: string;
+  /** null = usable at any store. */
+  storeId: string | null;
+  issuedToCustomerId: string | null;
+  customerName: string | null;
   balance: number;
   cardStatus: GiftCardStatus;
   expiryDate: string | null;
@@ -43,9 +48,10 @@ export interface GiftCardListResponse {
 }
 
 export interface IssueGiftCardPayload {
-  storeId: string;
+  /** Omit/null to make the card usable at every store. */
+  storeId?: string | null;
   amount: number;
   expiryDate?: string | null;
-  issuedToCustomerId?: string | null;
+  issuedToCustomerId: string;
   notes?: string | null;
 }

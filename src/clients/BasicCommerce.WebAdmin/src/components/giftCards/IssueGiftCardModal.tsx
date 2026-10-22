@@ -54,13 +54,13 @@ export function IssueGiftCardModal({ open, onClose }: Props) {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const amt = parseFloat(amount);
-    if (!storeId || isNaN(amt) || amt <= 0) return;
+    if (!selectedCustomerId || isNaN(amt) || amt <= 0) return;
     issue(
       {
-        storeId,
+        storeId: storeId || null,
         amount: amt,
         expiryDate: expiryDate || null,
-        issuedToCustomerId: selectedCustomerId || null,
+        issuedToCustomerId: selectedCustomerId,
         notes: notes.trim() || null,
       },
       { onSuccess: handleClose },
@@ -102,22 +102,77 @@ export function IssueGiftCardModal({ open, onClose }: Props) {
               </div>
             )}
 
-            {/* Store */}
+            {/* Customer (required) */}
+            <div className="relative">
+              <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
+                Customer <span className="text-red-400">*</span>
+              </label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search by name, phone or code…"
+                  value={customerSearch}
+                  onChange={(e) => {
+                    setCustomerSearch(e.target.value);
+                    setSelectedCustomerId('');
+                    setSelectedCustomerName('');
+                    setShowCustomerDrop(true);
+                  }}
+                  onFocus={() => setShowCustomerDrop(true)}
+                  onBlur={() => setTimeout(() => setShowCustomerDrop(false), 150)}
+                  className="w-full pl-8 pr-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                />
+                {searchingCustomers && (
+                  <Loader2 className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 animate-spin text-gray-400" />
+                )}
+              </div>
+              {selectedCustomerId && (
+                <button type="button" onClick={clearCustomer}
+                  className="text-xs text-violet-600 hover:underline mt-1 block">
+                  Clear selection
+                </button>
+              )}
+              {showCustomerDrop && customerSearch.length >= 2 && customers.length > 0 && (
+                <div className="absolute z-20 top-full mt-1 w-full bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg overflow-hidden max-h-40 overflow-y-auto">
+                  {customers.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onMouseDown={(e) => { e.preventDefault(); selectCustomer(c.id, c.name); }}
+                      className={cn(
+                        'w-full text-left px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors',
+                        selectedCustomerId === c.id && 'bg-violet-50 dark:bg-violet-900/20',
+                      )}
+                    >
+                      <p className="text-xs font-medium text-gray-900 dark:text-gray-100">{c.name}</p>
+                      <p className="text-xs text-gray-400">{c.code}</p>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Store (optional) */}
             <div>
               <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
-                Store <span className="text-red-400">*</span>
+                Valid at
               </label>
               <select
-                required
                 value={storeId}
                 onChange={(e) => setStoreId(e.target.value)}
                 className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500"
               >
-                <option value="">Select a store…</option>
+                <option value="">All stores</option>
                 {activeStores.map((s) => (
-                  <option key={s.id} value={s.id}>{s.name} ({s.code})</option>
+                  <option key={s.id} value={s.id}>{s.name} ({s.code}) only</option>
                 ))}
               </select>
+              <p className="text-xs text-gray-400 mt-1">
+                {storeId
+                  ? 'The card can only be redeemed at this store.'
+                  : 'The card can be redeemed at any store.'}
+              </p>
             </div>
 
             {/* Amount */}
@@ -158,8 +213,8 @@ export function IssueGiftCardModal({ open, onClose }: Props) {
               </div>
             </div>
 
-            {/* Expiry + Customer (2-col) */}
-            <div className="grid grid-cols-2 gap-3">
+            {/* Expiry */}
+            <div>
               {/* Expiry Date */}
               <div>
                 <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
@@ -177,56 +232,6 @@ export function IssueGiftCardModal({ open, onClose }: Props) {
                 )}
               </div>
 
-              {/* Issued to (optional) */}
-              <div className="relative">
-                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
-                  Issue To (optional)
-                </label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Search customer…"
-                    value={customerSearch}
-                    onChange={(e) => {
-                      setCustomerSearch(e.target.value);
-                      setSelectedCustomerId('');
-                      setSelectedCustomerName('');
-                      setShowCustomerDrop(true);
-                    }}
-                    onFocus={() => setShowCustomerDrop(true)}
-                    onBlur={() => setTimeout(() => setShowCustomerDrop(false), 150)}
-                    className="w-full pl-8 pr-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500"
-                  />
-                  {searchingCustomers && (
-                    <Loader2 className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 animate-spin text-gray-400" />
-                  )}
-                </div>
-                {selectedCustomerId && (
-                  <button type="button" onClick={clearCustomer}
-                    className="text-xs text-violet-600 hover:underline mt-1 block">
-                    Clear selection
-                  </button>
-                )}
-                {showCustomerDrop && customerSearch.length >= 2 && customers.length > 0 && (
-                  <div className="absolute z-20 top-full mt-1 w-full bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg overflow-hidden max-h-40 overflow-y-auto">
-                    {customers.map((c) => (
-                      <button
-                        key={c.id}
-                        type="button"
-                        onMouseDown={(e) => { e.preventDefault(); selectCustomer(c.id, c.name); }}
-                        className={cn(
-                          'w-full text-left px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors',
-                          selectedCustomerId === c.id && 'bg-violet-50 dark:bg-violet-900/20',
-                        )}
-                      >
-                        <p className="text-xs font-medium text-gray-900 dark:text-gray-100">{c.name}</p>
-                        <p className="text-xs text-gray-400">{c.code}</p>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
             </div>
 
             {/* Notes */}
@@ -244,7 +249,7 @@ export function IssueGiftCardModal({ open, onClose }: Props) {
             </div>
 
             {/* Preview */}
-            {amount && parseFloat(amount) > 0 && storeId && (
+            {amount && parseFloat(amount) > 0 && selectedCustomerId && (
               <div className="bg-violet-50 dark:bg-violet-900/20 rounded-xl p-3 border border-violet-100 dark:border-violet-800">
                 <p className="text-xs font-semibold text-violet-700 dark:text-violet-300 uppercase tracking-wider mb-1.5">
                   Card Preview
@@ -263,12 +268,16 @@ export function IssueGiftCardModal({ open, onClose }: Props) {
                     </span>
                   </div>
                 )}
-                {selectedCustomerName && (
-                  <div className="flex items-center justify-between text-sm mt-1">
-                    <span className="text-gray-600 dark:text-gray-400">Issued to</span>
-                    <span className="text-gray-700 dark:text-gray-300">{selectedCustomerName}</span>
-                  </div>
-                )}
+                <div className="flex items-center justify-between text-sm mt-1">
+                  <span className="text-gray-600 dark:text-gray-400">Issued to</span>
+                  <span className="text-gray-700 dark:text-gray-300">{selectedCustomerName}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm mt-1">
+                  <span className="text-gray-600 dark:text-gray-400">Valid at</span>
+                  <span className="text-gray-700 dark:text-gray-300">
+                    {activeStores.find((st) => st.id === storeId)?.name ?? 'All stores'}
+                  </span>
+                </div>
                 <p className="text-xs text-violet-500 dark:text-violet-400 mt-2">
                   A unique code will be generated automatically
                 </p>
@@ -286,7 +295,7 @@ export function IssueGiftCardModal({ open, onClose }: Props) {
               form="issue-form"
               type="submit"
               onClick={handleSubmit}
-              disabled={isPending || !storeId || !amount}
+              disabled={isPending || !selectedCustomerId || !amount}
               className="flex items-center gap-2 px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white text-sm font-medium transition-colors shadow-sm"
             >
               {isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Gift className="w-3.5 h-3.5" />}

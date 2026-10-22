@@ -1,6 +1,7 @@
 using BasicCommerce.Application.Interfaces;
 using BasicCommerce.Contracts.GiftCards;
 using BasicCommerce.Domain.Entities;
+using BasicCommerce.Domain.Enums;
 using BasicCommerce.Domain.Exceptions;
 using BasicCommerce.Domain.Interfaces;
 using FluentValidation;
@@ -8,11 +9,13 @@ using MediatR;
 
 namespace BasicCommerce.Application.Features.GiftCards.Commands;
 
+/// <param name="StoreId">Restrict the card to one store, or null to allow every store.</param>
+/// <param name="IssuedToCustomerId">The customer the card belongs to (required).</param>
 public record IssueGiftCardCommand(
-    Guid StoreId,
+    Guid? StoreId,
     decimal Amount,
     DateTime? ExpiryDate,
-    Guid? IssuedToCustomerId,
+    Guid IssuedToCustomerId,
     Guid? IssuedInTransactionId,
     string? Notes) : IRequest<GiftCardResponse>;
 
@@ -20,7 +23,9 @@ public class IssueGiftCardCommandValidator : AbstractValidator<IssueGiftCardComm
 {
     public IssueGiftCardCommandValidator()
     {
-        RuleFor(x => x.StoreId).NotEmpty();
+        RuleFor(x => x.IssuedToCustomerId).NotEmpty()
+            .WithMessage("Select the customer this gift card is for.");
+        RuleFor(x => x.StoreId).NotEqual(Guid.Empty).When(x => x.StoreId.HasValue);
         RuleFor(x => x.Amount).GreaterThan(0);
         RuleFor(x => x.ExpiryDate).GreaterThan(DateTime.UtcNow.Date)
             .When(x => x.ExpiryDate.HasValue)
@@ -42,6 +47,20 @@ public class IssueGiftCardCommandHandler : IRequestHandler<IssueGiftCardCommand,
     public async Task<GiftCardResponse> Handle(IssueGiftCardCommand request, CancellationToken ct)
     {
         var tenantId = _currentUser.TenantId;
+
+        var customer = await _uow.Customers.GetByIdForTenantAsync(tenantId, request.IssuedToCustomerId, ct)
+            ?? throw new NotFoundException("Customer", request.IssuedToCustomerId);
+        if (customer.Status != EntityStatus.Active)
+            throw new DomainException($"Customer '{customer.Name}' is inactive.");
+
+        if (request.StoreId is Guid storeId)
+        {
+            var store = await _uow.Stores.GetByIdForTenantAsync(tenantId, storeId, ct)
+                ?? throw new NotFoundException("Store", storeId);
+            if (store.Status != EntityStatus.Active)
+                throw new DomainException($"Store '{store.Name}' is inactive.");
+        }
+
         var code = GenerateCode();
 
         // Ensure uniqueness
@@ -56,7 +75,8 @@ public class IssueGiftCardCommandHandler : IRequestHandler<IssueGiftCardCommand,
         await _uow.SaveChangesAsync(ct);
 
         return GiftCardMapper.ToResponse(
-            await _uow.GiftCards.GetWithTransactionsAsync(tenantId, card.Id, ct) ?? card);
+            await _uow.GiftCards.GetWithTransactionsAsync(tenantId, card.Id, ct) ?? card,
+            customer.Name);
     }
 
     private static string GenerateCode()

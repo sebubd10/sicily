@@ -159,6 +159,14 @@ public class AddPaymentCommandHandler : IRequestHandler<AddPaymentCommand, Trans
         var card = await _uow.GiftCards.GetByCodeAsync(request.TenantId, request.GiftCardCode, ct)
             ?? throw new DomainException($"Gift card '{request.GiftCardCode}' not found.");
 
+        // A card issued for a specific store can only be used there.
+        if (!card.IsUsableAtStore(transaction.StoreId))
+        {
+            var cardStore = await _uow.Stores.GetByIdAsync(card.StoreId!.Value, ct);
+            throw new DomainException(
+                $"Gift card '{card.Code}' can only be used at {cardStore?.Name ?? "the store it was issued for"}.");
+        }
+
         if (card.Balance < request.Amount)
             throw new DomainException(
                 $"Gift card balance ({card.Balance:F2}) is insufficient for this payment ({request.Amount:F2}). " +

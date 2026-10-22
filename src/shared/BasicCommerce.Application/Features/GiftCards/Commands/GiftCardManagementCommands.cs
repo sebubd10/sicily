@@ -40,7 +40,7 @@ public class ReloadGiftCardCommandHandler : IRequestHandler<ReloadGiftCardComman
         card.Reload(request.Amount, request.Notes);
         _uow.GiftCards.Update(card);
         await _uow.SaveChangesAsync(ct);
-        return GiftCardMapper.ToResponse(card);
+        return await GiftCardMapper.ToResponseAsync(_uow, card, ct);
     }
 }
 
@@ -67,6 +67,6 @@ public class CancelGiftCardCommandHandler : IRequestHandler<CancelGiftCardComman
         card.Cancel(request.Reason);
         _uow.GiftCards.Update(card);
         await _uow.SaveChangesAsync(ct);
-        return GiftCardMapper.ToResponse(card);
+        return await GiftCardMapper.ToResponseAsync(_uow, card, ct);
     }
 }

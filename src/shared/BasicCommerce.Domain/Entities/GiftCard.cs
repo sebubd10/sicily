@@ -6,7 +6,8 @@ namespace BasicCommerce.Domain.Entities;
 public class GiftCard : TenantEntity
 {
     public string Code { get; private set; } = default!;
-    public Guid StoreId { get; private set; }
+    /// <summary>Store the card is restricted to; null means it can be used at any store.</summary>
+    public Guid? StoreId { get; private set; }
     public decimal InitialBalance { get; private set; }
     public decimal Balance { get; private set; }
     public GiftCardStatus CardStatus { get; private set; } = GiftCardStatus.Inactive;
@@ -20,11 +21,15 @@ public class GiftCard : TenantEntity
 
     private GiftCard() { }
 
-    public static GiftCard Issue(Guid tenantId, Guid storeId, string code, decimal amount,
-        DateTime? expiryDate, Guid? issuedToCustomerId, Guid? issuedInTransactionId, string? notes = null)
+    /// <param name="storeId">Restrict the card to one store, or null for every store.</param>
+    /// <param name="issuedToCustomerId">The customer the card belongs to (required).</param>
+    public static GiftCard Issue(Guid tenantId, Guid? storeId, string code, decimal amount,
+        DateTime? expiryDate, Guid issuedToCustomerId, Guid? issuedInTransactionId, string? notes = null)
     {
         if (amount <= 0)
             throw new DomainException("Gift card amount must be greater than zero.");
+        if (issuedToCustomerId == Guid.Empty)
+            throw new DomainException("A gift card must be issued to a customer.");
 
         var card = new GiftCard
         {
@@ -45,6 +50,8 @@ public class GiftCard : TenantEntity
 
         return card;
     }
+
+    public bool IsUsableAtStore(Guid storeId) => StoreId is null || StoreId == storeId;
 
     public decimal Redeem(decimal amount, Guid transactionId)
     {

@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { cn, extractApiError } from '../../lib/utils';
 import { useGiftCardDetail, useReloadGiftCard, useCancelGiftCard } from '../../hooks/useGiftCards';
+import { useStoreList } from '../../hooks/useStoreAdmin';
 import type { GiftCardTransactionItem } from '../../types/giftCard';
 
 type Props = {
@@ -94,6 +95,7 @@ export function GiftCardDetailModal({ giftCardId, open, onClose }: Props) {
   const { data: card, isLoading, isError, error: fetchError } = useGiftCardDetail(
     open ? giftCardId : null,
   );
+  const { data: stores = [] } = useStoreList();
   const { mutate: reload, isPending: reloading, error: reloadError } = useReloadGiftCard();
   const { mutate: cancel, isPending: cancelling, error: cancelError } = useCancelGiftCard();
 
@@ -248,6 +250,13 @@ export function GiftCardDetailModal({ giftCardId, open, onClose }: Props) {
                 {/* Info grid */}
                 <div className="grid grid-cols-2 gap-3">
                   {[
+                    { label: 'Customer', value: card.customerName ?? '—' },
+                    {
+                      label: 'Valid at',
+                      value: card.storeId
+                        ? `${stores.find((st) => st.id === card.storeId)?.name ?? 'One store'} only`
+                        : 'All stores',
+                    },
                     { label: 'Initial Value', value: fmtMoney(card.initialBalance) },
                     { label: 'Expiry Date', value: fmtDate(card.expiryDate), warn: card.expiryDate ? new Date(card.expiryDate) < new Date(Date.now() + 7 * 86400000) : false },
                     { label: 'Issued', value: fmtDate(card.createdAt) },
