@@ -31,7 +31,7 @@ const EMPTY: FormData = {
   reference: '', notes: '',
 };
 
-export function ReceiveBatchModal({ open, storeId, onSave, onClose, isSaving, error }: Props) {
+export function ReceiveBatchModal({ open, onSave, onClose, isSaving, error }: Props) {
   const [form, setForm] = useState<FormData>(EMPTY);
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
   const [productSearch, setProductSearch] = useState('');

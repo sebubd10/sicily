@@ -4,12 +4,12 @@ import { RotateCcw, X, Loader2, ChevronDown, Check } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import type { CreateSupplierReturnFormData } from '../../types/supplierReturn';
 import type { Supplier } from '../../types/supplier';
-import type { Store } from '../../types/store';
 
 type Props = {
   open: boolean;
   suppliers: Supplier[];
-  stores: Store[];
+  /** Only id, name and code are used, so any store list shape works. */
+  stores: { id: string; name: string; code: string }[];
   isSaving?: boolean;
   error?: string | null;
   onSave: (form: CreateSupplierReturnFormData) => void;

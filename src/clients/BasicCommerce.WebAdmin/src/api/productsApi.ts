@@ -31,12 +31,12 @@ export async function getProductById(id: string): Promise<Product> {
 }
 
 export async function createProduct(form: ProductFormData): Promise<Product> {
-  const { data } = await api.post<ApiResponse<Product>>('/products', toPayload(form, true));
+  const { data } = await api.post<ApiResponse<Product>>('/products', toPayload(form));
   return data.data!;
 }
 
 export async function updateProduct(id: string, form: ProductFormData): Promise<Product> {
-  const { data } = await api.put<ApiResponse<Product>>(`/products/${id}`, toPayload(form, false));
+  const { data } = await api.put<ApiResponse<Product>>(`/products/${id}`, toPayload(form));
   return data.data!;
 }
 
@@ -52,7 +52,7 @@ export async function deleteProduct(id: string): Promise<void> {
   await api.delete(`/products/${id}`);
 }
 
-function toPayload(form: ProductFormData, isCreate: boolean) {
+function toPayload(form: ProductFormData) {
   const base = {
     sku: form.sku.toUpperCase(),
     barcode: form.barcode,

@@ -14,7 +14,8 @@ public record ProductListProjection(
     decimal VatRate,
     string? ImageUrl,
     string? ManufacturerName,
-    string Status);
+    string Status,
+    decimal? CostPrice = null);
 
 public interface IProductRepository : ITenantRepository<Product>
 {

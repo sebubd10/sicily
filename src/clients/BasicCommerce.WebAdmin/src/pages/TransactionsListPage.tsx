@@ -388,7 +388,7 @@ export default function TransactionsListPage() {
 
         {totalPages > 1 && (
           <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-800">
-            <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+            <Pagination page={page} totalPages={totalPages} totalItems={totalCount} pageSize={PAGE_SIZE} onPageChange={setPage} />
           </div>
         )}
       </div>

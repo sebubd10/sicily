@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import {
-  X, User, Phone, Mail, MapPin, Star, CreditCard, Clock,
-  TrendingUp, TrendingDown, Wallet, AlertCircle, Loader2,
-  ArrowDownCircle, ArrowUpCircle, BadgeCheck, Ban, Pencil,
+  X, Phone, Mail, MapPin, CreditCard,
+  TrendingUp, TrendingDown, AlertCircle, Loader2,
+  ArrowDownCircle, ArrowUpCircle, BadgeCheck, Pencil,
 } from 'lucide-react';
 import { cn, extractApiError } from '../../lib/utils';
 import type { Customer } from '../../types/customer';
@@ -98,6 +98,7 @@ export function CustomerDetailModal({ customer, open, onClose, onEdit }: Props) 
   const { mutate: redeemPoints, isPending: redeemingPoints, error: redeemError } = useRedeemLoyaltyPoints();
 
   if (!customer) return null;
+  const customerId = customer.id;
 
   const activeAccount = creditAccounts.find((a) => a.status === 'Active') ?? creditAccounts[0];
 
@@ -105,7 +106,7 @@ export function CustomerDetailModal({ customer, open, onClose, onEdit }: Props) 
     const val = Number(newCreditLimit);
     if (isNaN(val) || val < 0) return;
     updateCreditLimit(
-      { id: customer.id, creditLimit: val },
+      { id: customerId, creditLimit: val },
       {
         onSuccess: () => {
           setShowCreditLimitForm(false);
@@ -136,7 +137,7 @@ export function CustomerDetailModal({ customer, open, onClose, onEdit }: Props) 
     const pts = Number(loyaltyPoints);
     if (isNaN(pts) || pts <= 0 || !loyaltyReason.trim()) return;
 
-    const vars = { id: customer.id, points: pts, reason: loyaltyReason };
+    const vars = { id: customerId, points: pts, reason: loyaltyReason };
     const successMsg =
       loyaltyMode === 'add'
         ? `Added ${pts} points successfully`

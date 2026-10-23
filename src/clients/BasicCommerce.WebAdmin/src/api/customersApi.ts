@@ -6,6 +6,7 @@ import type {
   UpdateCustomerPayload,
   CreditAccount,
   CreditAccountListResponse,
+  CreditAccountSummary,
 } from '../types/customer';
 
 type ApiResponse<T> = { success: boolean; data: T; message?: string };

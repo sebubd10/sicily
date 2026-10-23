@@ -1,4 +1,4 @@
-import { useState, FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Store, Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react';
 import { login, getGoogleOAuthUrl, getMicrosoftOAuthUrl } from '../../api/authApi';

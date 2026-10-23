@@ -4,7 +4,7 @@ import {
   AlertCircle, Package, Download, Filter, Image as ImageIcon,
 } from 'lucide-react';
 import { cn, extractApiError } from '../lib/utils';
-import type { Product, ProductListItem, ProductFormData } from '../types/product';
+import type { ProductListItem, ProductFormData } from '../types/product';
 import { ProductModal } from '../components/products/ProductModal';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { Pagination } from '../components/ui/Pagination';

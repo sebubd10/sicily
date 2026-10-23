@@ -65,7 +65,7 @@ export function StockActionModal({ open, type, item, isSaving, error, onSave, on
   useEffect(() => {
     if (open) {
       setQuantity(''); setNewQuantity(''); setReason('');
-      setReference(''); setNotes(''); setErrs('');
+      setReference(''); setNotes(''); setErrs({});
       if (item && type === 'threshold') setThreshold(String(item.lowStockThreshold));
       else setThreshold('');
     }

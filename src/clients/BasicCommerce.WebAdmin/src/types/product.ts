@@ -80,6 +80,8 @@ export type ProductFormData = {
 export type ProductListItem = {
   id: string;
   sku: string;
+  /** Last purchase cost, used to prefill purchase orders; null if never set. */
+  costPrice: number | null;
   name: string;
   nameBn: string;
   categoryName: string;

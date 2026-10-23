@@ -59,7 +59,7 @@ export function ManagePermissionsModal({
     });
   }
 
-  function toggleGroup(group: string, perms: ApiPermission[]) {
+  function toggleGroup(perms: ApiPermission[]) {
     const allChecked = perms.every((p) => selected.has(p.code));
     setSelected((prev) => {
       const next = new Set(prev);
@@ -154,7 +154,7 @@ export function ManagePermissionsModal({
                         type="checkbox"
                         checked={allChecked}
                         ref={(el) => { if (el) el.indeterminate = someChecked; }}
-                        onChange={() => toggleGroup(group, perms)}
+                        onChange={() => toggleGroup(perms)}
                         disabled={isSaving}
                         className="accent-primary-700 w-4 h-4 rounded"
                       />

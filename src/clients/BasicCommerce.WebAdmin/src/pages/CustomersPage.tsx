@@ -68,7 +68,6 @@ export default function CustomersPage() {
   const filtered = statusFilter === 'All' ? items : items.filter((c) => c.status === statusFilter);
 
   const activeCount = items.filter((c) => c.status === 'Active').length;
-  const inactiveCount = items.filter((c) => c.status === 'Inactive').length;
 
   function handleSearch(v: string) {
     setSearch(v);

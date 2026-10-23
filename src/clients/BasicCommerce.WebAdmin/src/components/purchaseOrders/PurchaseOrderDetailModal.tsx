@@ -59,7 +59,6 @@ export function PurchaseOrderDetailModal({ open, poId, onClose, onReceive, onEdi
   const canSubmit = po?.status === 'Draft';
   const canReceive = po?.status === 'Submitted' || po?.status === 'PartiallyReceived';
   const canCancel = po?.status === 'Draft' || po?.status === 'Submitted' || po?.status === 'PartiallyReceived';
-  const hasActions = canSubmit || canReceive || canCancel;
 
   async function handleSubmit() {
     if (!poId) return;

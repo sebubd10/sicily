@@ -113,6 +113,7 @@ public class ProductRepository : TenantRepository<Product>, IProductRepository
                 x.p.ImageUrl,
                 ManufacturerName = (string?)x.m.Name,
                 x.p.Status,
+                CostPrice = (decimal?)x.p.CostPrice!.Amount,
             })
             .ToListAsync(ct);
 
@@ -120,7 +121,7 @@ public class ProductRepository : TenantRepository<Product>, IProductRepository
             x.Id, x.Sku, x.Name, x.NameBn,
             x.CategoryName, x.PriceAmount, x.Currency,
             x.VatRate, x.ImageUrl, x.ManufacturerName,
-            x.Status.ToString()));
+            x.Status.ToString(), x.CostPrice));
 
         return (items, total);
     }

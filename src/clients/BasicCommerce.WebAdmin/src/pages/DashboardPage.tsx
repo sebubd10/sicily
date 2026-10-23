@@ -128,7 +128,7 @@ export default function DashboardPage() {
                 tickFormatter={(v) => `৳${(v / 1000).toFixed(0)}k`}
               />
               <Tooltip
-                formatter={(v: number) => [`৳${v.toLocaleString()}`, 'Revenue']}
+                formatter={(v) => [`৳${Number(v ?? 0).toLocaleString()}`, 'Revenue']}
                 contentStyle={{ borderRadius: 8, border: '1px solid #E5E7EB', fontSize: 12 }}
               />
               <Area

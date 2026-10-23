@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   ShieldCheck, Plus, Pencil, Trash2, Key, LayoutDashboard,
-  AlertCircle, Loader2,
+  AlertCircle,
 } from 'lucide-react';
 import { cn, extractApiError } from '../lib/utils';
 import type { UserType, UserTypeFormData } from '../types/userType';

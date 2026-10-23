@@ -37,7 +37,7 @@ export function WarehouseMovementsModal({ open, warehouse, onClose }: Props) {
     limit: 200,
   };
 
-  const { data: movements = [], isLoading, isError, refetch } = useWarehouseMovements(
+  const { data: movements = [], isLoading, isError } = useWarehouseMovements(
     open && warehouse ? warehouse.id : null,
     params,
   );

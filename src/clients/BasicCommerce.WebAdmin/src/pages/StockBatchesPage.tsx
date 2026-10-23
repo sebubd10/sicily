@@ -398,6 +398,8 @@ export default function StockBatchesPage() {
                 <Pagination
                   page={page}
                   totalPages={totalPages}
+                  totalItems={totalCount}
+                  pageSize={PAGE_SIZE}
                   onPageChange={setPage}
                 />
               </div>

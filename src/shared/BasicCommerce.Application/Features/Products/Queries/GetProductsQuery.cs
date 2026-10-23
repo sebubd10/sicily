@@ -34,7 +34,7 @@ public class GetProductsQueryHandler : IRequestHandler<GetProductsQuery, Product
         var responses = items.Select(i => new ProductListItemResponse(
             i.Id, i.Sku, i.Name, i.NameBn,
             i.CategoryName, i.Price, i.Currency,
-            i.VatRate, i.ImageUrl, i.ManufacturerName, i.Status));
+            i.VatRate, i.ImageUrl, i.ManufacturerName, i.Status, i.CostPrice));
 
         return new ProductListResponse(responses, total, request.Page, request.PageSize);
     }

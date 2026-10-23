@@ -14,7 +14,6 @@ type Props = {
 export function AddCreditAccountModal({ open, onClose }: Props) {
   const [customerSearch, setCustomerSearch] = useState('');
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
-  const [selectedCustomerName, setSelectedCustomerName] = useState('');
   const [storeId, setStoreId] = useState('');
   const [creditLimit, setCreditLimit] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
@@ -29,7 +28,6 @@ export function AddCreditAccountModal({ open, onClose }: Props) {
   function handleClose() {
     setCustomerSearch('');
     setSelectedCustomerId('');
-    setSelectedCustomerName('');
     setStoreId('');
     setCreditLimit('');
     setShowDropdown(false);
@@ -38,7 +36,6 @@ export function AddCreditAccountModal({ open, onClose }: Props) {
 
   function selectCustomer(id: string, name: string) {
     setSelectedCustomerId(id);
-    setSelectedCustomerName(name);
     setCustomerSearch(name);
     setShowDropdown(false);
   }
@@ -104,7 +101,6 @@ export function AddCreditAccountModal({ open, onClose }: Props) {
                   onChange={(e) => {
                     setCustomerSearch(e.target.value);
                     setSelectedCustomerId('');
-                    setSelectedCustomerName('');
                     setShowDropdown(true);
                   }}
                   onFocus={() => setShowDropdown(true)}

@@ -15,7 +15,7 @@ type Props = {
 };
 
 export function TransferToStoreModal({
-  open, warehouseId, stockItem, stores, onSave, onClose, isSaving,
+  open, stockItem, stores, onSave, onClose, isSaving,
 }: Props) {
   const [storeId, setStoreId] = useState('');
   const [quantity, setQuantity] = useState('');

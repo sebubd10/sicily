@@ -47,7 +47,7 @@ api.interceptors.response.use(
 
     refreshing = true;
     try {
-      const { refreshToken, updateTokens, clearAuth } = useAuthStore.getState();
+      const { refreshToken, updateTokens } = useAuthStore.getState();
       if (!refreshToken) throw new Error('No refresh token');
 
       const { data } = await authApi.post('/refresh', { refreshToken });

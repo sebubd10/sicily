@@ -9,7 +9,7 @@ import {
 import { cn, extractApiError } from '../../lib/utils';
 import {
   RETURN_STATUS_CONFIG, RETURN_REASONS, reasonLabel,
-  type SupplierReturnDetail, type SupplierReturnReason,
+  type SupplierReturnReason,
 } from '../../types/supplierReturn';
 import {
   useSupplierReturnDetail,

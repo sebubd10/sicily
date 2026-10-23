@@ -2,7 +2,7 @@ import { useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import {
   X, CreditCard, ArrowDownCircle, ArrowUpCircle,
-  AlertCircle, Loader2, CheckCircle, User, Store, BadgeCheck,
+  AlertCircle, Loader2, CheckCircle, User, Store,
 } from 'lucide-react';
 import { cn, extractApiError } from '../../lib/utils';
 import { useCreditAccountDetail, useRecordCreditPayment } from '../../hooks/useCustomers';

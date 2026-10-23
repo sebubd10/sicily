@@ -47,7 +47,8 @@ public record ProductListItemResponse(
     decimal VatRate,
     string? ImageUrl,
     string? ManufacturerName,
-    string Status);
+    string Status,
+    decimal? CostPrice = null);
 
 public record ProductListResponse(
     IEnumerable<ProductListItemResponse> Items,

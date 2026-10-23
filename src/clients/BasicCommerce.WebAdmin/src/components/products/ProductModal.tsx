@@ -301,7 +301,7 @@ export function ProductModal({ open, product, onSave, onClose, isSaving }: Props
                           !categories.some((c) => c.id === product.categoryId)
                         );
 
-                        const visibleCategories: (SimpleCategory & { status: 'Active' | 'Inactive' | 'Deleted' })[] = [
+                        const visibleCategories: (Omit<SimpleCategory, 'status'> & { status: 'Active' | 'Inactive' | 'Deleted' })[] = [
                           ...categories.filter((c) => c.status === 'Active' || c.id === form.categoryId),
                           ...(currentCategoryMissing
                             ? [{
