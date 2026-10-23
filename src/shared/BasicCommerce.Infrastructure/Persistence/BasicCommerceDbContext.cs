@@ -57,6 +57,7 @@ public class BasicCommerceDbContext : DbContext
     public DbSet<AppSubMenu> AppSubMenus => Set<AppSubMenu>();
     public DbSet<ApiPermission> ApiPermissions => Set<ApiPermission>();
     public DbSet<ProductImage> ProductImages => Set<ProductImage>();
+    public DbSet<TransactionAuditEntry> TransactionAuditEntries => Set<TransactionAuditEntry>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

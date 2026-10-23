@@ -143,3 +143,49 @@ public record CartPreviewResponse(
     decimal DiscountTotal,
     decimal TaxTotal,
     decimal Total);
+
+public record TransactionAuditEntryResponse(
+    Guid Id,
+    string Action,
+    string Summary,
+    string? Reason,
+    Guid? UserId,
+    string? UserName,
+    DateTime CreatedAt);
+
+public record PaymentMethodCorrectionRequest(Guid PaymentId, string NewMethod, string? MobileNumber = null);
+
+/// <param name="Reason">Why the sale is being corrected (required, kept in the audit log).</param>
+/// <param name="Notes">New notes; only applied when UpdateNotes is true.</param>
+/// <param name="AttachCustomerId">Customer to add if the sale has none.</param>
+public record CorrectTransactionRequest(
+    string Reason,
+    bool UpdateNotes = false,
+    string? Notes = null,
+    Guid? AttachCustomerId = null,
+    IEnumerable<PaymentMethodCorrectionRequest>? PaymentCorrections = null);
+
+public record VoidAndReRingRequest(string Reason);
+
+public record ExchangeNewItemRequest(Guid ProductId, decimal Quantity);
+
+/// <param name="ReturnItems">Items coming back from the original sale.</param>
+/// <param name="NewItems">Replacement items the customer takes.</param>
+/// <param name="SettlementMethod">
+/// How the difference is settled: what the customer pays if the new items cost more, or how
+/// they're refunded if less. Cash, Card, BKash, Nagad or Rocket.
+/// </param>
+public record ExchangeRequest(
+    IEnumerable<ReturnLineItemRequest> ReturnItems,
+    IEnumerable<ExchangeNewItemRequest> NewItems,
+    string SettlementMethod = "Cash",
+    string? SettlementMobileNumber = null,
+    string? Notes = null);
+
+/// <summary>Result of an exchange: the return, the replacement sale, and the difference.</summary>
+/// <param name="Difference">Positive: customer paid this extra. Negative: customer was refunded this.</param>
+public record ExchangeResponse(
+    TransactionResponse Return,
+    TransactionResponse Replacement,
+    decimal Difference);
+public record ChangeQuantityRequest(decimal Quantity);

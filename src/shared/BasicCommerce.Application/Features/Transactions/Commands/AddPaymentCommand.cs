@@ -1,3 +1,4 @@
+using BasicCommerce.Application.Interfaces;
 using BasicCommerce.Application.Features.RewardPoints;
 using BasicCommerce.Contracts.Transactions;
 using BasicCommerce.Domain.Entities;
@@ -37,8 +38,13 @@ public class AddPaymentCommandValidator : AbstractValidator<AddPaymentCommand>
 public class AddPaymentCommandHandler : IRequestHandler<AddPaymentCommand, TransactionResponse>
 {
     private readonly IUnitOfWork _uow;
+    private readonly ICurrentUserService _currentUser;
 
-    public AddPaymentCommandHandler(IUnitOfWork uow) => _uow = uow;
+    public AddPaymentCommandHandler(IUnitOfWork uow, ICurrentUserService currentUser)
+    {
+        _uow = uow;
+        _currentUser = currentUser;
+    }
 
     public async Task<TransactionResponse> Handle(AddPaymentCommand request, CancellationToken ct)
     {
@@ -84,17 +90,16 @@ public class AddPaymentCommandHandler : IRequestHandler<AddPaymentCommand, Trans
         }
 
         transaction.RefreshAmountPaid();
-        _uow.Transactions.Update(transaction);
+
+        await TransactionAudit.RecordAsync(_uow, transaction, TransactionAuditAction.PaymentAdded,
+            $"{request.Method} payment of {TransactionAudit.Money(payment.Amount)}" +
+            (request.Method == PaymentMethod.GiftCard ? $" (card {request.GiftCardCode})" : "") +
+            (request.MobileNumber is not null ? $" from {request.MobileNumber}" : ""),
+            _currentUser.UserId, ct: ct);
+
         await _uow.SaveChangesAsync(ct);
 
-        string? customerName = null;
-        if (transaction.CustomerId.HasValue)
-        {
-            var customer = await _uow.Customers.GetByIdAsync(transaction.CustomerId.Value, ct);
-            customerName = customer?.Name;
-        }
-
-        return CreateTransactionCommandHandler.MapToResponse(transaction, customerName);
+        return await CreateTransactionCommandHandler.MapToResponseAsync(_uow, transaction, ct);
     }
 
     private async Task RedeemRewardPointsAsync(

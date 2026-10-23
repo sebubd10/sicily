@@ -29,7 +29,9 @@ public enum PaymentMethod
     GiftCard = 7,
     SslCommerz = 8,
     AamarPay = 9,
-    RewardPoints = 10
+    RewardPoints = 10,
+    /// <summary>Value carried from the returned items to the replacement sale in an exchange.</summary>
+    ExchangeCredit = 11
 }
 
 public enum PaymentStatus
@@ -100,3 +102,23 @@ public enum PettyTransactionType
     CashOut = 2
 }
 
+
+public enum TransactionAuditAction
+{
+    Created = 1,
+    ItemAdded = 2,
+    ItemQuantityChanged = 3,
+    ItemRemoved = 4,
+    CustomerChanged = 5,
+    PaymentAdded = 6,
+    PaymentRemoved = 7,
+    Suspended = 8,
+    Resumed = 9,
+    Completed = 10,
+    Voided = 11,
+    Returned = 12,
+    NotesChanged = 13,
+    PaymentMethodCorrected = 14,
+    Exchanged = 15,
+    ReRung = 16
+}

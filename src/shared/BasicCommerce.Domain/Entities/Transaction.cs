@@ -75,12 +75,71 @@ public class Transaction : TenantEntity
 
     public void VoidLineItem(Guid lineItemId, Guid cashierId)
     {
-        var item = _lineItems.FirstOrDefault(l => l.Id == lineItemId)
-            ?? throw new DomainException("Line item not found.");
+        EnsureOpen("remove items from");
+        var item = FindActiveLine(lineItemId);
 
         item.Void(cashierId);
         RecalculateTotals();
     }
+
+    /// <summary>
+    /// Changes a line's quantity. Any discount on the line is cleared because it was worked
+    /// out for the old quantity — the caller re-applies the best promotion.
+    /// </summary>
+    public LineItem ChangeLineItemQuantity(Guid lineItemId, decimal quantity)
+    {
+        EnsureOpen("change quantities on");
+        if (quantity <= 0)
+            throw new DomainException("Quantity must be greater than zero. Remove the item instead.");
+
+        var item = FindActiveLine(lineItemId);
+        item.ChangeQuantity(quantity);
+        RecalculateTotals();
+        return item;
+    }
+
+    /// <summary>Takes a payment back off an unfinished sale; the caller reverses its effects.</summary>
+    public Payment RemovePayment(Guid paymentId)
+    {
+        EnsureOpen("remove payments from");
+        var payment = _payments.FirstOrDefault(p => p.Id == paymentId && p.PaymentStatus == PaymentStatus.Approved)
+            ?? throw new DomainException("Payment not found.");
+
+        payment.MarkRefunded();
+        RefreshAmountPaid();
+        UpdatedAt = DateTime.UtcNow;
+        return payment;
+    }
+
+    /// <summary>
+    /// Fixes the method a completed payment was recorded under (e.g. rung as Card, paid by
+    /// bKash). Only between methods with no ledger behind them, and the amount can't change.
+    /// </summary>
+    public Payment CorrectPaymentMethod(Guid paymentId, PaymentMethod newMethod, string? mobileNumber)
+    {
+        if (TransactionStatus != TransactionStatus.Completed)
+            throw new DomainException("Only completed sales can have a payment method corrected.");
+
+        var payment = _payments.FirstOrDefault(p => p.Id == paymentId && p.PaymentStatus == PaymentStatus.Approved)
+            ?? throw new DomainException("Payment not found.");
+
+        if (!IsSimpleTender(payment.Method) || !IsSimpleTender(newMethod))
+            throw new DomainException(
+                "Only Cash, Card, bKash, Nagad and Rocket payments can be switched. " +
+                "Gift card, credit and points payments must be voided or returned instead.");
+
+        if (payment.Method == PaymentMethod.Cash && newMethod != PaymentMethod.Cash && ChangeDue > 0)
+            throw new DomainException(
+                "This cash payment included change; it can't be re-recorded as another method.");
+
+        payment.CorrectMethod(newMethod, mobileNumber);
+        UpdatedAt = DateTime.UtcNow;
+        return payment;
+    }
+
+    public static bool IsSimpleTender(PaymentMethod method) => method is
+        PaymentMethod.Cash or PaymentMethod.Card or
+        PaymentMethod.BKash or PaymentMethod.Nagad or PaymentMethod.Rocket;
 
     public Payment AddPayment(PaymentMethod method, decimal amount, string? reference = null)
     {
@@ -140,11 +199,55 @@ public class Transaction : TenantEntity
 
     public void AttachCustomer(Guid customerId)
     {
-        if (TransactionStatus != TransactionStatus.Open)
-            throw new DomainException("Cannot attach a customer to a non-open transaction.");
+        EnsureOpen("change the customer on");
+        if (CustomerId.HasValue && CustomerId != customerId)
+            EnsureNoCustomerTiedPayments();
         CustomerId = customerId;
         UpdatedAt = DateTime.UtcNow;
     }
+
+    public void DetachCustomer()
+    {
+        EnsureOpen("change the customer on");
+        EnsureNoCustomerTiedPayments();
+        CustomerId = null;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>Attaches the customer the cashier forgot to add. Never replaces an existing one.</summary>
+    public void AttachCustomerAfterCompletion(Guid customerId)
+    {
+        if (TransactionStatus != TransactionStatus.Completed)
+            throw new DomainException("Only completed sales can have a customer added afterwards.");
+        if (CustomerId.HasValue)
+            throw new DomainException("This sale already has a customer.");
+        CustomerId = customerId;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void UpdateNotes(string? notes)
+    {
+        Notes = string.IsNullOrWhiteSpace(notes) ? null : notes.Trim();
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    private void EnsureNoCustomerTiedPayments()
+    {
+        if (_payments.Any(p => p.PaymentStatus == PaymentStatus.Approved
+                && p.Method is PaymentMethod.Credit or PaymentMethod.RewardPoints))
+            throw new DomainException(
+                "Remove the credit / reward points payment before changing the customer.");
+    }
+
+    private void EnsureOpen(string action)
+    {
+        if (TransactionStatus != TransactionStatus.Open)
+            throw new DomainException($"Can't {action} a sale that is {TransactionStatus}.");
+    }
+
+    private LineItem FindActiveLine(Guid lineItemId) =>
+        _lineItems.FirstOrDefault(l => l.Id == lineItemId && !l.IsVoided)
+            ?? throw new DomainException("Line item not found.");
 
     public void ApplyLineItemDiscount(Guid lineItemId, decimal discountAmount)
     {
@@ -184,6 +287,16 @@ public class Transaction : TenantEntity
 
     public void MarkRefunded() => TransactionStatus = TransactionStatus.Refunded;
 
+    /// <summary>Replacement sale in an exchange, linked to the original sale.</summary>
+    public static Transaction CreateExchange(Guid tenantId, Guid storeId, Guid terminalId,
+        Guid cashierId, Guid originalTransactionId, Guid? customerId = null)
+    {
+        var t = Create(tenantId, storeId, terminalId, cashierId, customerId);
+        t.Type = TransactionType.Exchange;
+        t.OriginalTransactionId = originalTransactionId;
+        return t;
+    }
+
     public static Transaction CreateReturn(Guid tenantId, Guid storeId, Guid terminalId,
         Guid cashierId, Guid originalTransactionId, Guid? customerId = null)
     {
@@ -205,6 +318,8 @@ public class Transaction : TenantEntity
     {
         if (TransactionStatus == TransactionStatus.Voided)
             throw new DomainException("Transaction is already voided.");
+        if (TransactionStatus == TransactionStatus.Refunded)
+            throw new DomainException("This sale has returns against it and can't be voided. Use a return instead.");
 
         TransactionStatus = TransactionStatus.Voided;
         VoidedAt = DateTime.UtcNow;

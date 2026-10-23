@@ -4,6 +4,10 @@ import type {
   TransactionListResponse,
   BackofficeReturnPayload,
   CartPreview,
+  TransactionAuditEntry,
+  CorrectTransactionPayload,
+  ExchangePayload,
+  ExchangeResult,
 } from '../types/transaction';
 
 type ApiResponse<T> = { success: boolean; data: T; message?: string };
@@ -132,5 +136,67 @@ export async function previewCart(
     storeId,
     items,
   });
+  return data.data!;
+}
+
+// ── Editing an unfinished sale ───────────────────────────────────────────────
+
+export async function changeLineItemQuantity(
+  txnId: string, lineItemId: string, quantity: number,
+): Promise<Transaction> {
+  const { data } = await api.put<ApiResponse<Transaction>>(
+    `/transactions/${txnId}/items/${lineItemId}/quantity`, { quantity },
+  );
+  return data.data!;
+}
+
+export async function removePayment(txnId: string, paymentId: string): Promise<Transaction> {
+  const { data } = await api.delete<ApiResponse<Transaction>>(
+    `/transactions/${txnId}/payments/${paymentId}`,
+  );
+  return data.data!;
+}
+
+export async function detachCustomer(txnId: string): Promise<Transaction> {
+  const { data } = await api.delete<ApiResponse<Transaction>>(`/transactions/${txnId}/customer`);
+  return data.data!;
+}
+
+export async function suspendTransaction(txnId: string): Promise<Transaction> {
+  const { data } = await api.post<ApiResponse<Transaction>>(`/transactions/${txnId}/suspend`);
+  return data.data!;
+}
+
+export async function recallTransaction(txnId: string): Promise<Transaction> {
+  const { data } = await api.post<ApiResponse<Transaction>>(`/transactions/${txnId}/recall`);
+  return data.data!;
+}
+
+// ── Completed sales ──────────────────────────────────────────────────────────
+
+export async function getTransactionHistory(txnId: string): Promise<TransactionAuditEntry[]> {
+  const { data } = await api.get<ApiResponse<TransactionAuditEntry[]>>(`/transactions/${txnId}/history`);
+  return data.data!;
+}
+
+export async function correctTransaction(
+  txnId: string, payload: CorrectTransactionPayload,
+): Promise<Transaction> {
+  const { data } = await api.post<ApiResponse<Transaction>>(`/transactions/${txnId}/correct`, payload);
+  return data.data!;
+}
+
+/** Voids the sale and returns the new draft (same customer and items) to finish. */
+export async function voidAndReRing(txnId: string, reason: string): Promise<Transaction> {
+  const { data } = await api.post<ApiResponse<Transaction>>(
+    `/transactions/${txnId}/void-and-rering`, { reason },
+  );
+  return data.data!;
+}
+
+export async function exchangeTransaction(
+  txnId: string, payload: ExchangePayload,
+): Promise<ExchangeResult> {
+  const { data } = await api.post<ApiResponse<ExchangeResult>>(`/transactions/${txnId}/exchange`, payload);
   return data.data!;
 }

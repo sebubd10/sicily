@@ -51,6 +51,53 @@ internal static class RewardPointsLedger
             customer.RedeemLoyaltyPoints(Math.Min(-delta, customer.LoyaltyPoints));
     }
 
+    /// <summary>
+    /// Awards purchase points for a completed sale with a customer. Points are earned on what
+    /// the customer actually spent — not on the part paid for with points.
+    /// Returns the points awarded.
+    /// </summary>
+    public static async Task<int> AwardPurchasePointsAsync(IUnitOfWork uow, Transaction transaction,
+        CancellationToken ct)
+    {
+        if (!transaction.CustomerId.HasValue) return 0;
+
+        var settings = await uow.RewardPointsSettings.GetByTenantAsync(transaction.TenantId, ct);
+        if (settings is null || settings.Status != EntityStatus.Active) return 0;
+
+        var paidWithPoints = transaction.Payments
+            .Where(p => p.Method == PaymentMethod.RewardPoints && p.PaymentStatus == PaymentStatus.Approved)
+            .Sum(p => p.Amount);
+        var points = settings.CalculatePurchasePoints(Math.Max(0, transaction.Total - paidWithPoints));
+        if (points <= 0) return 0;
+
+        var customerId = transaction.CustomerId.Value;
+        var account = await GetAccountAsync(uow, settings, transaction.TenantId, customerId,
+            transaction.StoreId, ct);
+
+        if (account is null)
+        {
+            account = RewardPointsAccount.Create(transaction.TenantId, customerId,
+                AccountStoreId(settings, transaction.StoreId));
+            await uow.RewardPointsAccounts.AddAsync(account, ct);
+        }
+        else
+        {
+            await ApplyExpiryAsync(uow, account, ct);
+        }
+
+        account.EarnPoints(points, RewardPointsEntryType.PurchaseEarned,
+            settings.ActivatePointsImmediately,
+            settings.PurchasePointsValidityDays,
+            transaction.Id,
+            $"Purchase: {transaction.TransactionNumber}");
+
+        // Pending (not yet activated) points aren't spendable, so don't count them yet.
+        if (settings.ActivatePointsImmediately)
+            await AdjustCustomerSummaryAsync(uow, customerId, points, ct);
+
+        return points;
+    }
+
     /// <summary>Net points earned on a sale that haven't already been reversed.</summary>
     public static int NetEarned(IEnumerable<RewardPointsEntry> txnEntries) =>
         Math.Max(0,

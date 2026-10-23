@@ -56,6 +56,15 @@ public class CreditAccount : TenantEntity
     }
 
     public void UpdateCreditLimit(decimal newLimit) => CreditLimit = newLimit;
+
+    /// <summary>Cancels a charge from a sale that was voided or whose credit payment was removed.</summary>
+    public void ReverseCharge(Guid transactionId, decimal amount, string description)
+    {
+        if (amount <= 0) return;
+        OutstandingBalance = Math.Max(0, OutstandingBalance - amount);
+        _transactions.Add(CreditTransaction.CreateReversal(Id, transactionId, amount, description));
+        UpdatedAt = DateTime.UtcNow;
+    }
 }
 
 public class CreditTransaction : BaseEntity
@@ -77,6 +86,17 @@ public class CreditTransaction : BaseEntity
             TransactionId = transactionId,
             Amount = amount,
             IsCharge = true,
+            Description = description
+        };
+
+    internal static CreditTransaction CreateReversal(Guid creditAccountId,
+        Guid transactionId, decimal amount, string description) =>
+        new()
+        {
+            CreditAccountId = creditAccountId,
+            TransactionId = transactionId,
+            Amount = amount,
+            IsCharge = false,
             Description = description
         };
 

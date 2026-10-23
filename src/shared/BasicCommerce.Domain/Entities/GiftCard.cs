@@ -74,6 +74,22 @@ public class GiftCard : TenantEntity
         return actual;
     }
 
+    /// <summary>Puts back an amount redeemed on a sale that was voided or whose payment was removed.</summary>
+    public void RefundRedemption(decimal amount, Guid saleTransactionId, string? notes = null)
+    {
+        if (amount <= 0) return;
+        if (CardStatus == GiftCardStatus.Cancelled)
+            throw new DomainException($"Gift card {Code} is cancelled; its balance can't be restored.");
+
+        Balance += amount;
+        if (CardStatus == GiftCardStatus.Depleted)
+            CardStatus = GiftCardStatus.Active;
+
+        _transactions.Add(GiftCardTransaction.Create(
+            Id, GiftCardTransactionType.Refund, amount, Balance, saleTransactionId, notes));
+        UpdatedAt = DateTime.UtcNow;
+    }
+
     public void Reload(decimal amount, string? notes = null)
     {
         if (CardStatus == GiftCardStatus.Cancelled || CardStatus == GiftCardStatus.Expired)

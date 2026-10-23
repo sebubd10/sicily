@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import * as transactionsApi from '../api/transactionsApi';
-import type { BackofficeReturnPayload } from '../types/transaction';
+import type { BackofficeReturnPayload, ExchangePayload, Transaction } from '../types/transaction';
 
 const KEY = ['transactions'] as const;
 
@@ -51,5 +51,43 @@ export function useCreateReturn() {
     mutationFn: ({ id, payload }: { id: string; payload: BackofficeReturnPayload }) =>
       transactionsApi.createReturn(id, payload),
     onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+  });
+}
+
+export function useTransactionHistory(id: string | null) {
+  return useQuery({
+    queryKey: [...KEY, 'history', id],
+    queryFn: () => transactionsApi.getTransactionHistory(id!),
+    enabled: !!id,
+    staleTime: 0,
+  });
+}
+
+/**
+ * Wraps any API call that returns the updated transaction: puts the result straight into
+ * the detail cache and refreshes everything that depends on it (list, history, points).
+ */
+export function useTransactionMutation<TArgs>(fn: (args: TArgs) => Promise<Transaction>) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: fn,
+    onSuccess: (txn) => {
+      qc.setQueryData([...KEY, 'detail', txn.id], txn);
+      qc.invalidateQueries({ queryKey: KEY });
+      qc.invalidateQueries({ queryKey: ['reward-points'] });
+      qc.invalidateQueries({ queryKey: ['customers'] });
+    },
+  });
+}
+
+export function useExchangeTransaction() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: ExchangePayload }) =>
+      transactionsApi.exchangeTransaction(id, payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: KEY });
+      qc.invalidateQueries({ queryKey: ['reward-points'] });
+    },
   });
 }

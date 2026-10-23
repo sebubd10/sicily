@@ -45,6 +45,19 @@ public class Payment : TenantEntity
 
     public void SetMobileNumber(string mobileNumber) => MobileNumber = mobileNumber;
 
+    /// <summary>Money given back to the customer (payment removed from a draft, or sale voided).</summary>
+    public void MarkRefunded()
+    {
+        PaymentStatus = PaymentStatus.Refunded;
+        ProcessedAt = DateTime.UtcNow;
+    }
+
+    public void CorrectMethod(PaymentMethod method, string? mobileNumber)
+    {
+        Method = method;
+        MobileNumber = string.IsNullOrWhiteSpace(mobileNumber) ? null : mobileNumber.Trim();
+    }
+
     public void SetGiftCardRedemption(string giftCardCode, decimal actualAmount)
     {
         GatewayReference = giftCardCode;

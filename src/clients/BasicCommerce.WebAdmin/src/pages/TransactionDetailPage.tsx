@@ -4,11 +4,13 @@ import {
   ArrowLeft, ShoppingCart, CheckCircle2, Ban, Clock, RotateCcw,
   User, Store, Terminal, CreditCard, AlertCircle, Loader2,
   Receipt, Package, Copy, Check, XCircle, RefreshCw,
-  ChevronRight, AlertTriangle, Star,
+  ChevronRight, AlertTriangle, Star, Pencil, FilePenLine, Repeat, History,
 } from 'lucide-react';
 import { cn, extractApiError } from '../lib/utils';
 import type { Transaction, TransactionStatus, TransactionType, LineItem, Payment } from '../types/transaction';
-import { useTransactionDetail, useVoidTransaction } from '../hooks/useTransactions';
+import { useTransactionDetail, useVoidTransaction, useTransactionHistory, useTransactionMutation } from '../hooks/useTransactions';
+import * as transactionsApi from '../api/transactionsApi';
+import type { TransactionAuditAction } from '../types/transaction';
 import { PaymentMethodIcon } from '../components/transactions/PaymentMethodIcon';
 import { useStoreList } from '../hooks/useStoreAdmin';
 import { useTerminals } from '../hooks/useTerminals';
@@ -43,7 +45,7 @@ const PAYMENT_METHOD_LABELS: Record<string, string> = {
   Cash: 'Cash', Card: 'Card', BKash: 'bKash', Nagad: 'Nagad',
   Rocket: 'Rocket', Ebt: 'EBT', Credit: 'Credit Account',
   GiftCard: 'Gift Card', SslCommerz: 'SSLCommerz',
-  AamarPay: 'AamarPay', RewardPoints: 'Reward Points',
+  AamarPay: 'AamarPay', RewardPoints: 'Reward Points', ExchangeCredit: 'Exchange Credit',
 };
 
 const PAYMENT_STATUS_STYLES: Record<string, string> = {
@@ -57,20 +59,30 @@ const PAYMENT_STATUS_STYLES: Record<string, string> = {
 /* ── Void Modal ───────────────────────────────────────────────────────────── */
 
 function VoidModal({
-  txn, onClose,
-}: { txn: Transaction; onClose: () => void }) {
+  txn, mode, onClose,
+}: { txn: Transaction; mode: 'void' | 'rering'; onClose: () => void }) {
   const [reason, setReason] = useState('');
   const [error, setError]   = useState('');
-  const { mutate, isPending } = useVoidTransaction();
+  const voidTxn = useVoidTransaction();
+  const reRing  = useTransactionMutation((r: string) => transactionsApi.voidAndReRing(txn.id, r));
   const navigate = useNavigate();
+  const isPending = voidTxn.isPending || reRing.isPending;
+  const completed = txn.status === 'Completed';
 
   function submit() {
     if (!reason.trim()) { setError('Please provide a reason.'); return; }
     setError('');
-    mutate({ id: txn.id, reason }, {
-      onSuccess: () => { onClose(); navigate('/sales/transactions'); },
-      onError: (e) => setError(extractApiError(e)),
-    });
+    if (mode === 'rering') {
+      reRing.mutate(reason.trim(), {
+        onSuccess: (draft) => { onClose(); navigate(`/sales/transactions/${draft.id}/edit`); },
+        onError: (e) => setError(extractApiError(e)),
+      });
+    } else {
+      voidTxn.mutate({ id: txn.id, reason: reason.trim() }, {
+        onSuccess: () => onClose(),
+        onError: (e) => setError(extractApiError(e)),
+      });
+    }
   }
 
   return (
@@ -81,14 +93,24 @@ function VoidModal({
             <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Void Transaction</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              {mode === 'rering' ? 'Void & re-ring' : 'Void transaction'}
+            </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">{txn.transactionNumber}</p>
           </div>
         </div>
 
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          This action cannot be undone. The transaction will be permanently voided.
-        </p>
+        <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1 list-disc pl-5">
+          <li>This sale is permanently voided — it can't be undone.</li>
+          <li>Gift card balance, credit charges and redeemed points are given back.</li>
+          {completed && <li>Stock is put back and points earned on it are taken back.</li>}
+          {completed && <li>Only allowed while the till session that took it is still open.</li>}
+          {mode === 'rering' && (
+            <li className="text-gray-900 dark:text-white font-medium">
+              A new draft opens with the same customer and items (at today's prices) for you to fix and take payment.
+            </li>
+          )}
+        </ul>
 
         <div className="space-y-1">
           <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Reason *</label>
@@ -96,7 +118,7 @@ function VoidModal({
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             rows={3}
-            placeholder="Explain why this transaction is being voided…"
+            placeholder={mode === 'rering' ? 'e.g. Wrong quantity rung up' : 'Explain why this transaction is being voided…'}
             className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
           />
           {error && <p className="text-xs text-red-500">{error}</p>}
@@ -110,7 +132,7 @@ function VoidModal({
           <button onClick={submit} disabled={isPending || !reason.trim()}
             className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition disabled:opacity-40 flex items-center gap-2">
             {isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-            Void Transaction
+            {mode === 'rering' ? 'Void & re-ring' : 'Void transaction'}
           </button>
         </div>
       </div>
@@ -139,17 +161,18 @@ function TxnNumber({ num }: { num: string }) {
 
 /* ── Main Page ────────────────────────────────────────────────────────────── */
 
-type TabKey = 'items' | 'payments' | 'timeline';
+type TabKey = 'items' | 'payments' | 'history';
 
 export default function TransactionDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [tab, setTab]           = useState<TabKey>('items');
-  const [showVoid, setShowVoid] = useState(false);
+  const [voidMode, setVoidMode] = useState<'void' | 'rering' | null>(null);
 
   const { data: txn, isLoading, isError, refetch, isFetching } = useTransactionDetail(id ?? null);
   const { data: stores = [] }    = useStoreList();
   const { data: terminals = [] } = useTerminals();
+  const { data: history = [] }   = useTransactionHistory(id ?? null);
 
   if (isLoading) {
     return (
@@ -179,8 +202,11 @@ export default function TransactionDetailPage() {
   const activeItems = txn.lineItems.filter(l => !l.isVoided);
   const voidedItems = txn.lineItems.filter(l => l.isVoided);
 
-  const canVoid   = txn.status === 'Open' || txn.status === 'Suspended';
-  const canReturn = txn.status === 'Completed';
+  const btn = 'flex items-center gap-2 px-3.5 py-2 text-sm font-medium border rounded-xl transition';
+  const isDraft     = txn.status === 'Open' || txn.status === 'Suspended';
+  const isCompleted = txn.status === 'Completed';
+  const canVoid     = isDraft || isCompleted;
+  const canCorrect  = isCompleted || txn.status === 'Refunded';
 
   return (
     <div className="space-y-5 max-w-5xl mx-auto">
@@ -228,7 +254,7 @@ export default function TransactionDetailPage() {
           </div>
 
           {/* Action buttons */}
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
             <button
               onClick={() => refetch()} disabled={isFetching}
               className="p-2 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition disabled:opacity-40"
@@ -236,22 +262,40 @@ export default function TransactionDetailPage() {
             >
               <RefreshCw className={cn('w-4 h-4', isFetching && 'animate-spin')} />
             </button>
-            {canReturn && (
+            {isDraft && (
               <button
-                onClick={() => navigate(`/sales/transactions/${txn.id}/return`)}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-orange-700 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 hover:bg-orange-100 dark:hover:bg-orange-900/40 rounded-xl transition"
+                onClick={() => navigate(`/sales/transactions/${txn.id}/edit`)}
+                className={cn(btn, 'text-white bg-primary-700 hover:bg-primary-800 border-primary-700')}
               >
-                <RotateCcw className="w-4 h-4" />
-                Process Return
+                <Pencil className="w-4 h-4" /> Resume sale
               </button>
             )}
+            {canCorrect && (
+              <button onClick={() => navigate(`/sales/transactions/${txn.id}/correct`)}
+                className={cn(btn, 'text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800')}>
+                <FilePenLine className="w-4 h-4" /> Correct
+              </button>
+            )}
+            {isCompleted && (
+              <>
+                <button onClick={() => navigate(`/sales/transactions/${txn.id}/exchange`)}
+                  className={cn(btn, 'text-sky-700 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/20 border-sky-200 dark:border-sky-800 hover:bg-sky-100')}>
+                  <Repeat className="w-4 h-4" /> Exchange
+                </button>
+                <button onClick={() => navigate(`/sales/transactions/${txn.id}/return`)}
+                  className={cn(btn, 'text-orange-700 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800 hover:bg-orange-100')}>
+                  <RotateCcw className="w-4 h-4" /> Return
+                </button>
+                <button onClick={() => setVoidMode('rering')}
+                  className={cn(btn, 'text-red-700 dark:text-red-400 bg-white dark:bg-gray-900 border-red-200 dark:border-red-800 hover:bg-red-50')}>
+                  <RefreshCw className="w-4 h-4" /> Void &amp; re-ring
+                </button>
+              </>
+            )}
             {canVoid && (
-              <button
-                onClick={() => setShowVoid(true)}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-xl transition"
-              >
-                <XCircle className="w-4 h-4" />
-                Void
+              <button onClick={() => setVoidMode('void')}
+                className={cn(btn, 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 hover:bg-red-100')}>
+                <XCircle className="w-4 h-4" /> Void
               </button>
             )}
           </div>
@@ -326,7 +370,7 @@ export default function TransactionDetailPage() {
           {([
             { key: 'items',    label: `Items (${txn.lineItems.length})`,    icon: <Package className="w-4 h-4" /> },
             { key: 'payments', label: `Payments (${txn.payments.length})`,  icon: <CreditCard className="w-4 h-4" /> },
-            { key: 'timeline', label: 'Timeline',                            icon: <Clock className="w-4 h-4" /> },
+            { key: 'history',  label: 'History',                             icon: <History className="w-4 h-4" /> },
           ] as { key: TabKey; label: string; icon: React.ReactNode }[]).map((t) => (
             <button
               key={t.key}
@@ -443,8 +487,8 @@ export default function TransactionDetailPage() {
           </div>
         )}
 
-        {/* Timeline tab */}
-        {tab === 'timeline' && (
+        {/* History tab */}
+        {tab === 'history' && (history.length > 0 ? <HistoryList entries={history} /> : (
           <div className="p-6">
             <div className="relative pl-6 space-y-6">
               <div className="absolute left-2.5 top-0 bottom-0 w-px bg-gray-200 dark:bg-gray-700" />
@@ -486,7 +530,7 @@ export default function TransactionDetailPage() {
               )}
             </div>
           </div>
-        )}
+        ))}
       </div>
 
       {/* Notes */}
@@ -499,7 +543,7 @@ export default function TransactionDetailPage() {
       )}
 
       {/* Void Modal */}
-      {showVoid && <VoidModal txn={txn} onClose={() => setShowVoid(false)} />}
+      {voidMode && <VoidModal txn={txn} mode={voidMode} onClose={() => setVoidMode(null)} />}
     </div>
   );
 }
@@ -517,6 +561,36 @@ function InfoCard({ icon, label, children }: {
       </div>
       {children}
     </div>
+  );
+}
+
+const AUDIT_STYLE: Partial<Record<TransactionAuditAction, string>> = {
+  Created: 'bg-primary-500', Completed: 'bg-emerald-500', Voided: 'bg-red-500', ReRung: 'bg-red-400',
+  Returned: 'bg-orange-500', Exchanged: 'bg-sky-500', PaymentAdded: 'bg-emerald-400',
+  PaymentRemoved: 'bg-amber-500', PaymentMethodCorrected: 'bg-amber-500', NotesChanged: 'bg-gray-400',
+  CustomerChanged: 'bg-blue-500', Suspended: 'bg-amber-400', Resumed: 'bg-sky-400',
+};
+
+function HistoryList({ entries }: {
+  entries: { id: string; action: TransactionAuditAction; summary: string; reason: string | null; userName: string | null; createdAt: string }[];
+}) {
+  return (
+    <ol className="p-6 relative space-y-5">
+      <div className="absolute left-[29px] top-8 bottom-8 w-px bg-gray-200 dark:bg-gray-700" />
+      {entries.map((e) => (
+        <li key={e.id} className="relative flex gap-4">
+          <span className={cn('relative z-10 mt-1.5 w-2.5 h-2.5 rounded-full ring-4 ring-white dark:ring-gray-900 flex-shrink-0',
+            AUDIT_STYLE[e.action] ?? 'bg-gray-400')} />
+          <div className="min-w-0">
+            <p className="text-sm text-gray-900 dark:text-white">{e.summary}</p>
+            {e.reason && <p className="text-xs text-gray-600 dark:text-gray-300 mt-0.5">Reason: {e.reason}</p>}
+            <p className="text-xs text-gray-400 mt-0.5">
+              {fmtDate(e.createdAt)}{e.userName && ` · ${e.userName}`}
+            </p>
+          </div>
+        </li>
+      ))}
+    </ol>
   );
 }
 

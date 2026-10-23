@@ -1,3 +1,4 @@
+using BasicCommerce.Application.Interfaces;
 using BasicCommerce.Contracts.Transactions;
 using BasicCommerce.Domain.Entities;
 using BasicCommerce.Domain.Enums;
@@ -35,8 +36,13 @@ public class AddLineItemCommandValidator : AbstractValidator<AddLineItemCommand>
 public class AddLineItemCommandHandler : IRequestHandler<AddLineItemCommand, TransactionResponse>
 {
     private readonly IUnitOfWork _uow;
+    private readonly ICurrentUserService _currentUser;
 
-    public AddLineItemCommandHandler(IUnitOfWork uow) => _uow = uow;
+    public AddLineItemCommandHandler(IUnitOfWork uow, ICurrentUserService currentUser)
+    {
+        _uow = uow;
+        _currentUser = currentUser;
+    }
 
     public async Task<TransactionResponse> Handle(AddLineItemCommand request, CancellationToken ct)
     {
@@ -67,8 +73,14 @@ public class AddLineItemCommandHandler : IRequestHandler<AddLineItemCommand, Tra
             }
         }
 
+        await TransactionAudit.RecordAsync(_uow, transaction, TransactionAuditAction.ItemAdded,
+            $"Added {lineItem.Quantity:0.##} × {lineItem.ProductName}" +
+            (lineItem.IsPriceOverridden ? $" at overridden price {TransactionAudit.Money(lineItem.UnitPrice)}" : "") +
+            (lineItem.AppliedPromotionName is not null ? $" ({lineItem.AppliedPromotionName})" : ""),
+            _currentUser.UserId, ct: ct);
+
         await _uow.SaveChangesAsync(ct);
 
-        return CreateTransactionCommandHandler.MapToResponse(transaction);
+        return await CreateTransactionCommandHandler.MapToResponseAsync(_uow, transaction, ct);
     }
 }

@@ -1,5 +1,6 @@
 using BasicCommerce.Contracts.Transactions;
 using BasicCommerce.Domain.Entities;
+using BasicCommerce.Domain.Enums;
 using BasicCommerce.Domain.Interfaces;
 using FluentValidation;
 using MediatR;
@@ -39,9 +40,21 @@ public class CreateTransactionCommandHandler
             request.TerminalId, request.CashierId, request.CustomerId);
 
         await _uow.Transactions.AddAsync(transaction, ct);
+        await TransactionAudit.RecordAsync(_uow, transaction, TransactionAuditAction.Created,
+            "Sale started", request.CashierId, ct: ct);
         await _uow.SaveChangesAsync(ct);
 
-        return MapToResponse(transaction);
+        return await MapToResponseAsync(_uow, transaction, ct);
+    }
+
+    /// <summary>Maps a transaction, looking up the customer's name.</summary>
+    internal static async Task<TransactionResponse> MapToResponseAsync(IUnitOfWork uow,
+        Transaction t, CancellationToken ct)
+    {
+        string? customerName = null;
+        if (t.CustomerId.HasValue)
+            customerName = (await uow.Customers.GetByIdAsync(t.CustomerId.Value, ct))?.Name;
+        return MapToResponse(t, customerName);
     }
 
     internal static TransactionResponse MapToResponse(Transaction t,

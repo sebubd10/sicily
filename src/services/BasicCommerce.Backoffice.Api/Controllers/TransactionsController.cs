@@ -156,4 +156,109 @@ public class TransactionsController : ControllerBase
 
         return Ok(ApiResponse<TransactionResponse>.Ok(result));
     }
+
+    // ── Editing an unfinished sale ────────────────────────────────────────────
+
+    [HttpPut("{id:guid}/items/{lineItemId:guid}/quantity")]
+    public async Task<ActionResult<ApiResponse<TransactionResponse>>> ChangeQuantity(
+        Guid id, Guid lineItemId, [FromBody] ChangeQuantityRequest request, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new ChangeLineItemQuantityCommand(
+            _currentUser.TenantId, id, lineItemId, request.Quantity), ct);
+        return Ok(ApiResponse<TransactionResponse>.Ok(result));
+    }
+
+    [HttpDelete("{id:guid}/payments/{paymentId:guid}")]
+    public async Task<ActionResult<ApiResponse<TransactionResponse>>> RemovePayment(
+        Guid id, Guid paymentId, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new RemovePaymentCommand(_currentUser.TenantId, id, paymentId), ct);
+        return Ok(ApiResponse<TransactionResponse>.Ok(result));
+    }
+
+    [HttpDelete("{id:guid}/customer")]
+    public async Task<ActionResult<ApiResponse<TransactionResponse>>> DetachCustomer(
+        Guid id, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new DetachCustomerCommand(_currentUser.TenantId, id), ct);
+        return Ok(ApiResponse<TransactionResponse>.Ok(result));
+    }
+
+    [HttpPost("{id:guid}/suspend")]
+    public async Task<ActionResult<ApiResponse<TransactionResponse>>> Suspend(Guid id, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new SuspendTransactionCommand(_currentUser.TenantId, id), ct);
+        return Ok(ApiResponse<TransactionResponse>.Ok(result));
+    }
+
+    [HttpPost("{id:guid}/recall")]
+    public async Task<ActionResult<ApiResponse<TransactionResponse>>> Recall(Guid id, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new RecallTransactionCommand(_currentUser.TenantId, id), ct);
+        return Ok(ApiResponse<TransactionResponse>.Ok(result));
+    }
+
+    // ── Completed sales: history, corrections, re-ring, exchange ──────────────
+
+    [HttpGet("{id:guid}/history")]
+    public async Task<ActionResult<ApiResponse<IReadOnlyList<TransactionAuditEntryResponse>>>> History(
+        Guid id, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new GetTransactionHistoryQuery(_currentUser.TenantId, id), ct);
+        return Ok(ApiResponse<IReadOnlyList<TransactionAuditEntryResponse>>.Ok(result));
+    }
+
+    [HttpPost("{id:guid}/correct")]
+    [Authorize(Policy = "StoreManagerAndAbove")]
+    public async Task<ActionResult<ApiResponse<TransactionResponse>>> Correct(
+        Guid id, [FromBody] CorrectTransactionRequest request, CancellationToken ct)
+    {
+        var corrections = new List<PaymentMethodCorrection>();
+        foreach (var c in request.PaymentCorrections ?? Enumerable.Empty<PaymentMethodCorrectionRequest>())
+        {
+            if (!Enum.TryParse<PaymentMethod>(c.NewMethod, ignoreCase: true, out var method))
+                return BadRequest(ApiResponse<TransactionResponse>.Fail($"Unknown payment method '{c.NewMethod}'."));
+            corrections.Add(new PaymentMethodCorrection(c.PaymentId, method, c.MobileNumber));
+        }
+
+        var result = await _mediator.Send(new CorrectTransactionCommand(
+            _currentUser.TenantId, id, request.Reason, request.UpdateNotes, request.Notes,
+            request.AttachCustomerId, corrections), ct);
+        return Ok(ApiResponse<TransactionResponse>.Ok(result));
+    }
+
+    /// <summary>Voids the sale and returns a new draft with the same customer and items.</summary>
+    [HttpPost("{id:guid}/void-and-rering")]
+    [Authorize(Policy = "StoreManagerAndAbove")]
+    public async Task<ActionResult<ApiResponse<TransactionResponse>>> VoidAndReRing(
+        Guid id, [FromBody] VoidAndReRingRequest request, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new VoidAndReRingCommand(
+            _currentUser.TenantId, id, _currentUser.UserId, request.Reason), ct);
+        return Ok(ApiResponse<TransactionResponse>.Ok(result));
+    }
+
+    [HttpPost("{id:guid}/exchange")]
+    [Authorize(Policy = "StoreManagerAndAbove")]
+    public async Task<ActionResult<ApiResponse<ExchangeResponse>>> Exchange(
+        Guid id, [FromBody] ExchangeRequest request, CancellationToken ct)
+    {
+        if (!Enum.TryParse<PaymentMethod>(request.SettlementMethod, ignoreCase: true, out var method))
+            return BadRequest(ApiResponse<ExchangeResponse>.Fail(
+                $"Unknown settlement method '{request.SettlementMethod}'."));
+
+        var returnItems = request.ReturnItems.Select(i => new ReturnItem(
+            i.OriginalLineItemId,
+            i.Quantity,
+            Enum.TryParse<ReturnReason>(i.ReturnReason, true, out var reason) ? reason : ReturnReason.Other,
+            Enum.TryParse<DamageDisposition>(i.DamageDisposition, true, out var disp)
+                ? disp : DamageDisposition.RestoreToStock)).ToList();
+
+        var newItems = request.NewItems.Select(i => new ExchangeNewItem(i.ProductId, i.Quantity)).ToList();
+
+        var result = await _mediator.Send(new ExchangeTransactionCommand(
+            _currentUser.TenantId, id, returnItems, newItems, method,
+            request.SettlementMobileNumber, request.Notes), ct);
+        return Ok(ApiResponse<ExchangeResponse>.Ok(result));
+    }
 }

@@ -1,4 +1,5 @@
 using BasicCommerce.Contracts.Transactions;
+using BasicCommerce.Domain.Enums;
 using BasicCommerce.Domain.Exceptions;
 using BasicCommerce.Domain.Interfaces;
 using FluentValidation;
@@ -35,11 +36,14 @@ public class VoidLineItemCommandHandler : IRequestHandler<VoidLineItemCommand, T
             request.TenantId, request.TransactionId, ct)
             ?? throw new NotFoundException("Transaction", request.TransactionId);
 
+        var line = transaction.LineItems.FirstOrDefault(l => l.Id == request.LineItemId);
         transaction.VoidLineItem(request.LineItemId, request.CashierId);
 
-        _uow.Transactions.Update(transaction);
+        await TransactionAudit.RecordAsync(_uow, transaction, TransactionAuditAction.ItemRemoved,
+            $"Removed {line?.Quantity:0.##} × {line?.ProductName}", request.CashierId, ct: ct);
+
         await _uow.SaveChangesAsync(ct);
 
-        return CreateTransactionCommandHandler.MapToResponse(transaction);
+        return await CreateTransactionCommandHandler.MapToResponseAsync(_uow, transaction, ct);
     }
 }

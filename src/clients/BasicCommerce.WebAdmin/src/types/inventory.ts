@@ -40,7 +40,8 @@ export type StockMovementType =
   | 'Sale'
   | 'Return'
   | 'ExpiryWriteOff'
-  | 'SupplierReturn';
+  | 'SupplierReturn'
+  | 'SaleVoided';
 
 export const MOVEMENT_TYPE_CONFIG: Record<
   StockMovementType,
@@ -55,6 +56,7 @@ export const MOVEMENT_TYPE_CONFIG: Record<
   Return:        { label: 'Return',          color: 'bg-teal-50 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400',           dot: 'bg-teal-500',    direction:  1 },
   ExpiryWriteOff:{ label: 'Expiry Write-off',color: 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400',               dot: 'bg-red-600',     direction: -1 },
   SupplierReturn:{ label: 'Supplier Return', color: 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',       dot: 'bg-amber-500',   direction: -1 },
+  SaleVoided:    { label: 'Sale Voided',     color: 'bg-sky-50 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400',               dot: 'bg-sky-500',     direction:  1 },
 };
 
 export const ALL_MOVEMENT_TYPES = Object.keys(MOVEMENT_TYPE_CONFIG) as StockMovementType[];

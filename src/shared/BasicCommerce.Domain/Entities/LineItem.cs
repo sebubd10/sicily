@@ -89,6 +89,16 @@ public class LineItem : BaseEntity
         };
     }
 
+    internal void ChangeQuantity(decimal quantity)
+    {
+        Quantity = quantity;
+        LineTotal = UnitPrice * quantity;
+        DiscountAmount = 0;
+        AppliedPromotionId = null;
+        AppliedPromotionName = null;
+        RecalculateTax();
+    }
+
     internal void Void(Guid voidedBy)
     {
         IsVoided = true;

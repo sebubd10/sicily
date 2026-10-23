@@ -33,6 +33,9 @@ import TransactionsListPage from './pages/TransactionsListPage';
 import TransactionNewPage from './pages/TransactionNewPage';
 import TransactionDetailPage from './pages/TransactionDetailPage';
 import TransactionReturnPage from './pages/TransactionReturnPage';
+import TransactionEditPage from './pages/TransactionEditPage';
+import TransactionCorrectPage from './pages/TransactionCorrectPage';
+import TransactionExchangePage from './pages/TransactionExchangePage';
 import PlaceholderPage from './pages/PlaceholderPage';
 import { useThemeStore } from './store/themeStore';
 
@@ -77,6 +80,9 @@ export default function App() {
             <Route path="sales/transactions/new" element={<TransactionNewPage />} />
             <Route path="sales/transactions/:id" element={<TransactionDetailPage />} />
             <Route path="sales/transactions/:id/return" element={<TransactionReturnPage />} />
+            <Route path="sales/transactions/:id/edit" element={<TransactionEditPage />} />
+            <Route path="sales/transactions/:id/correct" element={<TransactionCorrectPage />} />
+            <Route path="sales/transactions/:id/exchange" element={<TransactionExchangePage />} />
             <Route path="sales/till-sessions" element={<TillSessionsPage />} />
 
             {/* Customers */}

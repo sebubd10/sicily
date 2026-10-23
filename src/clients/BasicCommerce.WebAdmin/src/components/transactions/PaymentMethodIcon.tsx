@@ -1,4 +1,4 @@
-import { Banknote, CreditCard, Wallet, Gift, Star } from 'lucide-react';
+import { Banknote, CreditCard, Wallet, Gift, Star, Repeat } from 'lucide-react';
 import bkashLogo from '../../assets/payment-icons/bkash.png';
 import nagadLogo from '../../assets/payment-icons/nagad.png';
 import rocketLogo from '../../assets/payment-icons/rocket.png';
@@ -40,6 +40,8 @@ export function PaymentMethodIcon({ method, size = 20 }: { method: string; size?
       return <Wallet style={style} />;
     case 'GiftCard':
       return <Gift style={style} />;
+    case 'ExchangeCredit':
+      return <Repeat style={style} />;
     case 'RewardPoints':
       return <Star style={style} />;
     default:

@@ -10,7 +10,9 @@ public enum StockMovementType
     Sale = 6,
     Return = 7,
     ExpiryWriteOff = 8,
-    SupplierReturn = 9
+    SupplierReturn = 9,
+    /// <summary>Stock put back because a completed sale was voided.</summary>
+    SaleVoided = 10
 }
 
 public enum SupplierReturnStatus
