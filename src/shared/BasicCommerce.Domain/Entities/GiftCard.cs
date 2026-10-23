@@ -22,14 +22,12 @@ public class GiftCard : TenantEntity
     private GiftCard() { }
 
     /// <param name="storeId">Restrict the card to one store, or null for every store.</param>
-    /// <param name="issuedToCustomerId">The customer the card belongs to (required).</param>
+    /// <param name="issuedToCustomerId">Restrict the card to one customer, or null for anyone.</param>
     public static GiftCard Issue(Guid tenantId, Guid? storeId, string code, decimal amount,
-        DateTime? expiryDate, Guid issuedToCustomerId, Guid? issuedInTransactionId, string? notes = null)
+        DateTime? expiryDate, Guid? issuedToCustomerId, Guid? issuedInTransactionId, string? notes = null)
     {
         if (amount <= 0)
             throw new DomainException("Gift card amount must be greater than zero.");
-        if (issuedToCustomerId == Guid.Empty)
-            throw new DomainException("A gift card must be issued to a customer.");
 
         var card = new GiftCard
         {
@@ -52,6 +50,10 @@ public class GiftCard : TenantEntity
     }
 
     public bool IsUsableAtStore(Guid storeId) => StoreId is null || StoreId == storeId;
+
+    /// <summary>A card issued to a customer can only be used on that customer's sales.</summary>
+    public bool IsUsableByCustomer(Guid? customerId) =>
+        IssuedToCustomerId is null || IssuedToCustomerId == customerId;
 
     public decimal Redeem(decimal amount, Guid transactionId)
     {

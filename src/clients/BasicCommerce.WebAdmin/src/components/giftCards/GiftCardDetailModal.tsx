@@ -250,7 +250,10 @@ export function GiftCardDetailModal({ giftCardId, open, onClose }: Props) {
                 {/* Info grid */}
                 <div className="grid grid-cols-2 gap-3">
                   {[
-                    { label: 'Customer', value: card.customerName ?? '—' },
+                    {
+                      label: 'Usable by',
+                      value: card.issuedToCustomerId ? `${card.customerName ?? 'One customer'} only` : 'Anyone',
+                    },
                     {
                       label: 'Valid at',
                       value: card.storeId

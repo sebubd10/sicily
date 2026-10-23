@@ -52,6 +52,7 @@ export interface IssueGiftCardPayload {
   storeId?: string | null;
   amount: number;
   expiryDate?: string | null;
-  issuedToCustomerId: string;
+  /** Omit/null so anyone can use the card. */
+  issuedToCustomerId?: string | null;
   notes?: string | null;
 }

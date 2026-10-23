@@ -43,11 +43,12 @@ public record GiftCardListResponse(
     int PageSize);
 
 /// <param name="StoreId">Leave empty to make the card usable at every store.</param>
+/// <param name="IssuedToCustomerId">Leave empty so anyone can use the card.</param>
 public record IssueGiftCardRequest(
     Guid? StoreId,
     decimal Amount,
     DateTime? ExpiryDate,
-    Guid IssuedToCustomerId,
+    Guid? IssuedToCustomerId,
     string? Notes);
 
 public record ReloadGiftCardRequest(decimal Amount, string? Notes);

@@ -272,7 +272,7 @@ export default function GiftCardsPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
-                    {['Code', 'Customer', 'Valid At', 'Balance', 'Status', 'Expiry', 'Issued', 'Actions'].map((h) => (
+                    {['Code', 'Usable By', 'Valid At', 'Balance', 'Status', 'Expiry', 'Issued', 'Actions'].map((h) => (
                       <th key={h}
                         className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
                         {h}
@@ -296,7 +296,13 @@ export default function GiftCardsPage() {
 
                         {/* Customer */}
                         <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100 whitespace-nowrap">
-                          {c.customerName ?? <span className="text-gray-300 dark:text-gray-600">—</span>}
+                          {c.issuedToCustomerId
+                            ? (c.customerName ?? <span className="text-gray-300 dark:text-gray-600">—</span>)
+                            : (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-sky-50 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300">
+                                Anyone
+                              </span>
+                            )}
                         </td>
 
                         {/* Valid at */}

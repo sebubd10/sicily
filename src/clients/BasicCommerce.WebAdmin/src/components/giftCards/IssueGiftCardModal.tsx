@@ -54,13 +54,13 @@ export function IssueGiftCardModal({ open, onClose }: Props) {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const amt = parseFloat(amount);
-    if (!selectedCustomerId || isNaN(amt) || amt <= 0) return;
+    if (isNaN(amt) || amt <= 0) return;
     issue(
       {
         storeId: storeId || null,
         amount: amt,
         expiryDate: expiryDate || null,
-        issuedToCustomerId: selectedCustomerId,
+        issuedToCustomerId: selectedCustomerId || null,
         notes: notes.trim() || null,
       },
       { onSuccess: handleClose },
@@ -102,10 +102,10 @@ export function IssueGiftCardModal({ open, onClose }: Props) {
               </div>
             )}
 
-            {/* Customer (required) */}
+            {/* Customer (optional) */}
             <div className="relative">
               <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
-                Customer <span className="text-red-400">*</span>
+                Card holder
               </label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
@@ -127,12 +127,15 @@ export function IssueGiftCardModal({ open, onClose }: Props) {
                   <Loader2 className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 animate-spin text-gray-400" />
                 )}
               </div>
-              {selectedCustomerId && (
-                <button type="button" onClick={clearCustomer}
-                  className="text-xs text-violet-600 hover:underline mt-1 block">
-                  Clear selection
-                </button>
-              )}
+              <p className="text-xs text-gray-400 mt-1">
+                {selectedCustomerId
+                  ? <>Only {selectedCustomerName} can use this card.{' '}
+                      <button type="button" onClick={clearCustomer}
+                        className="text-violet-600 hover:underline">Let anyone use it</button></>
+                  : customerSearch
+                    ? 'Pick a customer from the list, or clear the box so anyone can use it.'
+                    : 'Leave empty so anyone can use the card.'}
+              </p>
               {showCustomerDrop && customerSearch.length >= 2 && customers.length > 0 && (
                 <div className="absolute z-20 top-full mt-1 w-full bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg overflow-hidden max-h-40 overflow-y-auto">
                   {customers.map((c) => (
@@ -249,7 +252,7 @@ export function IssueGiftCardModal({ open, onClose }: Props) {
             </div>
 
             {/* Preview */}
-            {amount && parseFloat(amount) > 0 && selectedCustomerId && (
+            {amount && parseFloat(amount) > 0 && (
               <div className="bg-violet-50 dark:bg-violet-900/20 rounded-xl p-3 border border-violet-100 dark:border-violet-800">
                 <p className="text-xs font-semibold text-violet-700 dark:text-violet-300 uppercase tracking-wider mb-1.5">
                   Card Preview
@@ -269,8 +272,8 @@ export function IssueGiftCardModal({ open, onClose }: Props) {
                   </div>
                 )}
                 <div className="flex items-center justify-between text-sm mt-1">
-                  <span className="text-gray-600 dark:text-gray-400">Issued to</span>
-                  <span className="text-gray-700 dark:text-gray-300">{selectedCustomerName}</span>
+                  <span className="text-gray-600 dark:text-gray-400">Usable by</span>
+                  <span className="text-gray-700 dark:text-gray-300">{selectedCustomerName || 'Anyone'}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm mt-1">
                   <span className="text-gray-600 dark:text-gray-400">Valid at</span>
@@ -295,7 +298,7 @@ export function IssueGiftCardModal({ open, onClose }: Props) {
               form="issue-form"
               type="submit"
               onClick={handleSubmit}
-              disabled={isPending || !selectedCustomerId || !amount}
+              disabled={isPending || !amount || (!!customerSearch && !selectedCustomerId)}
               className="flex items-center gap-2 px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white text-sm font-medium transition-colors shadow-sm"
             >
               {isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Gift className="w-3.5 h-3.5" />}
